@@ -113,6 +113,10 @@ ApplicationWindow {
                     tx.executeSql(createMetricValueTable);
                     tx.executeSql(createMusicTable);
                     tx.executeSql(createMeditationTable);
+                    tx.executeSql(createVaccinesTable);
+                    tx.executeSql(createInjectionTable);
+                    tx.executeSql(createRecallTable);
+                    tx.executeSql(createIntervalTable);
                 }
             );
     }
