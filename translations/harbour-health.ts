@@ -46,15 +46,19 @@
 <context>
     <name>MainPage</name>
     <message>
-        <source>Show Page 2</source>
+        <source>About</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>UI Template</source>
+        <source>Health</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Hello Sailors</source>
+        <source>Health App</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>My Profile</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

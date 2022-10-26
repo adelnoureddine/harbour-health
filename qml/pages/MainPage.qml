@@ -17,6 +17,9 @@ Page {
                 text: qsTr("About")
                 onClicked: pageStack.animatorPush(Qt.resolvedUrl("AboutPage.qml"))
             }
+            MenuItem{
+                text: qsTr("My Profile")
+            }
         }
 
         // Tell SilicaFlickable the height of its content.
@@ -37,6 +40,39 @@ Page {
                 text: qsTr("Health App")
                 color: Theme.secondaryHighlightColor
                 font.pixelSize: Theme.fontSizeExtraLarge
+            }
+
+            ButtonLayout{
+                Button{
+                    implicitHeight: 200
+                    text: "Metrics"
+
+                }
+                Button{
+                    implicitHeight: 200
+                    text: "Meditation"
+
+                }
+                Button{
+                    implicitHeight: 200
+                    text: "Vaccines"
+
+                }
+                Button{
+                    implicitHeight: 200
+                    text: "Health condition"
+
+                }
+                Button{
+                    implicitHeight: 200
+                    text: "Nutrition"
+
+                }
+                Button{
+                    implicitHeight: 200
+                    text: "Menstruation"
+
+                }
             }
         }
     }
