@@ -14,14 +14,16 @@ Page {
         // PullDownMenu and PushUpMenu must be declared in SilicaFlickable, SilicaListView or SilicaGridView
         PullDownMenu {
             MenuItem {
-                text: qsTr("About")
-                onClicked: pageStack.animatorPush(Qt.resolvedUrl("AboutPage.qml"))
+                text: qsTr("Add new Data")
+                onClicked: pageStack.animatorPush(Qt.resolvedUrl("AddnewData.qml"))
             }
             MenuItem {
-                text: qsTr("La Nutrition")
-                onClicked: pageStack.animatorPush(Qt.resolvedUrl("Welcomepage.qml"))
+                text: "Consult History"
+                onClicked: pageStack.animatorPush(Qt.resolvedUrl("ConsultHistory.qml"))
             }
         }
+
+
 
         // Tell SilicaFlickable the height of its content.
         contentHeight: column.height
@@ -34,11 +36,11 @@ Page {
             width: page.width
             spacing: Theme.paddingLarge
             PageHeader {
-                title: qsTr("Health")
+                title: qsTr("Graphical Report Consomation")
             }
             Label {
                 x: Theme.horizontalPageMargin
-                text: qsTr("Health App")
+                text: qsTr("Welcome to Nutrition Page")
                 color: Theme.secondaryHighlightColor
                 font.pixelSize: Theme.fontSizeExtraLarge
             }

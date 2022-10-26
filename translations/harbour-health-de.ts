@@ -46,16 +46,35 @@
 <context>
     <name>MainPage</name>
     <message>
-        <source>Show Page 2</source>
-        <translation type="unfinished">Zur Seite 2</translation>
+        <source>About</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>UI Template</source>
-        <translation type="unfinished">UI-Vorlage</translation>
+        <source>Health</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Hello Sailors</source>
-        <translation type="unfinished">Hallo Matrosen</translation>
+        <source>Health App</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>La Nutritionhh</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>Welcomepage</name>
+    <message>
+        <source>Add new Data</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Graphical Report Consomation</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Welcometo Nutrition Pageihihih</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 </TS>
