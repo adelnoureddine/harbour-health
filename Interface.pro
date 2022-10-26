@@ -27,7 +27,14 @@ DISTFILES += qml/Interface.qml \
     qml/pages/MyProfile.qml \
     qml/pages/NewProfile.qml \
     qml/pages/about.qml \
+    qml/pages/arm.qml \
+    qml/pages/calf.qml \
+    qml/pages/chest.qml \
     qml/pages/height.qml \
+    qml/pages/hip.qml \
+    qml/pages/neck.qml \
+    qml/pages/thigh.qml \
+    qml/pages/weight.qml \
     rpm/Interface.changes.in \
     rpm/Interface.changes.run.in \
     rpm/Interface.spec \

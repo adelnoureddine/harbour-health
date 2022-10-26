@@ -10,9 +10,8 @@ Page {
     SilicaFlickable {
         anchors.fill: parent
         PageHeader {
-            title: qsTr("Height")
+            title: qsTr("Calf")
         }
-
 
     }
 }

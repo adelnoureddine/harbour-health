@@ -117,4 +117,60 @@
         <translation type="unfinished"></translation>
     </message>
 </context>
+<context>
+    <name>arm</name>
+    <message>
+        <source>Arm</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>calf</name>
+    <message>
+        <source>Calf</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>chest</name>
+    <message>
+        <source>Chest</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>height</name>
+    <message>
+        <source>Height</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>hip</name>
+    <message>
+        <source>Hip</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>neck</name>
+    <message>
+        <source>Neck</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>thigh</name>
+    <message>
+        <source>Thigh</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>weight</name>
+    <message>
+        <source>Weight</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
 </TS>
