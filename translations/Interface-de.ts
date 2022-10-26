@@ -2,6 +2,41 @@
 <!DOCTYPE TS>
 <TS version="2.1">
 <context>
+    <name>AboutPage</name>
+    <message>
+        <source>Health</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Health is a health and fitness tracker</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Maintainer and Current Developer</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Adel Noureddine © 2022</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Initial Authors</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Source Code</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Licensed under the GNU GPL 3 license only (GPL-3.0-only)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>View source code on GitLab</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>Change</name>
     <message>
         <source>New Profile</source>
@@ -20,6 +55,21 @@
     </message>
 </context>
 <context>
+    <name>MainPage</name>
+    <message>
+        <source>About</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Health</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Health App</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>Menu</name>
     <message>
         <source>My Profile</source>
@@ -28,14 +78,6 @@
     <message>
         <source>About</source>
         <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>UI Template</source>
-        <translation type="unfinished">UI-Vorlage</translation>
-    </message>
-    <message>
-        <source>Hello Sailors</source>
-        <translation type="unfinished">Hallo Matrosen</translation>
     </message>
 </context>
 <context>
@@ -59,10 +101,6 @@
 </context>
 <context>
     <name>NewProfile</name>
-    <message>
-        <source>New Profile</source>
-        <translation type="unfinished"></translation>
-    </message>
     <message>
         <source>Menu</source>
         <translation type="unfinished"></translation>

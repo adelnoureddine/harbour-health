@@ -28,20 +28,29 @@ Page {
 
         // Place our content in a Column.  The PageHeader is always placed at the top
         // of the page, followed by our content.
-        Column {
-            id: column
 
-            width: page.width
-            spacing: Theme.paddingLarge
-            PageHeader {
-                title: qsTr("UI Template")
+
+            ButtonLayout {
+                Button {
+                    text: "Metrics"
+                    onClicked: pageStack.animatorPush(Qt.resolvedUrl("Metrics.qml"))
+                }
+                Button {
+                    text: "Meditation"
+                }
+                Button {
+                    text: "Vaccines"
+                }
+                Button {
+                    text: "Health condition"
+                }
+                Button {
+                    text: "Nutrition"
+                }
+                Button {
+                    text: "Menstruation"
+                }
             }
-            Label {
-                x: Theme.horizontalPageMargin
-                text: qsTr("Hello Sailors")
-                color: Theme.secondaryHighlightColor
-                font.pixelSize: Theme.fontSizeExtraLarge
-            }
-        }
+
     }
 }

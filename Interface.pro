@@ -23,9 +23,11 @@ DISTFILES += qml/Interface.qml \
     qml/pages/Edit \
     qml/pages/Edit.qml \
     qml/pages/Menu.qml \
+    qml/pages/Metrics.qml \
     qml/pages/MyProfile.qml \
     qml/pages/NewProfile.qml \
     qml/pages/about.qml \
+    qml/pages/height.qml \
     rpm/Interface.changes.in \
     rpm/Interface.changes.run.in \
     rpm/Interface.spec \
