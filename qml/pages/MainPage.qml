@@ -19,6 +19,7 @@ Page {
             }
             MenuItem{
                 text: qsTr("My Profile")
+                onClicked: pageStack.animatorPush(Qt.resolvedUrl("infosProfile.qml"))
             }
         }
 
