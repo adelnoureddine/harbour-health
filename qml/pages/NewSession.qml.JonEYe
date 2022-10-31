@@ -1,0 +1,51 @@
+import QtQuick 2.0
+import Sailfish.Silica 1.0
+
+Page {
+    id: newSession
+    allowedOrientations: Orientation.All
+
+    Column{
+        /*
+        Button {
+             id: button
+             text: "Choose a time"
+
+             onClicked: {
+                 var dialog = pageStack.push("Sailfish.Silica.TimePickerDialog", {
+                     hour: 13,
+                     minute: 30,
+                     hourMode: DateTime.TwelveHours
+                 })
+                 dialog.accepted.connect(function() {
+                     button.text = "You chose: " + dialog.timeText
+                 })
+             }
+         }
+        */
+        Item{
+            anchors.horizontalCenter: Parent
+            width:timePicker.width
+            height: timePicker.height
+            TimePicker{
+                id: timePicker
+                hour: 13
+                minute: 30
+                hourMode: DateTime.TwentyFourHours
+            }
+            Label{
+                text: timePicker.timeText
+                anchors.centerIn: parent
+            }
+
+        }
+
+
+
+
+
+
+    }
+
+
+}

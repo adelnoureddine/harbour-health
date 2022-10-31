@@ -1,11 +1,17 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
 
+
+
+
 Page {
     id: meditation_menu
     allowedOrientations: Orientation.All
 
-
+    function getFavoriteSession(){
+        //database access ...
+        session = "Favorite Session"
+    }
 
     Column{
         width: page.width
@@ -19,12 +25,17 @@ Page {
             rowSpacing : 100
             Button{
                 text: qsTr("        Favorite session        ")
-                //get the favorite settings in variable first
+                //get the favorite settings from database first
                 //property ...
                 //property ...
-                onClicked: pageStack.animatorPush(Qt.resolvedUrl("NewSession.qml"))
+
+                onClicked: {
+                    getFavoriteSession()
+                    pageStack.animatorPush(Qt.resolvedUrl("NewSession.qml"))
+                }
             }
             Button{
+
                 text: qsTr("New session")
                 onClicked: pageStack.animatorPush(Qt.resolvedUrl("NewSession.qml"))
             }
