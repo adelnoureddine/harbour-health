@@ -59,9 +59,21 @@
     </message>
 </context>
 <context>
-    <name>Meditation_menu</name>
+    <name>MeditationMenu</name>
     <message>
-        <source>test</source>
+        <source>Meditation</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>        Favorite session        </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>New session</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>session history</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

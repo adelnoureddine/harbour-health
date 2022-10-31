@@ -40,7 +40,7 @@ Page {
             }
             Button{
                 text: "test"
-                onClicked: pageStack.animatorPush(Qt.resolvedUrl("Meditation_menu.qml"))
+                onClicked: pageStack.animatorPush(Qt.resolvedUrl("MeditationMenu.qml"))
             }
         }
     }
