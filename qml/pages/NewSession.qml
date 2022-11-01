@@ -1,5 +1,6 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
+import QtMultimedia 5.0 //used to play music
 
 Page {
     id: newSession
@@ -47,12 +48,13 @@ Page {
         Row{
             width: parent.width
 
-            IconComboBox {
+            IconComboBox { //maybe change with musicPicker; need import
                 id: musicSelection
                 icon.source: "image://theme/icon-m-music"
                 label: "Musics"
                 width: parent.width / 1.5
                 menu: ContextMenu {
+                    //change with data from database
                     MenuItem {text: "option a"}
                     MenuItem { text: "sdfqsdfsqdfqsdfqsfqsdf"}
                     MenuItem { text: "option c" }
@@ -86,11 +88,28 @@ Page {
                         //register session in database
                     }
 
-                    this.icon.source = this.icon.source == "image://theme/icon-l-play" ? "image://theme/icon-l-pause" : "image://theme/icon-l-play"
+                    //State change
+                    music.playing = !music.playing
+                    this.icon.source = music.playing ? "image://theme/icon-l-pause" : "image://theme/icon-l-play"
 
-                    console.log("play")
-                    //play/pause music ; launch/pause chronometer
+                    //play/pause music
+                    if(music.playing){
+                        music.play()
+                        console.log("play " + music.source + " for " + timePicker.hour + " hours and " + timePicker.minute + " minutes")
+                    }else{
+                        music.pause()
+                    }
+
+
+                    //launch/pause chronometer
                 }
+            }
+
+            //audio player
+            Audio{//maybe change with MediaPlayer
+                property bool playing: false
+                id: music
+                source: musicSelection.value
             }
         }
     }
