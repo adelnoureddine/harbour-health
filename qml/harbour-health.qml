@@ -23,8 +23,9 @@ ApplicationWindow {
                                     lastname VARCHAR(30) NOT NULL,
                                     gender CHAR(1) NOT NULL,
                                     birthday DATE NOT NULL,
-                                    PRIMARY KEY(user_id)
+                                    PRIMARY KEY(id_profile)
                                  );";
+
         //Metrics
         var createMetricsTable = "CREATE TABLE IF NOT EXISTS Metrics(
                                     id_metric INTEGER NOT NULL,
@@ -39,8 +40,8 @@ ApplicationWindow {
                                     date_metric DATE NOT NULL,
                                     value_metric INTEGER NOT NULL,
                                     PRIMARY KEY(id_profile, id_metric),
-                                    FOREIGN KEY(id_profile) REFERENCE Profile(id_profile),
-                                    FOREIGN KEY(id_metric) REFERENCE Metrics(id_metric)
+                                    FOREIGN KEY(id_profile) REFERENCES Profiles(id_profile),
+                                    FOREIGN KEY(id_metric) REFERENCES Metrics(id_metric)
                                   );";
 
         //MEDITATION
@@ -57,8 +58,8 @@ ApplicationWindow {
                                         meditation_date DATE NOT NULL,
                                         duration TIME NOT NULL,
                                         PRIMARY KEY(id_profile, id_music),
-                                        FOREIGN KEY(id_profile) REFERENCE Profile(id_profile),
-                                        FOREIGN KEY(id_music) REFERENCE Musics(id_music)
+                                        FOREIGN KEY(id_profile) REFERENCES Profiles(id_profile),
+                                        FOREIGN KEY(id_music) REFERENCES Musics(id_music)
                                      );";
 
         //VACCINES
@@ -74,26 +75,23 @@ ApplicationWindow {
                                         id_vaccine INTEGER NOT NULL,
                                         injection_date DATE NOT NULL,
                                         PRIMARY KEY(id_profile, id_vaccine),
-                                        FOREIGN KEY(id_profile) REFERENCE Profile(id_profile),
-                                        FOREIGN KEY(id_vaccine) REFERENCE Vaccines(id_vaccine)
+                                        FOREIGN KEY(id_profile) REFERENCES Profiles(id_profile),
+                                        FOREIGN KEY(id_vaccine) REFERENCES Vaccines(id_vaccine)
                                      );";
-
-        var createHave_intervalTable = "CREATE TABLE IF NOT EXISTS Injection(
-                                        id_vaccine INTEGER NOT NULL,
-                                        id_interval INTEGER NOT NULL,
-                                        PRIMARY KEY(id_vaccine, id_interval),
-                                        FOREIGN KEY(id_vaccine) REFERENCE Vaccines(id_vaccine),
-                                        FOREIGN KEY(id_interval) REFERENCE Vaccine_interval(id_interval)
-                                     );";
-
 
         var createVaccine_intervalTable = "CREATE TABLE IF NOT EXISTS Interval(
                                         id_interval INTEGER NOT NULL,
+                                        id_vaccine INTEGER NOT NULL,
                                         recall_number INTEGER NOT NULL,
                                         recall_month INTEGER NOT NULL,
                                         PRIMARY KEY(id_interval),
-
+                                        FOREIGN KEY (id_vaccine) REFERENCES Vaccines(id_vaccine)
                                      );";
+
+
+
+
+
 
         //HEALTH CONDITION
         var createXXTable = "CREATE TABLE IF NOT EXISTS XX";
