@@ -18,8 +18,10 @@ SOURCES += src/harbour-health.cpp
 
 DISTFILES += qml/harbour-health.qml \
     qml/cover/CoverPage.qml \
-    qml/pages/AboutPage.qml \
     qml/pages/MainPage.qml \
+    qml/pages/createProfile.qml \
+    qml/pages/deleteProfile.qml \
+    qml/pages/infosProfile.qml \
     rpm/harbour-health.changes.in \
     rpm/harbour-health.changes.run.in \
     rpm/harbour-health.spec \
