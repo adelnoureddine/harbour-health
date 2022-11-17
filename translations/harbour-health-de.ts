@@ -34,31 +34,23 @@
 <context>
     <name>deleteProfile</name>
     <message>
-        <source>Afficher profil</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Créer un profil</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Changer de profil</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Modifier le profil</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>Supprimer le profil</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Profil</source>
+        <source> First Name : </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Supprimez le profil</source>
+        <source> Last Name : </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source> Gender : </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source> Birthday : </source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -81,19 +73,19 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>First Name</source>
+        <source> First Name : </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Second Name</source>
+        <source> Last Name : </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Gender</source>
+        <source> Gender : </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Birthday</source>
+        <source> Birthday : </source>
         <translation type="unfinished"></translation>
     </message>
 </context>
