@@ -9,16 +9,11 @@ Page {
     property string user_lastname;
     property string user_gender;
     property string user_birthday;
-    property int user_id;
+
+    property string user_id;
+    property Page previousPageID;
 
 
-
-    function load(){
-        setFirstname()
-        setLastname()
-        setGender()
-        setBirthday()
-    }
 
 
 
@@ -26,11 +21,9 @@ Page {
         var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
         db.transaction(
             function(tx){
-                var rs = tx.executeSql('SELECT * FROM Profiles') // MANQUE LE WHERE = ID PROFILE
+                var rs = tx.executeSql('SELECT * FROM Profiles WHERE id_profile=?',[user_id]) // MANQUE LE WHERE = ID PROFILE
                 if(rs.rows.length > 0){
-                    user_firstname = rs.rows.item(user_id+1).firstname;
-                    print(user_firstname)
-                    print(rs.rows.item(1).id_profile)
+                   user_firstname = rs.rows.item(0).firstname;
                 }
                 print("taille : " +rs.rows.length)
             }
@@ -40,10 +33,10 @@ Page {
         var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
         db.transaction(
             function(tx){
-                var rs = tx.executeSql('SELECT * FROM Profiles') // MANQUE LE WHERE = ID PROFILE
+                var rs = tx.executeSql('SELECT * FROM Profiles WHERE id_profile=?',[user_id]) // MANQUE LE WHERE = ID PROFILE
                 if(rs.rows.length > 0){
                     user_lastname = rs.rows.item(0).lastname;
-                    print(user_lastname)
+                    print(user_id);
                 }
             }
         )
@@ -52,10 +45,9 @@ Page {
         var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
         db.transaction(
             function(tx){
-                var rs = tx.executeSql('SELECT * FROM Profiles') // MANQUE LE WHERE = ID PROFILE
+                var rs = tx.executeSql('SELECT * FROM Profiles WHERE id_profile=?',[user_id]) // MANQUE LE WHERE = ID PROFILE
                 if(rs.rows.length > 0){
                     user_gender = rs.rows.item(0).gender;
-                    print(user_gender)
                 }
             }
         )
@@ -65,10 +57,9 @@ Page {
         var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
         db.transaction(
             function(tx){
-                var rs = tx.executeSql('SELECT * FROM Profiles') // MANQUE LE WHERE = ID PROFILE
+                var rs = tx.executeSql('SELECT * FROM Profiles WHERE id_profile=?',[user_id]) // MANQUE LE WHERE = ID PROFILE
                 if(rs.rows.length > 0){
                     user_birthday = rs.rows.item(0).birthday;
-                    print(user_birthday)
                 }
             }
         )
@@ -174,8 +165,13 @@ Page {
             }
         }
         Component.onCompleted:{
-                        load()
+            previousPageID =previousPage()
+            user_id=previousPageID.user_id
 
+            setFirstname()
+            setLastname()
+            setGender()
+            setBirthday()
         }
 
     }
