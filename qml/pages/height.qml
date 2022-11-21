@@ -9,6 +9,23 @@ Page {
 
     SilicaFlickable {
         anchors.fill: parent
+
+        PullDownMenu {
+            MenuItem {
+                text: qsTr("Add an entry")
+                onClicked: pageStack.animatorPush(Qt.resolvedUrl("MyProfile.qml"))
+            }
+            MenuItem {
+                text: qsTr("Delete All")
+
+            }
+            MenuItem {
+                text: qsTr("Menu")
+                onClicked: pageStack.animatorPush(Qt.resolvedUrl("Menu.qml"))
+            }
+        }
+
+
         PageHeader {
             title: qsTr("Height")
         }

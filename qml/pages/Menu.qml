@@ -40,6 +40,7 @@ Page {
                 }
                 Button {
                     text: "Vaccines"
+                    onClicked: pageStack.animatorPush(Qt.resolvedUrl("Vaccines.qml"))
                 }
                 Button {
                     text: "Health condition"

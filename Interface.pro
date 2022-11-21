@@ -18,14 +18,27 @@ SOURCES += src/Interface.cpp
 
 DISTFILES += qml/Interface.qml \
     qml/cover/CoverPage.qml \
+    qml/pages/BCG.qml \
     qml/pages/Change.qml \
+    qml/pages/Coqueluche.qml \
+    qml/pages/DTP.qml \
     qml/pages/Delete.qml \
     qml/pages/Edit \
     qml/pages/Edit.qml \
+    qml/pages/Grippe.qml \
+    qml/pages/HIB.qml \
+    qml/pages/HPV.qml \
+    qml/pages/HepatiteB.qml \
+    qml/pages/MeningocoqueB.qml \
+    qml/pages/MeningocoqueC.qml \
     qml/pages/Menu.qml \
     qml/pages/Metrics.qml \
     qml/pages/MyProfile.qml \
     qml/pages/NewProfile.qml \
+    qml/pages/Pneumocoque.qml \
+    qml/pages/ROR.qml \
+    qml/pages/Vaccines.qml \
+    qml/pages/Zona.qml \
     qml/pages/about.qml \
     qml/pages/arm.qml \
     qml/pages/calf.qml \

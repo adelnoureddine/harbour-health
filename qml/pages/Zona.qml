@@ -12,13 +12,10 @@ Page {
 
         PullDownMenu {
             MenuItem {
-                text: qsTr("Add an entry")
+                text: qsTr("Add an Vaccine")
                 onClicked: pageStack.animatorPush(Qt.resolvedUrl("MyProfile.qml"))
             }
-            MenuItem {
-                text: qsTr("Delete All")
 
-            }
             MenuItem {
                 text: qsTr("Menu")
                 onClicked: pageStack.animatorPush(Qt.resolvedUrl("Menu.qml"))
@@ -26,9 +23,8 @@ Page {
         }
 
 
-
         PageHeader {
-            title: qsTr("Weight")
+            title: qsTr("Zona")
         }
 
 
