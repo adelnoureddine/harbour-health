@@ -1,6 +1,7 @@
 import QtQuick 2.6
 import Sailfish.Silica 1.0
 import QtQuick.LocalStorage 2.0
+import "../utils.js" as WtUtils
 
 Dialog {
     id: dialog
@@ -26,13 +27,16 @@ Dialog {
                     else{
                         code = (rs.rows.item(0).id_profile) + 1;
                     }
-                    tx.executeSql('INSERT INTO Profiles VALUES (?,?,?,?,?)',[code,firstnameField.text,secondnameField.text,genderField.currentItem.text,birthdayField.value]);
+                   tx.executeSql('INSERT INTO Profiles VALUES (?,?,?,?,?)',[code,firstnameField.text,secondnameField.text,genderField.currentItem.text,birthdayField.value]);
+                   tx.executeSql('UPDATE SETTINGS set USER_ID=(?)',[code]);
 
                     user_id=code;
                 }
             )
         }
     }
+
+
     SilicaFlickable {
         anchors.fill: parent
         contentHeight: column.height

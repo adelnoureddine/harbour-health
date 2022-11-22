@@ -1,6 +1,7 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
 import QtQuick.LocalStorage 2.0
+import "../utils.js" as WtUtils
 
 Dialog {
     id: dialog
@@ -10,7 +11,6 @@ Dialog {
     property string user_gender;
     property string user_birthday;
     property string user_id;
-    property Page rootPage;
 
     onAcceptPendingChanged: {
         if (acceptPending) {
@@ -50,7 +50,7 @@ Dialog {
         var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
         db.transaction(
             function(tx){
-                var rs = tx.executeSql('SELECT * FROM Profiles') // MANQUE LE WHERE = ID PROFILE
+                var rs = tx.executeSql('SELECT * FROM Profiles WHERE id_profile') // MANQUE LE WHERE = ID PROFILE
                 if(rs.rows.length > 0){
                     user_lastname = rs.rows.item(0).lastname;
                     print(user_lastname)
@@ -168,6 +168,8 @@ Dialog {
             }
         }
         Component.onCompleted:{
+            user_id = WtUtils.getLastUser()
+            print("id de l'user actif : " + user_id)
                         load()
 
         }

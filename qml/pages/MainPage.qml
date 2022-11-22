@@ -1,14 +1,15 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
 import QtQuick.LocalStorage 2.0
+import "../utils.js" as WtUtils
+
 
 Page {
     id: page
-    property Page previousPageID;
+
     property variant usercodes: []
-
+    property string usernewID;
     property variant nameProfiles: []
-
 
     property int numberProfile;
     property string user_id;
@@ -24,24 +25,15 @@ Page {
             }
         )
     }
-    function setLID (){
-        user_id=btnID.text;
-        print(user_id);
-    }
-    function setUserID (){
+    function setLID (val){
+        usernewID = val
         var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
-        db.transaction(
-            function(tx){
-                var rs = tx.executeSql('SELECT * FROM Profiles')
-                    if(user_id==null){
-                        user_id=0
-                    }else{
-                        user_id = rs.rows.item(0).id_profile;
-                        print(user_id)
-                    }
-            }
-        )
+                db.transaction(
+                    function(tx){
+                        tx.executeSql('UPDATE SETTINGS SET USER_ID=? WHERE USER_ID=?',[usernewID,user_id]);
+                    })
     }
+
 
     function remplirListeUser() {
         var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
@@ -51,9 +43,6 @@ Page {
                 for(var i =0; i< rs.rows.length;i++){
                     nameProfiles[i]= rs.rows.item(i).firstname;
                     usercodes[i]=rs.rows.item(i).id_profile;
-                    print(nameProfiles[i]);
-                    print(usercodes[i]);
-
                 }
             }
         )
@@ -102,22 +91,25 @@ Page {
                 Button {
                     id:btnID
                     onClicked: {
-                        setLID();
+
+                        setLID(btnID.text);
                     }
                     x: Theme.horizontalPageMargin
-                    text: nameProfiles[1]
+                    text: "2"
+
 
                 }
             }
         }
     }
-    Component.onCompleted:{
-        nbrProfile()
-        setUserID ()
-        remplirListeUser()
-        print("id user: "+user_id);
-        print("nbr profil : " + numberProfile);
-        print(nameProfiles[1])
 
+    Component.onCompleted:{
+        user_id = WtUtils.getLastUser()
+
+        nbrProfile()
+        remplirListeUser()
+        print("id user: "+ usercodes[user_id-1]);
+        print("nbr profil total : " + numberProfile);
+        print("nom du profil : " + nameProfiles[user_id-1]);
     }
 }

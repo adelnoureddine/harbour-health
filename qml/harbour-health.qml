@@ -10,13 +10,37 @@ ApplicationWindow {
     cover: Qt.resolvedUrl("cover/CoverPage.qml")
     allowedOrientations: defaultAllowedOrientations
 
+
+
+    property string user_id;
+
     Component.onCompleted: {
         initDatabase();
+    createLastUser();
+
+    }
+
+
+    function createLastUser() {
+        var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
+
+        var createUsersTable = 'CREATE TABLE IF NOT EXISTS SETTINGS(
+                                    USER_ID INTEGER NOT NULL,
+                                    PRIMARY KEY(USER_ID)
+                                 );';
+        db.transaction(
+            function(tx){
+                tx.executeSql(createUsersTable);
+            }
+        )
     }
 
     function initDatabase() {
         var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
         //PROFILE
+
+
+
         var createProfilesTable = "CREATE TABLE IF NOT EXISTS Profiles(
                                     id_profile INTEGER NOT NULL,
                                     firstname VARCHAR(30) NOT NULL,
@@ -25,6 +49,7 @@ ApplicationWindow {
                                     birthday DATE NOT NULL,
                                     PRIMARY KEY(id_profile)
                                  );";
+
 
         //Metrics
         var createMetricsTable = "CREATE TABLE IF NOT EXISTS Metrics(

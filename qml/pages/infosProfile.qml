@@ -1,6 +1,7 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
 import QtQuick.LocalStorage 2.0
+import "../utils.js" as WtUtils
 
 Page {
     id: page
@@ -9,6 +10,7 @@ Page {
     property string user_lastname;
     property string user_gender;
     property string user_birthday;
+
 
     property string user_id;
     property Page previousPageID;
@@ -25,7 +27,6 @@ Page {
                 if(rs.rows.length > 0){
                    user_firstname = rs.rows.item(0).firstname;
                 }
-                print("taille : " +rs.rows.length)
             }
         )
     }
@@ -165,8 +166,9 @@ Page {
             }
         }
         Component.onCompleted:{
-            previousPageID =previousPage()
-            user_id=previousPageID.user_id
+
+            user_id = WtUtils.getLastUser()
+            print("id de l'user actif : " + user_id)
 
             setFirstname()
             setLastname()
