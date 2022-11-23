@@ -13,7 +13,7 @@ Page {
         PullDownMenu {
             MenuItem {
                 text: qsTr("Add an entry")
-                onClicked: pageStack.animatorPush(Qt.resolvedUrl("MyProfile.qml"))
+
             }
             MenuItem {
                 text: qsTr("Delete All")

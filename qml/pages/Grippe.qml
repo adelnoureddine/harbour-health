@@ -13,7 +13,7 @@ Page {
         PullDownMenu {
             MenuItem {
                 text: qsTr("Add an Vaccine")
-                onClicked: pageStack.animatorPush(Qt.resolvedUrl("MyProfile.qml"))
+
             }
 
             MenuItem {
