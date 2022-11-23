@@ -2,12 +2,14 @@ import QtQuick 2.0
 import Sailfish.Silica 1.0
 import QtMultimedia 5.0 //used to play music
 import QtQml 2.0
+import Sailfish.Pickers 1.0
 
 
 Page {
     id: newSession
     allowedOrientations: Orientation.All
     property bool running: false
+    property string selectedMusicFile
 
     PageHeader{
         title:  session
@@ -37,13 +39,26 @@ Page {
             }
             Label{
                 id: monTimer
-                text: timePicker.hour + " : " + timePicker.minute
+                text: { //Display time -> hh:mm
+                    var hour = timePicker.hour
+                    var minute = timePicker.minute
+                    var string = ""
+
+                    hour<10 ? string += "0" : ""
+                    string += hour + ":"
+                    minute<10 ? string += "0" : ""
+                    string += minute
+                    //console.log(string)
+                    return string
+            }
+
                 anchors.centerIn: parent //Put the label in the center of the timePicker
                 font.pixelSize: Theme.fontSizeHuge
             }
 
         }
 
+        //Register or not the session in database when starting session
         TextSwitch{
             id: registerButton
             text: "Register"
@@ -52,48 +67,37 @@ Page {
         Row{
             width: parent.width
 
-            IconComboBox { //maybe change with musicPicker; need import
-                id: musicSelection
-                icon.source: "image://theme/icon-m-music"
-                label: "Musics"
-                width: parent.width / 1.5
-                menu: ContextMenu {
-                    //change with data from database
-                    MenuItem {text: "option a"}
-                    MenuItem { text: "sdfqsdfsqdfqsdfqsfqsdf"}
-                    MenuItem { text: "option c" }
-                    MenuItem { text: "option d" }
-                    MenuItem { text: "option e" }
-                    MenuItem { text: "option f" }
-                    MenuItem { text: "option g" }
-                    MenuItem { text: "option h" }
-                    MenuItem { text: "option i" }
-                    MenuItem { text: "option j" }
-                    MenuItem { text: "option k" }
-                    MenuItem { text: "option l" }
-                    MenuItem { text: "option m" }
-                    MenuItem { text: "option n" }
-                    MenuItem { text: "option o" }
-                    MenuItem { text: "option p" }
-                    MenuItem { text: "option q" }
-                    MenuItem { text: "option r" }
-                    MenuItem { text: "option s" }
-                    MenuItem { text: "option t" }
-                }
+            Icon{
+                source: "image://theme/icon-m-music"
             }
 
-            IconButton{
+            ValueButton { //Song selector
+                id: songSelector
+                label: "Song"
+                value: selectedMusicFile ? selectedMusicFile : "None"
+                width: parent.width / 2
+                onClicked: pageStack.push(musicPickerPage)
+            }
+
+            IconButton{ //Play/pause button
                 id: play_pause_button
                 icon.source: "image://theme/icon-l-play"
-                y: musicSelection.y + musicSelection.height / 2 - this.height/2
-
                 onClicked: function (){
                     if(registerButton.checked){
                         console.log("register")
                         //register session in database
                     }
                     updateState()
+                }
+            }
 
+            //Song selector component
+            Component {
+                id: musicPickerPage
+                MusicPickerPage {
+                    onSelectedContentPropertiesChanged: {
+                        page.selectedMusicFile = selectedContentProperties.filePath
+                    }
                 }
             }
 
@@ -103,13 +107,10 @@ Page {
                 onTriggered: {
                     if(timePicker.minute == 0 && timePicker.hour == 0){
                         updateState()
-                    }
-
-                    if(timePicker.minute == 0 && timePicker.hour>0){
+                    }else if(timePicker.minute == 0 && timePicker.hour>0){
                         timePicker.hour -= 1
                         timePicker.minute = 60
                     }
-
                     timePicker.minute -= 1
                 }
             }
@@ -117,18 +118,21 @@ Page {
             //audio player
             Audio{//maybe change with MediaPlayer
                 id: music
-                source: musicSelection.value
-            }
+                source: songSelector.value
+            } 
         }
     }
 
+
+    //Alternate between pause/play for function of different component
     function updateState(){
         //State change
         running = !running
 
+        //Change the button Icon
         play_pause_button.icon.source = running ? "image://theme/icon-l-pause" : "image://theme/icon-l-play"
 
-        //play/pause music
+        //play/pause music and timer
         if(running){
             music.play()
             console.log("play " + music.source + " for " + timePicker.hour + " hours and " + timePicker.minute + " minutes")
