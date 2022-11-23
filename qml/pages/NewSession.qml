@@ -1,6 +1,8 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
 import QtMultimedia 5.0 //used to play music
+import QtQml 2.0
+
 
 Page {
     id: newSession
@@ -33,7 +35,8 @@ Page {
                 onRotationChanged: console.log("test")
             }
             Label{
-                text: timePicker.timeText
+                id: monTimer
+                text: timePicker.hour + " : " + timePicker.minute
                 anchors.centerIn: parent //Put the label in the center of the timePicker
                 font.pixelSize: Theme.fontSizeHuge
             }
@@ -96,12 +99,31 @@ Page {
                     if(music.playing){
                         music.play()
                         console.log("play " + music.source + " for " + timePicker.hour + " hours and " + timePicker.minute + " minutes")
+                        test.running = true
                     }else{
                         music.pause()
+                        test.running = false
                     }
 
 
                     //launch/pause chronometer
+                }
+            }
+
+            Timer{
+                id: test
+                interval: 1000; repeat: true
+                onTriggered: {
+                    if(timePicker.minute == 0 && timePicker.hour == 0){
+                        music.playing = false
+                    }
+
+                    if(timePicker.minute == 0 && timePicker.hour>0){
+                        timePicker.hour -= 1
+                        timePicker.minute = 60
+                    }
+
+                    timePicker.minute -= 1
                 }
             }
 
