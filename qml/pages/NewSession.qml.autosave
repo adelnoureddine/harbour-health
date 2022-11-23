@@ -109,7 +109,6 @@ Page {
                         timePicker.hour -= 1
                         timePicker.minute = 60
                     }
-
                     timePicker.minute -= 1
                 }
             }
