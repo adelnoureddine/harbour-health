@@ -19,6 +19,11 @@ SOURCES += src/harbour-health.cpp
 DISTFILES += qml/harbour-health.qml \
     qml/cover/CoverPage.qml \
     qml/pages/AboutPage.qml \
+    qml/pages/AddAndEditIllness.qml \
+    qml/pages/AddAndEditMedication.qml \
+    qml/pages/ConsultIllness.qml \
+    qml/pages/ConsultMedication.qml \
+    qml/pages/MainHealthCondition.qml \
     qml/pages/MainPage.qml \
     rpm/harbour-health.changes.in \
     rpm/harbour-health.changes.run.in \

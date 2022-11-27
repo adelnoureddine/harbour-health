@@ -37,6 +37,38 @@
     </message>
 </context>
 <context>
+    <name>AddAndEditIllness</name>
+    <message>
+        <source>Illness list</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>AddAndEditMedication</name>
+    <message>
+        <source>Medication list</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>ConsultIllness</name>
+    <message>
+        <source>Illness list</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Add medication</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>ConsultMedication</name>
+    <message>
+        <source>Medication list</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>CoverPage</name>
     <message>
         <source>My Cover</source>
@@ -44,18 +76,33 @@
     </message>
 </context>
 <context>
+    <name>MainHealthCondition</name>
+    <message>
+        <source>All illness data</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source> Add illness</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>MainPage</name>
     <message>
-        <source>Show Page 2</source>
-        <translation type="unfinished">Zur Seite 2</translation>
+        <source>About</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>UI Template</source>
-        <translation type="unfinished">UI-Vorlage</translation>
+        <source>Gestion de santé</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Hello Sailors</source>
-        <translation type="unfinished">Hallo Matrosen</translation>
+        <source>Health</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Health App</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 </TS>
