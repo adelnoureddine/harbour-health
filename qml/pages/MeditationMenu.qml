@@ -41,7 +41,7 @@ Page {
             }
             Button{
                 text: qsTr("session history")
-                onClicked: pageStack.animatorPush(Qt.resolvedUrl("SessionHistory.qml"))
+                onClicked: pageStack.animatorPush(Qt.resolvedUrl("History.qml"))
             }
         }
     }
