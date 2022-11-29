@@ -59,6 +59,17 @@
     </message>
 </context>
 <context>
+    <name>VaccineDetails</name>
+    <message>
+        <source>Update</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Menu</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>VaccinesList</name>
     <message>
         <source>Add a vaccine</source>

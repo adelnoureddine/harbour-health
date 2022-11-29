@@ -33,9 +33,9 @@ Page {
                 remorseDelete(function() { listModel.remove(index) })
             }
 
-            onClicked: {
-                pageStack.animatorPush(Qt.resolvedUrl("VaccineDetails.qml"))
-            }
+            onClicked: pageStack.animatorPush(Qt.resolvedUrl("VaccineDetails.qml"))
+
+
 
 
             menu: Component {
