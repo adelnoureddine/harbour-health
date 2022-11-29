@@ -37,6 +37,31 @@
     </message>
 </context>
 <context>
+    <name>AddnewData</name>
+    <message>
+        <source>Consult History</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Daily Information</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>Consul-Jour</name>
+    <message>
+        <source>Modification</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>ConsultHistory</name>
+    <message>
+        <source>Edit Information</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>CoverPage</name>
     <message>
         <source>My Cover</source>
@@ -58,7 +83,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>La Nutritionhh</source>
+        <source>La Nutrition</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -73,7 +98,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Welcometo Nutrition Pageihihih</source>
+        <source>Welcome to Nutrition Page</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

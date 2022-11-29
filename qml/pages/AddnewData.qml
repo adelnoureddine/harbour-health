@@ -7,6 +7,21 @@ Dialog {
     // The effective value will be restricted by ApplicationWindow.allowedOrientations
    // allowedOrientations: Orientation.All
 
+
+
+    // PullDownMenu and PushUpMenu must be declared in SilicaFlickable, SilicaListView or SilicaGridView
+    PullDownMenu {
+        MenuItem {
+            text: qsTr("Consult History")
+            onClicked: pageStack.animatorPush(Qt.resolvedUrl("ConsultHistory.qml"))
+        }
+        MenuItem {
+            text: qsTr("Daily Information")
+            onClicked: pageStack.animatorPush(Qt.resolvedUrl("Consul-Jour.qml"))
+        }
+    }
+
+
     SilicaListView
        {
             anchors.fill: parent
@@ -43,48 +58,10 @@ Dialog {
                     width:parent.width/2
                 }
 
-             /*   Button {
-                    text: 'Add Data'
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    enabled:metricField.acceptableInput
-                    onClicked: addMetric(metricField.text)
-                */
+
             }
         }
 }
 
 
-/*
-{
-        anchors.fill: parent
-        contentHeight: column.height
-
-        Column {
-            id: column
-            width: parent.width
-            spacing: Theme.paddingLarge
-
-            PageHeader { title: 'Add new weight data' }
-
-            TextField {
-                id: metricField
-                width: parent.width
-                inputMethodHints: Qt.ImhFormattedNumbersOnly
-                label: "kg"
-                placeholderText: "Weight"
-                EnterKey.iconSource: "image://theme/icon-m-enter-next"
-                EnterKey.onClicked: phoneField.focus = true
-                validator: RegExpValidator { regExp: /^\d+([\.|,]\d{1,2})?$/ }
-                focus: true
-            }
-            Button {
-                text: 'Add'
-                anchors.horizontalCenter: parent.horizontalCenter
-                enabled:metricField.acceptableInput
-                onClicked: addMetric(metricField.text)
-            }
-        }
-    }
-
-  */
 
