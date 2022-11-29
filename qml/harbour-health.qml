@@ -12,6 +12,9 @@ ApplicationWindow {
 
     Component.onCompleted: {
         initDatabase();
+        if(1){//condition to insert these vaccines only once
+            insertVaccine();
+        }
     }
 
     function initDatabase() {
@@ -71,6 +74,7 @@ ApplicationWindow {
                                                 number_boosters INTEGER NOT NULL
                                              );";
 
+
                 var createInjectionsTable = "CREATE TABLE IF NOT EXISTS Injection(
                                                 id_injection INTERGER PRIMARY KEY AUTOINCREMENT,
                                                 id_profile INTEGER NOT NULL,
@@ -118,5 +122,21 @@ ApplicationWindow {
                     tx.executeSql(createVaccine_intervalTable);
                 }
             );
+    }
+
+    function insertVaccine(){
+        var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
+        db.transaction(
+            function(tx){
+                //insert mandatory vaccines
+                tx.executeSql("INSERT INTO Vaccines VALUES(?,?,?)", [null, "name", "num booster"]);
+                tx.executeSql("INSERT INTO Vaccines VALUES(?,?,?)", [null, "name", "num booster"]);
+                tx.executeSql("INSERT INTO Vaccines VALUES(?,?,?)", [null, "name", "num booster"]);
+                tx.executeSql("INSERT INTO Vaccines VALUES(?,?,?)", [null, "name", "num booster"]);
+                tx.executeSql("INSERT INTO Vaccines VALUES(?,?,?)", [null, "name", "num booster"]);
+                tx.executeSql("INSERT INTO Vaccines VALUES(?,?,?)", [null, "name", "num booster"]);
+                tx.executeSql("INSERT INTO Vaccines VALUES(?,?,?)", [null, "name", "num booster"]);
+                tx.executeSql("INSERT INTO Vaccines VALUES(?,?,?)", [null, "name", "num booster"]);
+            });
     }
 }
