@@ -11,6 +11,33 @@
 <context>
     <name>MainPage</name>
     <message>
+        <source>About</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>My Profile</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>New Profile</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Choose profile</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Health</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Health App</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>chooseProfile</name>
+    <message>
         <source>Accueil</source>
         <translation type="unfinished"></translation>
     </message>

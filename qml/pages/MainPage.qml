@@ -1,170 +1,100 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
 import QtQuick.LocalStorage 2.0
-import "../utils.js" as WtUtils
-
 
 Page {
     id: page
-
-    property variant usercodes: []
-    property string usernewID;
-    property variant nameProfiles: []
-    property int numberProfile;
-    property string user_id;
-
-
-    property bool deletingItems
-
-
     allowedOrientations: Orientation.All
 
-    function nbrProfile (){
-        var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
-        db.transaction(
-            function(tx){
-                var rs = tx.executeSql('SELECT * FROM Profiles')
-                    numberProfile = rs.rows.length
-            }
-        )
-    }
-    function setLID (val){
-        usernewID = val
-        var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
-                db.transaction(
-                    function(tx){
-                        tx.executeSql('UPDATE SETTINGS SET USER_ID=? WHERE USER_ID=?',[usernewID,user_id]);
-                    })
-    }
 
-
-    function remplirListeUser() {
-        var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
-        db.transaction(
-            function(tx){
-                var rs = tx.executeSql('SELECT * FROM Profiles');
-                for(var i =0; i< rs.rows.length;i++){
-                    usercodes[i]=rs.rows.item(i).id_profile;
-                    listModel.append({text: rs.rows.item(i).firstname})
-                }
-            }
-        )
-    }
-
-     SilicaGridView {
+    SilicaFlickable {
         anchors.fill: parent
-        id:gridView
-        model: listModel
-// salut dydy
-               readonly property int columnCount: Math.floor(width/(Screen.width/2))
-               cellWidth: parent.width/columnCount
-               cellHeight: cellWidth
 
-               header: PageHeader {
-                   title: "Choose a profile"
-               }
-
-               ViewPlaceholder {
-                   enabled: (listModel.populated && listModel.count === 0) || page.deletingItems
-                   text: "No content"
-                   hintText: "Pull down to add content"
-               }
         PullDownMenu {
             MenuItem {
-                text: qsTr("Accueil")
-                onClicked: pageStack.animatorPush(Qt.resolvedUrl("MainPage.qml")) // Changer l'url pour mettre la page de l'autre groupe
+                text: qsTr("About")
+                onClicked: pageStack.animatorPush(Qt.resolvedUrl("AboutPage.qml"))
             }
-            MenuItem { // Si un nbrProfil = 0, ne pas afficher l'onglet information profil
-
-                text: qsTr("Information profil")
-                onClicked: pageStack.push(Qt.resolvedUrl("infosProfile.qml"))
+            MenuItem{//Visible only if there's at least one profile
+                visible: nbProfile > 0
+                text: qsTr("My Profile")
+                onClicked: pageStack.animatorPush(Qt.resolvedUrl("infosProfile.qml"))
             }
-
-            MenuItem {
-                text: qsTr("Créer un profil")
-                onClicked: pageStack.animatorPush(Qt.resolvedUrl("createProfile.qml"))
+            MenuItem{//Visible only if there's no profile
+                visible: nbProfile == 0
+                text: qsTr("New Profile")
+                onClicked: pageStack.animatorPush(Qt.resolvedUrl("newProfile.qml"))
+            }
+            MenuItem{
+                text: qsTr("Choose profile")
+                onClicked: pageStack.animatorPush(Qt.resolvedUrl("chooseProfile.qml"))
             }
         }
-        delegate: GridItem {
-                    function remove() {
-                        remorseDelete(function() { listModel.remove(index) })
-                    }
 
-                    onClicked: {
-                        if (!menuOpen && pageStack.depth == 2) {
-                            pageStack.animatorPush(Qt.resolvedUrl("./HistoryOfOneCycle.qml"))
-                        }
-                    }
-
-                    enabled: !root.deletingItems
-                    opacity: enabled ? 1.0 : 0.0
-                    Behavior on opacity { FadeAnimator {}}
-
-                    menu: Component {
-                        ContextMenu {
-                            MenuItem {
-                                text: "Delete"
-                                onClicked: remove()
-                            }
-                            MenuItem {
-                                text: "Modify"
-                            }
-                        }
-                    }
+        // Tell SilicaFlickable the height of its content.
         contentHeight: column.height
 
+        // Place our content in a Column.  The PageHeader is always placed at the top
+        // of the page, followed by our content.
         Column {
             id: column
 
             width: page.width
             spacing: Theme.paddingLarge
-
+            PageHeader {
+                title: qsTr("Health")
+            }
             Label {
+                id: label
                 x: Theme.horizontalPageMargin
-                text: qsTr("Choisissez un profil")
+                text: qsTr("Health App")
                 color: Theme.secondaryHighlightColor
                 font.pixelSize: Theme.fontSizeExtraLarge
             }
-            Row{
-                Button {
-                    id:btnID
-                    onClicked: {
 
-                        setLID(btnID.text);
-                    }
-                    x: Theme.horizontalPageMargin
-                    text: "0"
+            ViewPlaceholder{//Visible only if there's no profile
+                enabled: nbProfile == 0
+                text: "No existing profile"
+                hintText: "Swipe down to create a profile"
+            }
 
 
+            ButtonLayout{//Visible only if there's at least one profile
+                visible: nbProfile > 0
+                Button{
+                    implicitHeight: 200
+                    text: "Metrics"
+                    onClicked: pageStack.animatorPush(Qt.resolvedUrl("Metrics.qml"))
+                }
+                Button{
+                    implicitHeight: 200
+                    text: "Meditation"
+                    onClicked: pageStack.animatorPush(Qt.resolvedUrl("Meditation.qml"))
+                }
+                Button{
+                    implicitHeight: 200
+                    text: "Vaccines"
+                    onClicked: pageStack.animatorPush(Qt.resolvedUrl("Vaccines.qml"))
+                }
+                Button{
+                    implicitHeight: 200
+                    text: "Health condition"
+                    onClicked: pageStack.animatorPush(Qt.resolvedUrl("Health_condition.qml"))
+                }
+                Button{
+                    implicitHeight: 200
+                    text: "Nutrition"
+                    onClicked: pageStack.animatorPush(Qt.resolvedUrl("Nutrition.qml"))
+                }
+                Button{
+                    implicitHeight: 200
+                    text: "Menstruation"
+                    onClicked: pageStack.animatorPush(Qt.resolvedUrl("Menstruation.qml"))
                 }
             }
+
         }
-        ListModel {
-                id: listModel
-                property bool populated
-                Component.onCompleted: addItems()
-                function addItems() {
-                    var entries = 2   /* Nombre d'entités par colonnes */
-                    for (var index = 0; index < entries; index++) {
-                        listModel.append({"text": spaceIpsumWords[index*2] + " " + spaceIpsumWords[index*2+1]})
-                    }
-                    for (index = 0; index < entries; index++) {
-                        listModel.append({"text": spaceIpsumWords[index*2] + " " + spaceIpsumWords[index*2+1]})
-                    }
-                    page.deletingItems = false
-                    populated = true
-                }
-            }
     }
 
-    Component.onCompleted:{
-        user_id = WtUtils.getLastUser()
+}
 
-        nbrProfile()
-        remplirListeUser()
-        print("id user: "+ usercodes[user_id-1]);
-        print("nbr profil total : " + numberProfile);
-        print("nom du profil : " + nameProfiles[user_id-1]);
-    }
-}
-}

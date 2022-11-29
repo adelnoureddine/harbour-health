@@ -19,6 +19,7 @@ SOURCES += src/harbour-health.cpp
 DISTFILES += qml/harbour-health.qml \
     qml/cover/CoverPage.qml \
     qml/pages/MainPage.qml \
+    qml/pages/chooseProfile.qml \
     qml/pages/createProfile.qml \
     qml/pages/deleteProfile.qml \
     qml/pages/infosProfile.qml \
