@@ -14,13 +14,14 @@ TARGET = harbour-health
 
 CONFIG += sailfishapp
 
-SOURCES += src/harbour-health.cpp \
-    profile.cpp
+SOURCES += src/harbour-health.cpp
+
 
 DISTFILES += qml/harbour-health.qml \
     qml/cover/CoverPage.qml \
     qml/pages/AboutPage.qml \
     qml/pages/MainPage.qml \
+    qml/pages/VaccinesList.qml \
     rpm/harbour-health.changes.in \
     rpm/harbour-health.changes.run.in \
     rpm/harbour-health.spec \
@@ -40,5 +41,4 @@ CONFIG += sailfishapp_i18n
 # modify the localized app name in the the .desktop file.
 TRANSLATIONS += translations/harbour-health-de.ts
 
-HEADERS += \
-    profile.h
+HEADERS +=

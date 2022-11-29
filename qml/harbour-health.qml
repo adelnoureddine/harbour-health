@@ -6,14 +6,15 @@ import "pages"
 import QtQuick.LocalStorage 2.0
 
 ApplicationWindow {
-    initialPage: Component { MainPage { } }
+    initialPage: Component { VaccinesList { } }
     cover: Qt.resolvedUrl("cover/CoverPage.qml")
     allowedOrientations: defaultAllowedOrientations
 
     Component.onCompleted: {
         initDatabase();
+        insertVaccine();
         if(1){//condition to insert these vaccines only once
-            insertVaccine();
+
         }
     }
 
@@ -111,6 +112,8 @@ ApplicationWindow {
 
         db.transaction(
                 function(tx) {
+                    tx.executeSql("DROP TABLE Vaccines");
+
                     tx.executeSql(createProfilesTable);
                     tx.executeSql(createMetricsTable);
                     tx.executeSql(createHave_metricsTable);
@@ -129,14 +132,14 @@ ApplicationWindow {
         db.transaction(
             function(tx){
                 //insert mandatory vaccines
-                tx.executeSql("INSERT INTO Vaccines VALUES(?,?,?)", [null, "name", "num booster"]);
-                tx.executeSql("INSERT INTO Vaccines VALUES(?,?,?)", [null, "name", "num booster"]);
-                tx.executeSql("INSERT INTO Vaccines VALUES(?,?,?)", [null, "name", "num booster"]);
-                tx.executeSql("INSERT INTO Vaccines VALUES(?,?,?)", [null, "name", "num booster"]);
-                tx.executeSql("INSERT INTO Vaccines VALUES(?,?,?)", [null, "name", "num booster"]);
-                tx.executeSql("INSERT INTO Vaccines VALUES(?,?,?)", [null, "name", "num booster"]);
-                tx.executeSql("INSERT INTO Vaccines VALUES(?,?,?)", [null, "name", "num booster"]);
-                tx.executeSql("INSERT INTO Vaccines VALUES(?,?,?)", [null, "name", "num booster"]);
+                tx.executeSql("INSERT INTO Vaccines VALUES(?,?,?)", [null, "name", 1]);
+                tx.executeSql("INSERT INTO Vaccines VALUES(?,?,?)", [null, "name2", 2]);
+                tx.executeSql("INSERT INTO Vaccines VALUES(?,?,?)", [null, "name3", 3]);
+                tx.executeSql("INSERT INTO Vaccines VALUES(?,?,?)", [null, "name4", 4]);
+                tx.executeSql("INSERT INTO Vaccines VALUES(?,?,?)", [null, "name5", 5]);
+                tx.executeSql("INSERT INTO Vaccines VALUES(?,?,?)", [null, "name6", 6]);
+                tx.executeSql("INSERT INTO Vaccines VALUES(?,?,?)", [null, "name7", 7]);
+                tx.executeSql("INSERT INTO Vaccines VALUES(?,?,?)", [null, "name8", 8]);
             });
     }
 }

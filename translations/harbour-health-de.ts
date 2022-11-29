@@ -58,4 +58,15 @@
         <translation type="unfinished"></translation>
     </message>
 </context>
+<context>
+    <name>VaccinesList</name>
+    <message>
+        <source>Add a vaccine</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Menu</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
 </TS>
