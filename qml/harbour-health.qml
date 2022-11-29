@@ -18,75 +18,78 @@ ApplicationWindow {
         var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
         //PROFILE
         var createProfilesTable = "CREATE TABLE IF NOT EXISTS Profiles(
-                                    id_profile INTEGER NOT NULL,
-                                    firstname VARCHAR(30) NOT NULL,
-                                    lastname VARCHAR(30) NOT NULL,
-                                    gender CHAR(1) NOT NULL,
-                                    birthday DATE NOT NULL,
-                                    PRIMARY KEY(id_profile)
-                                 );";
+                                            id_profile INTEGER PRIMARY KEY AUTOINCREMENT ,
+                                            firstname VARCHAR(30) NOT NULL,
+                                            lastname VARCHAR(30) NOT NULL,
+                                            gender CHAR(1) NOT NULL,
+                                            birthday DATE NOT NULL
+                                         );";
 
-        //Metrics
-        var createMetricsTable = "CREATE TABLE IF NOT EXISTS Metrics(
-                                    id_metric INTEGER NOT NULL,
-                                    name VARCHAR(30) NOT NULL,
-                                    unit VARCHAR(10) NOT NULL,
-                                    PRIMARY KEY(id_metric)
-                                  );";
 
-        var createHave_metricsTable = "CREATE TABLE IF NOT EXISTS MetricValue(
-                                    id_profile INTEGER NOT NULL,
-                                    id_metric INTEGER NOT NULL,
-                                    date_metric DATE NOT NULL,
-                                    value_metric INTEGER NOT NULL,
-                                    PRIMARY KEY(id_profile, id_metric),
-                                    FOREIGN KEY(id_profile) REFERENCES Profiles(id_profile),
-                                    FOREIGN KEY(id_metric) REFERENCES Metrics(id_metric)
-                                  );";
 
-        //MEDITATION
-        var createMusicTable = "CREATE TABLE IF NOT EXISTS Musics(
-                                    id_music INTEGER NOT NULL,
-                                    name VARCHAR(50) NOT NULL,
-                                    path VARCHA(50) NOT NULL,
-                                    PRIMARY KEY(id_music)
-                                );";
+                //Metrics
+                var createMetricsTable = "CREATE TABLE IF NOT EXISTS Metrics(
+                                            id_metric INTEGER PRIMARY KEY AUTOINCREMENT,
+                                            name VARCHAR(30) NOT NULL,
+                                            unit VARCHAR(10) NOT NULL
+                                          );";
 
-        var createMeditationTable = "CREATE TABLE IF NOT EXISTS Meditation(
-                                        id_profile INTEGER NOT NULL,
-                                        id_music INTEGER NOT NULL,
-                                        meditation_date DATE NOT NULL,
-                                        duration TIME NOT NULL,
-                                        PRIMARY KEY(id_profile, id_music),
-                                        FOREIGN KEY(id_profile) REFERENCES Profiles(id_profile),
-                                        FOREIGN KEY(id_music) REFERENCES Musics(id_music)
-                                     );";
+                var createHave_metricsTable = "CREATE TABLE IF NOT EXISTS MetricValue(
+                                            id_mectricsValue INTEGER PRIMARY KEY AUTOINCREMENT,
+                                            id_profile INTEGER NOT NULL,
+                                            id_metric INTEGER NOT NULL,
+                                            date_metric DATE NOT NULL,
+                                            value_metric INTEGER NOT NULL,
+                                            FOREIGN KEY(id_profile) REFERENCES Profiles(id_profile),
+                                            FOREIGN KEY(id_metric) REFERENCES Metrics(id_metric)
+                                          );";
 
-        //VACCINES
-        var createVaccinesTable = "CREATE TABLE IF NOT EXISTS Vaccines(
-                                        id_vaccine INTEGER NOT NULL,
-                                        name VARCHAR(30) NOT NULL,
-                                        number_boosters INTEGER NOT NULL,
-                                        PRIMARY KEY(id_vaccine)
-                                     );";
+                //MEDITATION
+                var createMusicTable = "CREATE TABLE IF NOT EXISTS Musics(
+                                            id_music INTEGER PRIMARY KEY AUTOINCREMENT,
+                                            name VARCHAR(50) NOT NULL,
+                                            path VARCHA(50) NOT NULL
+                                        );";
 
-        var createInjectionsTable = "CREATE TABLE IF NOT EXISTS Injection(
-                                        id_profile INTEGER NOT NULL,
-                                        id_vaccine INTEGER NOT NULL,
-                                        injection_date DATE NOT NULL,
-                                        PRIMARY KEY(id_profile, id_vaccine),
-                                        FOREIGN KEY(id_profile) REFERENCES Profiles(id_profile),
-                                        FOREIGN KEY(id_vaccine) REFERENCES Vaccines(id_vaccine)
-                                     );";
+                var createMeditationTable = "CREATE TABLE IF NOT EXISTS Meditation(
+                                                id_meditation INTEGER PRIMARY KEY AUTOINCREMENT,
+                                                id_profile INTEGER NOT NULL,
+                                                id_music INTEGER NOT NULL,
+                                                meditation_date DATE NOT NULL,
+                                                duration TIME NOT NULL,
+                                                FOREIGN KEY(id_profile) REFERENCES Profiles(id_profile),
+                                                FOREIGN KEY(id_music) REFERENCES Musics(id_music)
+                                             );";
 
-        var createVaccine_intervalTable = "CREATE TABLE IF NOT EXISTS Interval(
-                                        id_interval INTEGER NOT NULL,
-                                        id_vaccine INTEGER NOT NULL,
-                                        recall_number INTEGER NOT NULL,
-                                        recall_month INTEGER NOT NULL,
-                                        PRIMARY KEY(id_interval),
-                                        FOREIGN KEY (id_vaccine) REFERENCES Vaccines(id_vaccine)
-                                     );";
+
+
+
+                //VACCINES
+                var createVaccinesTable = "CREATE TABLE IF NOT EXISTS Vaccines(
+                                                id_vaccine INTEGER PRIMARY KEY AUTOINCREMENT ,
+                                                name VARCHAR(30) NOT NULL,
+                                                number_boosters INTEGER NOT NULL
+                                             );";
+
+                var createInjectionsTable = "CREATE TABLE IF NOT EXISTS Injection(
+                                                id_injection INTERGER PRIMARY KEY AUTOINCREMENT,
+                                                id_profile INTEGER NOT NULL,
+                                                id_vaccine INTEGER NOT NULL,
+                                                injection_date DATE NOT NULL,
+                                                FOREIGN KEY(id_profile) REFERENCES Profiles(id_profile),
+                                                FOREIGN KEY(id_vaccine) REFERENCES Vaccines(id_vaccine)
+                                             );";
+
+                var createVaccine_intervalTable = "CREATE TABLE IF NOT EXISTS Interval(
+                                                id_interval INTEGER PRIMARY KEY AUTOINCREMENT,
+                                                id_vaccine INTEGER NOT NULL,
+                                                recall_number INTEGER NOT NULL,
+                                                recall_month INTEGER NOT NULL,
+                                                FOREIGN KEY (id_vaccine) REFERENCES Vaccines(id_vaccine)
+                                             );";
+
+
+
 
 
 
@@ -111,7 +114,7 @@ ApplicationWindow {
                     tx.executeSql(createMeditationTable);
                     tx.executeSql(createVaccinesTable);
                     tx.executeSql(createInjectionsTable);
-                    tx.executeSql(createHave_intervalTable);
+                    //tx.executeSql(createHave_intervalTable);
                     tx.executeSql(createVaccine_intervalTable);
                 }
             );
