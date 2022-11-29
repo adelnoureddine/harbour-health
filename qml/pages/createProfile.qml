@@ -29,7 +29,6 @@ Dialog {
                     }
                    tx.executeSql('INSERT INTO Profiles VALUES (?,?,?,?,?)',[code,firstnameField.text,secondnameField.text,genderField.currentItem.text,birthdayField.value]);
                    tx.executeSql('UPDATE SETTINGS set USER_ID=(?)',[code]);
-
                     user_id=code;
                 }
             )

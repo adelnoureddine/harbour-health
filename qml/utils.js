@@ -7,12 +7,14 @@ function getLastUser() {
 
     db.transaction(
         function(tx) {
+
             var rs = tx.executeSql('SELECT * FROM SETTINGS');
             if(rs.rows.length > 0) {
                 user_id =  rs.rows.item(0).USER_ID;;
-                print("nbr de ligne : " +rs.rows.length)
 
             } else {
+                tx.executeSql('INSERT INTO SETTINGS VALUES (null)')
+                getLastUser();
                 user_id = null;
                 print("test");
             }

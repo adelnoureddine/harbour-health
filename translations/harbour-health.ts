@@ -15,11 +15,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Profils</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Choisissez un profil</source>
+        <source>Information profil</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -27,7 +23,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Information profil</source>
+        <source>Choisissez un profil</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
