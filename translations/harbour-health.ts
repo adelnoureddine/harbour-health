@@ -46,15 +46,37 @@
 <context>
     <name>MainPage</name>
     <message>
-        <source>Show Page 2</source>
+        <source>About</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>UI Template</source>
+        <source>Health</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Hello Sailors</source>
+        <source>Health App</source>
+<<<<<<< HEAD
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>MeditationMenu</name>
+    <message>
+        <source>Meditation</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>        Favorite session        </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>New session</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>session history</source>
+=======
+>>>>>>> 68512f0b7918f83a713481a86ff959f33f0c6034
         <translation type="unfinished"></translation>
     </message>
 </context>

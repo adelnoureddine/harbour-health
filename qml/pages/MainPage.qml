@@ -38,6 +38,10 @@ Page {
                 color: Theme.secondaryHighlightColor
                 font.pixelSize: Theme.fontSizeExtraLarge
             }
+            Button{
+                text: "test"
+                onClicked: pageStack.animatorPush(Qt.resolvedUrl("MeditationMenu.qml"))
+            }
         }
     }
 }
