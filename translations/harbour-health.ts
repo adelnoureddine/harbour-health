@@ -55,6 +55,7 @@
     </message>
     <message>
         <source>Health App</source>
+<<<<<<< HEAD
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -74,6 +75,8 @@
     </message>
     <message>
         <source>session history</source>
+=======
+>>>>>>> 68512f0b7918f83a713481a86ff959f33f0c6034
         <translation type="unfinished"></translation>
     </message>
 </context>

@@ -3,6 +3,7 @@ import Sailfish.Silica 1.0
 import QtMultimedia 5.0 //used to play music
 import QtQml 2.0
 import Sailfish.Pickers 1.0
+import QtQuick.LocalStorage 2.0
 
 
 Page {
@@ -10,6 +11,7 @@ Page {
     allowedOrientations: Orientation.All
     property bool running: false
     property string selectedMusicFile
+    property bool registered: false
 
     PageHeader{
         title:  session
@@ -83,9 +85,18 @@ Page {
                 id: play_pause_button
                 icon.source: "image://theme/icon-l-play"
                 onClicked: function (){
-                    if(registerButton.checked){
+                    if(registerButton.checked && registered==false){
                         console.log("register")
                         //register session in database
+                        registered = true
+                        var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
+                        db.transaction(
+                            function(tx) {
+                                //var musicId = tx.executeSql("SELECT * FROM Musics WHERE name = ?", [songSelector.valye])
+                                tx.executeSql("INSERT INTO Meditation VALUES (?,?,?,?,?)", [null, 1, 31,new Date(),"00:" + monTimer.text])
+                            }
+                        );
+
                     }
                     updateState()
                 }

@@ -14,7 +14,8 @@ TARGET = harbour-health
 
 CONFIG += sailfishapp
 
-SOURCES += src/harbour-health.cpp
+SOURCES += src/harbour-health.cpp \
+
 
 DISTFILES += qml/harbour-health.qml \
     qml/cover/CoverPage.qml \
