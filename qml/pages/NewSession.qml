@@ -12,6 +12,7 @@ Page {
     property bool running: false
     property string selectedMusicFile
     property bool registered: false
+    property int userId
 
     PageHeader{
         title:  session
@@ -86,14 +87,14 @@ Page {
                 icon.source: "image://theme/icon-l-play"
                 onClicked: function (){
                     if(registerButton.checked && registered==false){
-                        console.log("register")
                         //register session in database
                         registered = true
                         var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
                         db.transaction(
                             function(tx) {
-                                //var musicId = tx.executeSql("SELECT * FROM Musics WHERE name = ?", [songSelector.valye])
-                                tx.executeSql("INSERT INTO Meditation VALUES (?,?,?,?,?)", [null, 1, 31,new Date(),"00:" + monTimer.text])
+                                var musicId = tx.executeSql("SELECT * FROM Musics WHERE name = ?", [songSelector.valye])// still need to fetch id from result
+                                tx.executeSql("INSERT INTO Meditation VALUES (?,?,?,?,?)", [null,userId , musicId,new Date().toDateString(),"00:" + monTimer.text])//modify date with smaller format jj/mm/yyyy
+                                console.log("Session registered")
                             }
                         );
 

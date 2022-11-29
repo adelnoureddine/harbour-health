@@ -9,14 +9,16 @@ Page {
     SilicaListView{
         anchors.fill: parent
 
+        //pullDownMenu: delete all session record
+
         header: PageHeader {
             title: "Session history"
         }
 
         ViewPlaceholder {
-            enabled: (listModel.populated && listModel.count === 0)
+            enabled: (listModel.count === 0)
             text: "No content"
-            hintText: "Pull down to add content"
+            hintText: "No session registered yet"
         }
 
         model: listModel
@@ -45,10 +47,11 @@ Page {
     ListModel{
         id: listModel
         property bool populated
-        property int userId: 0
+        property int userId:0
 
         Component.onCompleted: {
             load()
+            //utils.js pour récupérer le dernier id_utilisateur
         }
 
 
@@ -56,10 +59,9 @@ Page {
             var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
             db.transaction(
                 function(tx) {
-                    var rs = tx.executeSql("SELECT * FROM Meditation JOIN Musics on Musics.id_music = Meditation.id_music WHERE id_profile = ?", [userId]);
+                    var rs = tx.executeSql("SELECT * FROM Meditation WHERE id_profile = ?", [userId]);//INNER JOIN Musics ON Musics.id_music == Meditation.id_music
                     var entries = rs.rows.length;
-                    console.log(entries)
-                    console.log("rs: %o", rs)
+                    console.log("nombre de lignes: " + entries)
                     for (var i = 0; i < entries ; i++) {
                         listModel.append({"text": rs.rows.item(i).meditation_date +
                             "  " + rs.rows.item(i).duration +

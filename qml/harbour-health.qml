@@ -108,9 +108,9 @@ ApplicationWindow {
         db.transaction(
                 function(tx) {
                     //drop table
-                    tx.executeSql("DROP TABLE Profiles")
+                    //tx.executeSql("DROP TABLE Profiles")
                     //tx.executeSql("DROP TABLE Musics")
-                    //  tx.executeSql("DROP TABLE Meditation")
+                    tx.executeSql("DROP TABLE Meditation")
 
                     //create table
                     tx.executeSql(createProfilesTable);
@@ -126,12 +126,12 @@ ApplicationWindow {
 
 
                     //insert into
-                    var insertProfile = "INSERT INTO Profiles VALUES ('nomtest2', 'prenomtest', 'H', '10/04/2000')"
-                    var insertMusic = "INSERT INTO Musics VALUES (null, 'nomMusic', '/dfsdf/fdsf')"
-                    var insertMeditation = "INSERT INTO Meditation VALUES (3,31, 31, '06/09/2010', '00:10:20')"
+                    var insertProfile = "INSERT INTO Profiles VALUES (0,'nomtest2', 'prenomtest', 'H', '10/04/2000')"
+                    var insertMusic = "INSERT INTO Musics VALUES (31, 'nomMusic', '/dfsdf/fdsf')"
+                    var insertMeditation = "INSERT INTO Meditation VALUES (null,0, 31, '06/09/2010', '00:10:20')"
 
                     //tx.executeSql(insertProfile);
-                    tx.executeSql(insertMusic);
+                    //tx.executeSql(insertMusic);
                     //tx.executeSql(insertMeditation);
                 }
             );
