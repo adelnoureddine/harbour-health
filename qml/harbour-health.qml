@@ -110,7 +110,7 @@ ApplicationWindow {
                     //drop table
                     //tx.executeSql("DROP TABLE Profiles")
                     //tx.executeSql("DROP TABLE Musics")
-                    tx.executeSql("DROP TABLE Meditation")
+                    //tx.executeSql("DROP TABLE Meditation")
 
                     //create table
                     tx.executeSql(createProfilesTable);

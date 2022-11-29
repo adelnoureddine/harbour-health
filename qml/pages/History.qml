@@ -10,6 +10,24 @@ Page {
         anchors.fill: parent
 
         //pullDownMenu: delete all session record
+        PullDownMenu{
+            MenuItem{
+                text: qsTr("Delete history")
+                onClicked:{
+                    var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
+                    db.transaction(
+                        function(tx){
+                            var size = listModel.count
+                            console.log("nombre de ligne à supprimer: " + listModel.count)
+                            for(var i = 0; i < size; i++){
+                                listModel.remove(0);
+                            }
+                            tx.executeSql("DELETE FROM Meditation WHERE 1");
+                    });
+
+                }
+            }
+        }
 
         header: PageHeader {
             title: "Session history"
@@ -22,17 +40,6 @@ Page {
         }
 
         model: listModel
-        /*
-        model: ListModel{
-
-            ListElement{ nom: "test" ;
-                date: "02/12/2022"
-            }
-            ListElement{ nom: "test4" ;
-                date: "013/12/2022"
-            }
-        }
-        */
 
         delegate: Item {
             width: ListView.view.width
