@@ -27,7 +27,7 @@ Page {
         }
 
         ViewPlaceholder {
-            enabled: model.count ==  0
+            enabled: listModel.count ===  0
             text: "No injection for this vaccine"
             hintText: "Swipe down to add one !"
         }
