@@ -4,8 +4,8 @@ import QtQuick.LocalStorage 2.0
 
 Page {
     id: vaccinesList
-    property int vaccineId: 0
-    property int userId: 1
+    property int vaccineId
+    property int userId: 0
 
     SilicaListView{
         anchors.fill: parent

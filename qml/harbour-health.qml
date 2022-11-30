@@ -112,7 +112,9 @@ ApplicationWindow {
 
         db.transaction(
                 function(tx) {
-                    tx.executeSql("DROP TABLE Vaccines");
+                    //tx.executeSql("DROP TABLE Vaccines");
+                    tx.executeSql("DROP TABLE Injection");
+                    tx.executeSql("DROP TABLE Profiles");
 
                     tx.executeSql(createProfilesTable);
                     tx.executeSql(createMetricsTable);
@@ -131,6 +133,8 @@ ApplicationWindow {
         var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
         db.transaction(
             function(tx){
+                tx.executeSql("INSERT INTO Profiles VALUES(?,?,?,?,?)", [null, "testname", "testlastname", "F", "20/13/1321"]);
+
                 //insert mandatory vaccines
                 tx.executeSql("INSERT INTO Vaccines VALUES(?,?,?)", [null, "name", 1]);
                 tx.executeSql("INSERT INTO Vaccines VALUES(?,?,?)", [null, "name2", 2]);
@@ -140,6 +144,8 @@ ApplicationWindow {
                 tx.executeSql("INSERT INTO Vaccines VALUES(?,?,?)", [null, "name6", 6]);
                 tx.executeSql("INSERT INTO Vaccines VALUES(?,?,?)", [null, "name7", 7]);
                 tx.executeSql("INSERT INTO Vaccines VALUES(?,?,?)", [null, "name8", 8]);
+
+                tx.executeSql("INSERT INTO Injection VALUES(?,?,?,?)", [null, 0, 8, "20/12/2032"]);
             });
     }
 }

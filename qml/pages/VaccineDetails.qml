@@ -26,6 +26,13 @@ Page {
             title: "Vaccines details"
         }
 
+        ViewPlaceholder {
+            enabled: model.count ==  0
+            text: "No injection for this vaccine"
+            hintText: "Swipe down to add one !"
+        }
+
+
         model: listModel
 
         delegate: ListItem{
@@ -55,22 +62,24 @@ Page {
 
 
         Component.onCompleted: {
-            load()
+            //get vaccineId and userId from previousPage
             rootPage = previousPage()
             vaccineId = rootPage.vaccineId
             userId = rootPage.userId
 
-            console.log("vaccine: " + vaccineId)
-            //utils.js pour récupérer le dernier id_utilisateur
+            //load the model from database
+            loadModel()
         }
 
-        function load(){
+        function loadModel(){
             var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
             db.transaction(
                 function(tx){
-                    var rs = tx.executeSql("SELECT * FROM Injection WHERE id_profile = ? AND id_vaccine = ? ", [userId, vaccineId]);
+                    console.log("id_user: " + userId)
+                    var rs = tx.executeSql("SELECT * FROM Injection WHERE id_profile = ? AND id_vaccine = ? ", [userId,vaccineId]);
+                    console.log("number of boosters: " + rs.rows.length)
                     for(var i = 0; i < rs.rows.length; i++){
-                        listModel.append({"text": rs.rows.item(i).name})
+                        listModel.append({"text": rs.rows.item(i).injection_date})
                     }
                 }
             );
