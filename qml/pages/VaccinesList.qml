@@ -4,9 +4,12 @@ import QtQuick.LocalStorage 2.0
 
 Page {
     id: vaccinesList
+    property int vaccineId: 0
+    property int userId: 1
 
     SilicaListView{
         anchors.fill: parent
+
 
 
         PullDownMenu {
@@ -28,13 +31,16 @@ Page {
         model: listModel
 
         delegate: ListItem{
-
+            property int vaccine: model.vaccine
             function remove() {
                 remorseDelete(function() { listModel.remove(index) })
             }
 
-            onClicked: pageStack.animatorPush(Qt.resolvedUrl("VaccineDetails.qml"))
-
+            onClicked:function (){
+                vaccinesList.vaccineId = vaccine
+                console.log(vaccineId)
+                pageStack.animatorPush(Qt.resolvedUrl("VaccineDetails.qml"))
+            }
 
 
 
@@ -54,7 +60,7 @@ Page {
                 x: Theme.horizontalPageMargin
                 width: parent.width - 2 * x
                 anchors.verticalCenter: parent.verticalCenter
-                text: model.text
+                text: model.text + "    " + model.vaccine
                 truncationMode: TruncationMode.Fade
                 font.capitalization: Font.Capitalize
             }
@@ -63,7 +69,7 @@ Page {
 
     ListModel{
         id: listModel
-        property int userId: 0
+
 
         Component.onCompleted: {
             load()
@@ -76,7 +82,7 @@ Page {
                 function(tx){
                     var rs = tx.executeSql("SELECT * FROM Vaccines");
                     for(var i = 0; i < rs.rows.length; i++){
-                        listModel.append({"text": rs.rows.item(i).name})
+                        listModel.append({"text": rs.rows.item(i).name, "vaccine": rs.rows.item(i).id_vaccine})
                     }
                 }
             );

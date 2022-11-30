@@ -4,7 +4,9 @@ import QtQuick.LocalStorage 2.0
 
 Page {
     id: vaccineDetails
-    property Page previousPage
+    property Page rootPage
+    property int vaccineId
+    property int userId
 
     SilicaListView{
         anchors.fill: parent
@@ -27,7 +29,6 @@ Page {
         model: listModel
 
         delegate: ListItem{
-
             menu: Component {
                 ContextMenu {
                     MenuItem {
@@ -46,18 +47,20 @@ Page {
                 font.capitalization: Font.Capitalize
             }
 
-
         }
     }
 
     ListModel{
         id: listModel
-        property int userId
+
 
         Component.onCompleted: {
             load()
-            previousPage = previousPage()
-            userId = previousPage.userId
+            rootPage = previousPage()
+            vaccineId = rootPage.vaccineId
+            userId = rootPage.userId
+
+            console.log("vaccine: " + vaccineId)
             //utils.js pour récupérer le dernier id_utilisateur
         }
 

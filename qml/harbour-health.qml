@@ -77,7 +77,7 @@ ApplicationWindow {
 
 
                 var createInjectionsTable = "CREATE TABLE IF NOT EXISTS Injection(
-                                                id_injection INTERGER PRIMARY KEY AUTOINCREMENT,
+                                                id_injection INTEGER PRIMARY KEY AUTOINCREMENT,
                                                 id_profile INTEGER NOT NULL,
                                                 id_vaccine INTEGER NOT NULL,
                                                 injection_date DATE NOT NULL,
