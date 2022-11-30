@@ -50,27 +50,35 @@ Dialog {
                 x: Theme.horizontalPageMargin
                 text: "Next Recall: "
             }
-
-            ValueButton {
-                id: recallButton
-                property date selectedDate
-
-                function openDateDialog() {
-                    var obj = pageStack.animatorPush("Sailfish.Silica.DatePickerDialog",
-                                                     { date: selectedDate })
-
-                    obj.pageCompleted.connect(function(page) {
-                        page.accepted.connect(function() {
-                            selectedDate = page.date
-                            value = selectedDate.toLocaleDateString(Locale.ShortFormat)
-                        })
-                    })
+            Row{
+                Icon{
+                    source: "image://theme/icon-m-date"
                 }
-                label: "Birthday date"
-                width: parent.width
-                onClicked: openDateDialog()
 
+
+                ValueButton {
+                    id: recallButton
+                    property date selectedDate
+
+                    function openDateDialog() {
+                        var obj = pageStack.animatorPush("Sailfish.Silica.DatePickerDialog",
+                                                         { date: selectedDate })
+
+                        obj.pageCompleted.connect(function(page) {
+                            page.accepted.connect(function() {
+                                selectedDate = page.date
+                                value = selectedDate.toLocaleDateString(Locale.ShortFormat)
+                            })
+                        })
+                    }
+                    label: "Choose a date"
+                    width: parent.width
+                    onClicked: openDateDialog()
+
+                }
             }
+
+
 
 
         }

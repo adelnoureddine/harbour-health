@@ -60,7 +60,7 @@ Page {
                 x: Theme.horizontalPageMargin
                 width: parent.width - 2 * x
                 anchors.verticalCenter: parent.verticalCenter
-                text: model.text + "    " + model.vaccine
+                text: model.text
                 truncationMode: TruncationMode.Fade
                 font.capitalization: Font.Capitalize
             }
