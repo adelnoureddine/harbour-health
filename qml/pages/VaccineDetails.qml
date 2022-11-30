@@ -4,6 +4,7 @@ import QtQuick.LocalStorage 2.0
 
 Page {
     id: vaccineDetails
+    property Page previousPage
 
     SilicaListView{
         anchors.fill: parent
@@ -48,4 +49,30 @@ Page {
 
         }
     }
+
+    ListModel{
+        id: listModel
+        property int userId
+
+        Component.onCompleted: {
+            load()
+            previousPage = previousPage()
+            userId = previousPage.userId
+            //utils.js pour récupérer le dernier id_utilisateur
+        }
+
+        function load(){
+            var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
+            db.transaction(
+                function(tx){
+                    var rs = tx.executeSql("SELECT * FROM Injection WHERE id_profile = ? AND id_vaccine = ? ", [userId, vaccineId]);
+                    for(var i = 0; i < rs.rows.length; i++){
+                        listModel.append({"text": rs.rows.item(i).name})
+                    }
+                }
+            );
+        }
+
+    }
+
 }
