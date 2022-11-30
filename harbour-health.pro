@@ -23,6 +23,7 @@ DISTFILES += qml/harbour-health.qml \
     qml/pages/MainPage.qml \
     qml/pages/VaccineDetails.qml \
     qml/pages/VaccinesList.qml \
+    qml/pages/updateRecall.qml \
     rpm/harbour-health.changes.in \
     rpm/harbour-health.changes.run.in \
     rpm/harbour-health.spec \

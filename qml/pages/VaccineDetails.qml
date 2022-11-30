@@ -7,6 +7,8 @@ Page {
     property Page rootPage
     property int vaccineId
     property int userId
+    property bool isUpdate
+    property int injectionId
 
     SilicaListView{
         anchors.fill: parent
@@ -14,7 +16,11 @@ Page {
         PullDownMenu {
             MenuItem {
                 text: qsTr("Update")
-                onClicked: pageStack.animatorPush(Qt.resolvedUrl("UpdateVaccine.qml"))
+
+                onClicked:{
+                    vaccineDetails.isUpdate = true
+                    pageStack.animatorPush(Qt.resolvedUrl("updateRecall.qml"))
+                }
             }
             MenuItem {
                 text: qsTr("Menu")
@@ -40,7 +46,11 @@ Page {
                 ContextMenu {
                     MenuItem {
                         text: "Edit"
-                        onClicked: pageStack.animatorPush(Qt.resolvedUrl("UpdateRecall.qml"))
+                        onClicked:{
+                            vaccineDetails.isUpdate = false
+                            vaccineDetails.injectionId = id
+                            pageStack.animatorPush(Qt.resolvedUrl("updateRecall.qml"))
+                        }
                     }
                 }
             }
@@ -71,20 +81,26 @@ Page {
             loadModel()
         }
 
-        function loadModel(){
-            var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
-            db.transaction(
-                function(tx){
-                    console.log("id_user: " + userId)
-                    var rs = tx.executeSql("SELECT * FROM Injection WHERE id_profile = ? AND id_vaccine = ? ", [userId,vaccineId]);
-                    console.log("number of boosters: " + rs.rows.length)
-                    for(var i = 0; i < rs.rows.length; i++){
-                        listModel.append({"text": rs.rows.item(i).injection_date})
-                    }
-                }
-            );
+
+
+    }
+    function loadModel(){
+        var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
+        //Clear model before adding new data; (solved edit recall problem)
+        for(var i=0; i < listModel.count; i++){
+            listModel.remove(0)
         }
 
+        db.transaction(
+            function(tx){
+                console.log("id_user: " + userId)
+                var rs = tx.executeSql("SELECT * FROM Injection WHERE id_profile = ? AND id_vaccine = ? ", [userId,vaccineId]);
+                console.log("number of boosters: " + rs.rows.length)
+                for(var i = 0; i < rs.rows.length; i++){
+                    listModel.append({"text": rs.rows.item(i).injection_date, "id":rs.rows.item(i).id_injection})
+                }
+            }
+        );
     }
 
 }
