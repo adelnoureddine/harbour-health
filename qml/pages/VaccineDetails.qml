@@ -94,9 +94,7 @@ Page {
 
         db.transaction(
             function(tx){
-                console.log("id_user: " + userId)
                 var rs = tx.executeSql("SELECT * FROM Injection WHERE id_profile = ? AND id_vaccine = ? ", [userId,vaccineId]);
-                console.log("number of boosters: " + rs.rows.length)
                 for(var i = 0; i < rs.rows.length; i++){
                     listModel.append({"text": rs.rows.item(i).injection_date, "id":rs.rows.item(i).id_injection})
                 }

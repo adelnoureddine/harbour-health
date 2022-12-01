@@ -3,6 +3,7 @@ import Sailfish.Silica 1.0
 
 Page {
     id: mainpage
+    property int userId
 
     // The effective value will be restricted by ApplicationWindow.allowedOrientations
     allowedOrientations: Orientation.All

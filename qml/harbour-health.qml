@@ -6,16 +6,13 @@ import "pages"
 import QtQuick.LocalStorage 2.0
 
 ApplicationWindow {
-    initialPage: Component { VaccinesList { } }
+    initialPage: Component { MainPage { } }
     cover: Qt.resolvedUrl("cover/CoverPage.qml")
     allowedOrientations: defaultAllowedOrientations
 
     Component.onCompleted: {
         initDatabase();
         insertVaccine();
-        if(1){//condition to insert these vaccines only once
-
-        }
     }
 
     function initDatabase() {
@@ -93,13 +90,6 @@ ApplicationWindow {
                                                 recall_month INTEGER NOT NULL,
                                                 FOREIGN KEY (id_vaccine) REFERENCES Vaccines(id_vaccine)
                                              );";
-
-
-
-
-
-
-
         //HEALTH CONDITION
         var createXXTable = "CREATE TABLE IF NOT EXISTS XX";
 
@@ -132,20 +122,16 @@ ApplicationWindow {
         var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
         db.transaction(
             function(tx){
-                tx.executeSql("INSERT INTO Profiles VALUES(?,?,?,?,?)", [null, "testname", "testlastname", "F", "20/13/1321"]);
-
-
-                //insert mandatory vaccines
-                tx.executeSql("INSERT INTO Vaccines VALUES(?,?,?,?)", [null, "DTP", 1, 3]);
-                tx.executeSql("INSERT INTO Vaccines VALUES(?,?,?,?)", [null, "Coqueluche", 1, 3]);
-                tx.executeSql("INSERT INTO Vaccines VALUES(?,?,?,?)", [null, "HIB", 1, 3]);
-                tx.executeSql("INSERT INTO Vaccines VALUES(?,?,?,?)", [null, "Hépatite B", 1, 3]);
-                tx.executeSql("INSERT INTO Vaccines VALUES(?,?,?,?)", [null, "Pneumocoque", 1, 3]);
-                tx.executeSql("INSERT INTO Vaccines VALUES(?,?,?,?)", [null, "ROR", 1, 2]);
-                tx.executeSql("INSERT INTO Vaccines VALUES(?,?,?,?)", [null, "Méningocoque C", 1, 2]);
-
-
-                tx.executeSql("INSERT INTO Injection VALUES(?,?,?,?)", [null, 0, 8, "20/12/2032"]);
+                if(tx.executeSql("SELECT * FROM Vaccines").count === 0;){
+                    //insert mandatory vaccines
+                    tx.executeSql("INSERT INTO Vaccines VALUES(?,?,?,?)", [null, "DTP", 1, 3]);
+                    tx.executeSql("INSERT INTO Vaccines VALUES(?,?,?,?)", [null, "Coqueluche", 1, 3]);
+                    tx.executeSql("INSERT INTO Vaccines VALUES(?,?,?,?)", [null, "HIB", 1, 3]);
+                    tx.executeSql("INSERT INTO Vaccines VALUES(?,?,?,?)", [null, "Hépatite B", 1, 3]);
+                    tx.executeSql("INSERT INTO Vaccines VALUES(?,?,?,?)", [null, "Pneumocoque", 1, 3]);
+                    tx.executeSql("INSERT INTO Vaccines VALUES(?,?,?,?)", [null, "ROR", 1, 2]);
+                    tx.executeSql("INSERT INTO Vaccines VALUES(?,?,?,?)", [null, "Méningocoque C", 1, 2]);
+                }
             });
     }
 }

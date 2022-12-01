@@ -4,14 +4,13 @@ import QtQuick.LocalStorage 2.0
 
 Page {
     id: vaccinesList
+    property Page rootPage
     property int vaccineId
-    property int userId: 0
+    property int userId
     property bool isUpdate
 
     SilicaListView{
         anchors.fill: parent
-
-
 
         PullDownMenu {
             MenuItem {
@@ -52,7 +51,6 @@ Page {
 
             onClicked:function (){
                 vaccinesList.vaccineId = vaccine
-                console.log(vaccineId)
                 pageStack.animatorPush(Qt.resolvedUrl("VaccineDetails.qml"))
             }
 
@@ -85,8 +83,9 @@ Page {
         id: listModel
 
         Component.onCompleted: {
+            rootPage = previousPage()
+            userId = rootPage.userId
             load()
-            //utils.js pour récupérer le dernier id_utilisateur
         }
     }
 
@@ -118,6 +117,5 @@ Page {
                 }
             }
         );
-        console.log("size: " + listModel.count)
     }
 }
