@@ -2,7 +2,7 @@ import QtQuick 2.0
 import Sailfish.Silica 1.0
 
 Page {
-    id: mainpage
+    id: page
     property int userId
 
     // The effective value will be restricted by ApplicationWindow.allowedOrientations
@@ -40,5 +40,8 @@ Page {
                 font.pixelSize: Theme.fontSizeExtraLarge
             }
         }
+    }
+    Component.onCompleted:{
+        userId = WtUtils.getLastUser()
     }
 }
