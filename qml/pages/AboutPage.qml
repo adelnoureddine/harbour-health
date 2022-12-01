@@ -58,7 +58,7 @@ Page {
                 width: parent.width
 
                 Label {
-                    text: "xxx © 2022"
+                    text: "AKOUN Bienvenu Romain © 2022"
                     font.pixelSize: Theme.fontSizeSmall
                     anchors {
                         horizontalCenter: parent.horizontalCenter
@@ -66,7 +66,7 @@ Page {
                 }
 
                 Label {
-                    text: "xxx © 2022"
+                    text: "AJOUKA Ashraf © 2022"
                     font.pixelSize: Theme.fontSizeSmall
                     anchors {
                         horizontalCenter: parent.horizontalCenter
@@ -74,12 +74,29 @@ Page {
                 }
 
                 Label {
-                    text: "xxx © 2022"
+                    text: "ABADI Thomas © 2022"
                     font.pixelSize: Theme.fontSizeSmall
                     anchors {
                         horizontalCenter: parent.horizontalCenter
                     }
                 }
+
+                Label {
+                    text: "BUEPOYO Sopale Jose J © 2022"
+                    font.pixelSize: Theme.fontSizeSmall
+                    anchors {
+                        horizontalCenter: parent.horizontalCenter
+                    }
+                }
+
+                Label {
+                    text: "ORTALI Charlotte © 2022"
+                    font.pixelSize: Theme.fontSizeSmall
+                    anchors {
+                        horizontalCenter: parent.horizontalCenter
+                    }
+                }
+
             }
 
             SectionHeader {
@@ -118,3 +135,4 @@ Page {
         }
     }
 }
+

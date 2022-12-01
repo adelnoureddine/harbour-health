@@ -6,26 +6,191 @@ import "pages"
 import QtQuick.LocalStorage 2.0
 
 ApplicationWindow {
-    initialPage: Component { MainPage { } }
+    initialPage: Component { Menstruation { } }
     cover: Qt.resolvedUrl("cover/CoverPage.qml")
     allowedOrientations: defaultAllowedOrientations
 
+    property string user_id;
+
     Component.onCompleted: {
         initDatabase();
+    createLastUser();
+
+    }
+
+
+    function createLastUser() {
+        var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
+
+        var createUsersTable = 'CREATE TABLE IF NOT EXISTS SETTINGS(
+                                    USER_ID INTEGER NOT NULL,
+                                    PRIMARY KEY(USER_ID)
+                                 );';
+        db.transaction(
+            function(tx){
+                tx.executeSql(createUsersTable);
+            }
+        )
     }
 
     function initDatabase() {
         var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
-        var createXXTable = "CREATE TABLE IF NOT EXISTS XXXX";
-        var createXYTable = "CREATE TABLE IF NOT EXISTS XXXX";
-        var createYYTable = "CREATE TABLE IF NOT EXISTS XXXX";
-        var createYXTable = "CREATE TABLE IF NOT EXISTS XXXX";
+        //PROFILE
+
+
+
+      var createProfilesTable = "CREATE TABLE IF NOT EXISTS Profiles(
+                                    id_profile INTEGER NOT NULL,
+                                    firstname VARCHAR(30) NOT NULL,
+                                    lastname VARCHAR(30) NOT NULL,
+                                    gender CHAR(1) NOT NULL,
+                                    birthday DATE NOT NULL,
+                                    PRIMARY KEY(id_profile)
+                                 );";
+
+
+        //Metrics
+        var createMetricsTable = "CREATE TABLE IF NOT EXISTS Metrics(
+                                    id_metric INTEGER NOT NULL,
+                                    name VARCHAR(30) NOT NULL,
+                                    unit VARCHAR(10) NOT NULL,
+                                    PRIMARY KEY(id_metric)
+                                  );";
+
+        var createHave_metricsTable = "CREATE TABLE IF NOT EXISTS MetricValue(
+                                    id_profile INTEGER NOT NULL,
+                                    id_metric INTEGER NOT NULL,
+                                    date_metric DATE NOT NULL,
+                                    value_metric INTEGER NOT NULL,
+                                    PRIMARY KEY(id_profile, id_metric),
+                                    FOREIGN KEY(id_profile) REFERENCES Profiles(id_profile),
+                                    FOREIGN KEY(id_metric) REFERENCES Metrics(id_metric)
+                                  );";
+
+        //MEDITATION
+        var createMusicTable = "CREATE TABLE IF NOT EXISTS Musics(
+                                    id_music INTEGER NOT NULL,
+                                    name VARCHAR(50) NOT NULL,
+                                    path VARCHA(50) NOT NULL,
+                                    PRIMARY KEY(id_music)
+                                );";
+
+        var createMeditationTable = "CREATE TABLE IF NOT EXISTS Meditation(
+                                        id_profile INTEGER NOT NULL,
+                                        id_music INTEGER NOT NULL,
+                                        meditation_date DATE NOT NULL,
+                                        duration TIME NOT NULL,
+                                        PRIMARY KEY(id_profile, id_music),
+                                        FOREIGN KEY(id_profile) REFERENCES Profiles(id_profile),
+                                        FOREIGN KEY(id_music) REFERENCES Musics(id_music)
+                                     );";
+
+        //VACCINES
+        var createVaccinesTable = "CREATE TABLE IF NOT EXISTS Vaccines(
+                                        id_vaccine INTEGER NOT NULL,
+                                        name VARCHAR(30) NOT NULL,
+                                        number_boosters INTEGER NOT NULL,
+                                        PRIMARY KEY(id_vaccine)
+                                     );";
+
+        var createInjectionsTable = "CREATE TABLE IF NOT EXISTS Injection(
+                                        id_profile INTEGER NOT NULL,
+                                        id_vaccine INTEGER NOT NULL,
+                                        injection_date DATE NOT NULL,
+                                        PRIMARY KEY(id_profile, id_vaccine),
+                                        FOREIGN KEY(id_profile) REFERENCES Profiles(id_profile),
+                                        FOREIGN KEY(id_vaccine) REFERENCES Vaccines(id_vaccine)
+                                     );";
+
+        var createVaccine_intervalTable = "CREATE TABLE IF NOT EXISTS Interval(
+                                        id_interval INTEGER NOT NULL,
+                                        id_vaccine INTEGER NOT NULL,
+                                        recall_number INTEGER NOT NULL,
+                                        recall_month INTEGER NOT NULL,
+                                        PRIMARY KEY(id_interval),
+                                        FOREIGN KEY (id_vaccine) REFERENCES Vaccines(id_vaccine)
+                                     );";
+
+
+        //MENSTRUATION
+
+        var createMenstrualFeelingsTable = "CREATE TABLE IF NOT EXISTS MenstrualFeelings(
+                                        id_menstrual INTEGER NOT NULL,
+                                        feeling_date DATE NOT NULL,
+                                        flow VARCHAR(50) NOT NULL,
+                                        feeling VARCHAR(50) NOT NULL,
+                                        pain VARCHAR(50) NOT NULL,
+                                        energy VARCHAR(50) NOT NULL,
+                                        sleepTime VARCHAR(50) NOT NULL,
+                                        PRIMARY KEY(id_menstrual)
+                                     );";
+
+        var createMenstrualCyclesTable = "CREATE TABLE IF NOT EXISTS MenstrualCycles(
+                                        id_profile INTEGER NOT NULL,
+                                        id_menstrual INTEGER NOT NULL,
+                                        menstrual_date DATE NOT NULL,
+                                        PRIMARY KEY(id_profile, id_menstrual),
+                                        FOREIGN KEY(id_profile) REFERENCES Profiles(id_profile),
+                                        FOREIGN KEY(id_menstrual) REFERENCES Vaccines(id_menstrual)
+                                     );";
+
+        //HEALTH CONDITION
+
+        var createIllnessTable = "CREATE TABLE IF NOT EXISTS Illness(
+                                        id_illness INTEGER NOT NULL,
+                                        name VARCHAR(50) NOT NULL,
+                                        PRIMARY KEY(id_illness)
+                                     );";
+
+        var createHaveIllnessTable = "CREATE TABLE IF NOT EXISTS HaveIllness(
+                                        id_profile INTEGER NOT NULL,
+                                        id_illness INTEGER NOT NULL,
+                                        start_date DATE NOT NULL,
+                                        end_date DATE NOT NULL,
+                                        comments VARCHAR(256),
+                                        PRIMARY KEY(id_profile, id_illness),
+                                        FOREIGN KEY(id_profile) REFERENCES Profiles(id_profile),
+                                        FOREIGN KEY(id_illness) REFERENCES Vaccines(id_illness)
+                                     );";
+
+        var createMedicationTable = "CREATE TABLE IF NOT EXISTS Medication(
+                                        id_medication INTEGER NOT NULL,
+                                        name VARCHAR(50) NOT NULL,
+                                        PRIMARY KEY(id_medication)
+                                     );";
+
+        var createHaveMedicationTable = "CREATE TABLE IF NOT EXISTS HaveMedication(
+                                        id_profile INTEGER NOT NULL,
+                                        id_illness INTEGER NOT NULL,
+                                        id_medication INTEGER NOT NULL,
+                                        medication_date DATE NOT NULL,
+                                        duration DOUBLE NOT NULL,
+                                        PRIMARY KEY(id_profile, id_illness, id_medication),
+                                        FOREIGN KEY(id_profile) REFERENCES Profiles(id_profile),
+                                        FOREIGN KEY(id_illness) REFERENCES Vaccines(id_illness),
+                                        FOREIGN KEY(id_medication) REFERENCES Vaccines(id_medication)
+
+                                     );";
+
+
         db.transaction(
                 function(tx) {
-                    tx.executeSql(createXXTable);
-                    tx.executeSql(createXYTable);
-                    tx.executeSql(createYYTable);
-                    tx.executeSql(createYXTable);
+                    tx.executeSql(createProfilesTable);
+                    tx.executeSql(createMetricsTable);
+                    tx.executeSql(createHave_metricsTable);
+                    tx.executeSql(createMusicTable);
+                    tx.executeSql(createMeditationTable);
+                    tx.executeSql(createVaccinesTable);
+                    tx.executeSql(createInjectionsTable);
+                    tx.executeSql(createVaccine_intervalTable);
+                    tx.executeSql(createMenstrualFeelingsTable);
+                    tx.executeSql(createMenstrualCyclesTable);
+                    tx.executeSql(createIllnessTable);
+                    tx.executeSql(createHaveIllnessTable);
+                    tx.executeSql(createMedicationTable);
+                    tx.executeSql(createHaveMedicationTable);
+
+
                 }
             );
     }

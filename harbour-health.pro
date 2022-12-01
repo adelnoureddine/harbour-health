@@ -16,10 +16,16 @@ CONFIG += sailfishapp
 
 SOURCES += src/harbour-health.cpp
 
-DISTFILES += qml/harbour-health.qml \
+DISTFILES += \
     qml/cover/CoverPage.qml \
     qml/pages/AboutPage.qml \
-    qml/pages/MainPage.qml \
+    qml/pages/AddNewCycle.qml \
+    qml/pages/AddTodayInfo \
+    qml/pages/AddTodayInfo.qml \
+    qml/pages/HistoryOfAllCycle.qml \
+    qml/pages/HistoryOfOneCycle.qml \
+    qml/pages/Menstruation.qml \
+    qml/utils.js \
     rpm/harbour-health.changes.in \
     rpm/harbour-health.changes.run.in \
     rpm/harbour-health.spec \
