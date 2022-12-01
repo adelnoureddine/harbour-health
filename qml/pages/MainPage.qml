@@ -5,8 +5,17 @@ import QtQuick.LocalStorage 2.0
 Page {
     id: page
     allowedOrientations: Orientation.All
+    property int nbProfile;
 
-
+    function nbrProfile (){
+        var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
+        db.transaction(
+            function(tx){
+                var rs = tx.executeSql('SELECT * FROM Profiles')
+                    nbProfile = rs.rows.length
+            }
+        )
+    }
     SilicaFlickable {
         anchors.fill: parent
 
@@ -23,7 +32,7 @@ Page {
             MenuItem{//Visible only if there's no profile
                 visible: nbProfile == 0
                 text: qsTr("New Profile")
-                onClicked: pageStack.animatorPush(Qt.resolvedUrl("newProfile.qml"))
+                onClicked: pageStack.animatorPush(Qt.resolvedUrl("createProfile.qml"))
             }
             MenuItem{
                 text: qsTr("Choose profile")
@@ -94,6 +103,9 @@ Page {
             }
 
         }
+    }
+    Component.onCompleted:{
+        nbrProfile()
     }
 
 }

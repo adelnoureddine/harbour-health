@@ -49,10 +49,6 @@
         <source>Créer un profil</source>
         <translation type="unfinished"></translation>
     </message>
-    <message>
-        <source>Choisissez un profil</source>
-        <translation type="unfinished"></translation>
-    </message>
 </context>
 <context>
     <name>deleteProfile</name>

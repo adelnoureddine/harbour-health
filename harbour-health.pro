@@ -23,6 +23,7 @@ DISTFILES += qml/harbour-health.qml \
     qml/pages/createProfile.qml \
     qml/pages/deleteProfile.qml \
     qml/pages/infosProfile.qml \
+    qml/pages/modifyProfile.qml \
     qml/utils.js \
     rpm/harbour-health.changes.in \
     rpm/harbour-health.changes.run.in \

@@ -4,7 +4,7 @@ import QtQuick.LocalStorage 2.0
 import "../utils.js" as WtUtils
 
 Page {
-    id: page
+    id: root
 
     property string user_firstname;
     property string user_lastname;
@@ -37,7 +37,6 @@ Page {
                 var rs = tx.executeSql('SELECT * FROM Profiles WHERE id_profile=?',[user_id]) // MANQUE LE WHERE = ID PROFILE
                 if(rs.rows.length > 0){
                     user_lastname = rs.rows.item(0).lastname;
-                    print(user_id);
                 }
             }
         )
@@ -66,6 +65,7 @@ Page {
         )
     }
 
+
     allowedOrientations: Orientation.All
 
     SilicaFlickable {
@@ -73,15 +73,15 @@ Page {
 
         PullDownMenu {
             MenuItem {
-                text: qsTr("Afficher les profils")
+                text: qsTr("Show profile")
                 onClicked: pageStack.animatorPush(Qt.resolvedUrl("MainPage.qml"))
             }
             MenuItem {
-                text: qsTr("Modifier le profil")
-                onClicked: pageStack.animatorPush(Qt.resolvedUrl("createProfile.qml"))
+                text: qsTr("Change profile")
+                onClicked: pageStack.animatorPush(Qt.resolvedUrl("modifyProfile.qml"))
             }
             MenuItem {
-                text: qsTr("Supprimer le profil")
+                text: qsTr("Delete profile")
                 onClicked: pageStack.animatorPush(Qt.resolvedUrl("deleteProfile.qml"))
             }
         }
@@ -93,7 +93,7 @@ Page {
             width: page.width
             spacing: Theme.paddingLarge
             PageHeader {
-                title: qsTr("Information profil")
+                title: qsTr("Profile information")
             }
             Row{
                 Label {
@@ -168,7 +168,6 @@ Page {
         Component.onCompleted:{
 
             user_id = WtUtils.getLastUser()
-            print("id de l'user actif : " + user_id)
 
             setFirstname()
             setLastname()

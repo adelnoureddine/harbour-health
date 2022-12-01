@@ -9,11 +9,55 @@ Dialog {
 
     property string user_lastname;
     property string user_firstname;
-    property string birth;
-    property string gender;
+    property string user_birthday;
+    property string user_gender;
     property string user_id;
 
+    function setFirstname (){
+        var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
+        db.transaction(
+            function(tx){
+                var rs = tx.executeSql('SELECT * FROM Profiles WHERE id_profile = ?',[user_id]) // MANQUE LE WHERE = ID PROFILE
+                if(rs.rows.length > 0){
+                    user_firstname = rs.rows.item(0).firstname;
+                }
+            }
+        )
+    }
+    function setLastname (){
+        var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
+        db.transaction(
+            function(tx){
+                var rs = tx.executeSql('SELECT * FROM Profiles WHERE id_profile = ?',[user_id]) // MANQUE LE WHERE = ID PROFILE
+                if(rs.rows.length > 0){
+                    user_lastname = rs.rows.item(0).lastname;
+                }
+            }
+        )
+    }
+    function setGender (){
+        var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
+        db.transaction(
+            function(tx){
+                var rs = tx.executeSql('SELECT * FROM Profiles WHERE id_profile = ?',[user_id]) // MANQUE LE WHERE = ID PROFILE
+                if(rs.rows.length > 0){
+                    user_gender = rs.rows.item(0).gender;
+                }
+            }
+        )
+    }
 
+    function setBirthday (){
+        var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
+        db.transaction(
+            function(tx){
+                var rs = tx.executeSql('SELECT * FROM Profiles WHERE id_profile = ?',[user_id]) // MANQUE LE WHERE = ID PROFILE
+                if(rs.rows.length > 0){
+                    user_birthday = rs.rows.item(0).birthday;
+                }
+            }
+        )
+    }
 
 
     onAcceptPendingChanged: {
@@ -21,20 +65,14 @@ Dialog {
             var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
             db.transaction(
                 function(tx){
-                    var code
-                    var rs = tx.executeSql('SELECT MAX(id_profile) AS id_profile FROM Profiles');
-                    if(rs.rows.item(0)===null) code = 1
-                    else{
-                        code = (rs.rows.item(0).id_profile) + 1;
-                    }
-                   tx.executeSql('INSERT INTO Profiles VALUES (?,?,?,?,?)',[code,firstnameField.text,secondnameField.text,genderField.currentItem.text,birthdayField.value]);
-                   tx.executeSql('UPDATE SETTINGS set USER_ID=(?)',[code]);
-                    user_id=code;
+                   tx.executeSql('UPDATE Profiles SET firstname = ?,lastname = ?,gender = ?,birthday = ? WHERE id_profile = ?',[firstnameField.text,secondnameField.text,genderField.currentItem.text,birthdayField.value,user_id]);
+
+
+
                 }
             )
         }
         onClicked: pageStack.animatorPush(Qt.resolvedUrl("MainPage.qml"))
-
     }
 
 
@@ -52,7 +90,7 @@ Dialog {
             DialogHeader {
 
                 acceptText: "Save"
-                title: "Create a profile"
+                title: "Modify a profile"
 
             }
 
@@ -98,6 +136,14 @@ Dialog {
                 onClicked: openDateDialog()
 
             }
+        }
+        Component.onCompleted:{
+            user_id = WtUtils.getLastUser()
+
+            setFirstname()
+            setLastname()
+            setGender()
+            setBirthday()
         }
     }
 }

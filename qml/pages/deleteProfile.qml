@@ -41,7 +41,6 @@ Dialog {
                 var rs = tx.executeSql('SELECT * FROM Profiles') // MANQUE LE WHERE = ID PROFILE
                 if(rs.rows.length > 0){
                     user_firstname = rs.rows.item(0).firstname;
-                    print(user_firstname)
                 }
             }
         )
@@ -53,7 +52,6 @@ Dialog {
                 var rs = tx.executeSql('SELECT * FROM Profiles WHERE id_profile') // MANQUE LE WHERE = ID PROFILE
                 if(rs.rows.length > 0){
                     user_lastname = rs.rows.item(0).lastname;
-                    print(user_lastname)
                 }
             }
         )
@@ -65,7 +63,6 @@ Dialog {
                 var rs = tx.executeSql('SELECT * FROM Profiles') // MANQUE LE WHERE = ID PROFILE
                 if(rs.rows.length > 0){
                     user_gender = rs.rows.item(0).gender;
-                    print(user_gender)
                 }
             }
         )
@@ -78,7 +75,6 @@ Dialog {
                 var rs = tx.executeSql('SELECT * FROM Profiles') // MANQUE LE WHERE = ID PROFILE
                 if(rs.rows.length > 0){
                     user_birthday = rs.rows.item(0).birthday;
-                    print(user_birthday)
                 }
             }
         )
@@ -94,7 +90,7 @@ Dialog {
             width: page.width
             spacing: Theme.paddingLarge
             PageHeader {
-                title: qsTr("Supprimer le profil")
+                title: qsTr("Delete a profile")
 
             }
             Row{
@@ -169,7 +165,6 @@ Dialog {
         }
         Component.onCompleted:{
             user_id = WtUtils.getLastUser()
-            print("id de l'user actif : " + user_id)
                         load()
 
         }
