@@ -39,7 +39,27 @@ ApplicationWindow {
         var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
         //PROFILE
 
+        //MENSTRUATION
 
+                var createMenstrualFeelingsTable = "CREATE TABLE IF NOT EXISTS MenstrualFeelings(
+                                                id_menstrual INTEGER NOT NULL,
+                                                feeling_date DATE NOT NULL,
+                                                flow VARCHAR(50) NOT NULL,
+                                                feeling VARCHAR(50) NOT NULL,
+                                                pain VARCHAR(50) NOT NULL,
+                                                energy VARCHAR(50) NOT NULL,
+                                                sleepTime VARCHAR(50) NOT NULL,
+                                                PRIMARY KEY(id_menstrual)
+                                             );";
+
+                var createMenstrualCyclesTable = "CREATE TABLE IF NOT EXISTS MenstrualCycles(
+                                                id_profile INTEGER NOT NULL,
+                                                id_menstrual INTEGER NOT NULL,
+                                                menstrual_date DATE NOT NULL,
+                                                PRIMARY KEY(id_profile, id_menstrual),
+                                                FOREIGN KEY(id_profile) REFERENCES Profiles(id_profile),
+                                                FOREIGN KEY(id_menstrual) REFERENCES Vaccines(id_menstrual)
+                                             );";
 
         var createProfilesTable = "CREATE TABLE IF NOT EXISTS Profiles(
                                     id_profile INTEGER NOT NULL,
@@ -186,7 +206,8 @@ ApplicationWindow {
                     tx.executeSql(createHaveIllnessTable);
                     tx.executeSql(createMedicationTable);
                     tx.executeSql(createHaveMedicationTable);
-
+                    tx.executeSql(createMenstrualFeelingsTable);
+                    tx.executeSql(createMenstrualCyclesTable);
 
                 }
             );
