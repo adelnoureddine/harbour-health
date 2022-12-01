@@ -87,7 +87,7 @@ Page {
             var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
             db.transaction(
                 function(tx){
-                    var res1 =  tx.executeSql('SELECT medication_date,duration FROM HaveMedication WHERE illness_id=? AND id_profile =? AND id_medication=?',[illness_id,user_id,id_medication]);
+                    var res1 =  tx.executeSql('SELECT medication_date,duration FROM HaveMedication WHERE id_illness=? AND id_profile =? AND id_medication=?',[illness_id,user_id,id_medication]);
                     medication_date = res1.rows.item(0).medication_date;
                     duration = res1.rows.item(0).duration;
                     var res2 = tx.executeSql('SELECT name FROM Medication WHERE id_medication=?',[id_medication]);

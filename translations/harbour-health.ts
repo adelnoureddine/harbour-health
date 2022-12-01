@@ -93,15 +93,15 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Gestion de santé</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>Health</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <source>Health App</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Sante</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

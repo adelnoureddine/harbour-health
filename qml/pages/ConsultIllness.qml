@@ -125,8 +125,8 @@ Page {
                         medication_id = medications_ids[index];
                         db.transaction(
                            function(tx){
-                                tx.executeSql('DELETE FROM HaveMedication WHERE id_profile=? AND illness_id =? AND medication_id=?',[user_id,illness_id,medication_id]);
-                                tx.executeSql('DELETE FROM Medication WHERE medication_id =?',medication_id);
+                                tx.executeSql('DELETE FROM HaveMedication WHERE id_profile=? AND id_illness =? AND id_medication=?',[user_id,illness_id,medication_id]);
+                                tx.executeSql('DELETE FROM Medication WHERE id_medication =?',medication_id);
                             })
                     }
 
@@ -201,7 +201,7 @@ Page {
             var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
             db.transaction(
                 function(tx){
-                    var res1 = tx.executeSql('SELECT * FROM HaveMedication WHERE illness_id=? AND id_profile =?',[illness_id,user_id]);
+                    var res1 = tx.executeSql('SELECT * FROM HaveMedication WHERE id_illness=? AND id_profile =?',[illness_id,user_id]);
                     if(res1.rows.length > 0){
                         var res2;
                         var name_medication;
@@ -209,7 +209,7 @@ Page {
                         for(var i=0;i<res1.rows.length;i++){
                             medication_id = res1.rows.item(i).medication_id;
                             medications_ids[i]= medication_id;
-                            res2 = tx.executeSql('SELECT * FROM Medication WHERE medication_id=?',[medication_id]);
+                            res2 = tx.executeSql('SELECT * FROM Medication WHERE id_medication=?',[medication_id]);
                             name_medication = res2.rows.item(0).name;
                             listModel.append({"text": name_medication});
                         }

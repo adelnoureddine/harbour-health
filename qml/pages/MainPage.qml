@@ -19,6 +19,11 @@ Page {
                 text: qsTr("About")
                 onClicked: pageStack.animatorPush(Qt.resolvedUrl("AboutPage.qml"))
             }
+
+            MenuItem {
+                text: qsTr("Sante")
+                onClicked: pageStack.animatorPush(Qt.resolvedUrl("MainHealthCondition.qml"))
+            }
         }
 
         // Tell SilicaFlickable the height of its content.
@@ -28,6 +33,7 @@ Page {
         // of the page, followed by our content.
         Column {
             id: column
+
 
             width: page.width
             spacing: Theme.paddingLarge
@@ -41,5 +47,6 @@ Page {
                 font.pixelSize: Theme.fontSizeExtraLarge
             }
         }
+        Component.onCompleted: user_id=1
     }
 }

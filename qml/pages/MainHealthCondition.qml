@@ -53,13 +53,12 @@ Page {
                 name_illnes = listModel.get(index).text;
                 db.transaction(
                    function(tx){
-                       var rs1 = tx.executeSql('SELECT start_date,end_date,comments FROM HaveIllness WHERE id_profile=? AND illness_id=?',[id_user,illness_id]);
-                       if(rs1.rows.length <= 0){
-                            print("testeeee");
+                       var rs1 = tx.executeSql('SELECT start_date,end_date,comments FROM HaveIllness WHERE id_profile=? AND id_illness=?',[user_id,illness_id]);
+                       if(rs1.rows.length > 0){
+                           start_date = rs1.rows.item(0).start_date;
+                           end_date = rs1.rows.item(0).end_date;
+                           comments = rs1.rows.item(0).comments;
                        }
-                       start_date = rs1.rows.item(0).start_date;
-                       end_date = rs1.rows.item(0).end_date;
-                       comments = rs1.rows.item(0).comments;
                    }
                    )
 
@@ -71,8 +70,8 @@ Page {
                 illness_id = ids_illness[index];
                 db.transaction(
                    function(tx){
-                        tx.executeSql('DELETE FROM HaveIllness WHERE id_profile=? AND illness_id =?',[user_id,illness_id]);
-                        tx.executeSql('DELETE FROM Illness WHERE illness_id =?',illness_id);
+                        tx.executeSql('DELETE FROM HaveIllness WHERE id_profile=? AND id_illness =?',[user_id,illness_id]);
+                        tx.executeSql('DELETE FROM Illness WHERE id_illness =?',illness_id);
                     })
             }
 
@@ -148,9 +147,9 @@ Page {
                         var name_Illness;
                         var illness_id;
                         for(var i = 0;i<rs1.rows.length;i++){
-                            illness_id=rs1.rows.item(i).illness_id;
+                            illness_id=rs1.rows.item(i).id_illness;
                             ids_illness[i]= illness_id;
-                            rs2 = tx.executeSql('SELECT * FROM Illness WHERE illness_id=?',illness_id);
+                            rs2 = tx.executeSql('SELECT * FROM Illness WHERE id_illness=?',illness_id);
                             name_Illness=rs2.rows.item(0).name;
                             listModel.append({"text":name_Illness})
                         }

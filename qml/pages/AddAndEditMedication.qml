@@ -235,10 +235,8 @@ Page {
             var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
             db.transaction(
                 function(tx){
-                    print("modifier illnes");
-                    print(val1,val2,val3,val4);
-                    var rs2 = tx.executeSql("SELECT medication_date,duration FROM HaveMedication WHERE id_profile=? AND illness_id=? AND medication_id=?",[user_id,illness_id,medication_id]);
-                    var rs1 = tx.executeSql("SELECT name FROM Medication WHERE medication_id=?",medication_id);
+                    var rs2 = tx.executeSql("SELECT medication_date,duration FROM HaveMedication WHERE id_profile=? AND id_illness=? AND id_medication=?",[user_id,illness_id,medication_id]);
+                    var rs1 = tx.executeSql("SELECT name FROM Medication WHERE id_medication=?",medication_id);
                     if(rs1.rows.length > 1){
                         name_medication = rs1.rows.item(0).name;
                     }
@@ -253,8 +251,8 @@ Page {
             var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
             db.transaction(
                 function(tx){
-                    var rs1 = tx.executeSql("UPDATE Medication SET name=? WHERE medication_id=?",[val1,medication_id]);
-                    var res2 = tx.executeSql("UPDATE HaveMedication SET medication_date=?, duration=? WHERE id_profile=? AND illness_id=? AND medication_id=?",[val2,val3,user_id,illness_id,medication_id]);
+                    var rs1 = tx.executeSql("UPDATE Medication SET name=? WHERE id_medication=?",[val1,medication_id]);
+                    var res2 = tx.executeSql("UPDATE HaveMedication SET medication_date=?, duration=? WHERE id_profile=? AND id_illness=? AND id_medication=?",[val2,val3,user_id,illness_id,medication_id]);
                 }
                 )
       }
@@ -262,11 +260,8 @@ Page {
             var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
             db.transaction(
                 function(tx){
-                    print(val1);
-                    print(val2);
-                    print(val3);
                     var rs1 = tx.executeSql("INSERT INTO Medication(name) VALUES(?)",val1);
-                    rs1 = tx.executeSql("SELECT medication_id AS LastInsert FROM Medication ORDER BY LastInsert DESC LIMIT 0,1");
+                    rs1 = tx.executeSql("SELECT id_medication AS LastInsert FROM Medication ORDER BY LastInsert DESC LIMIT 0,1");
                     var lasteInsetMedication = rs1.rows.item(0).LastInsert;
                     rs1 = tx.executeSql("INSERT INTO HaveMedication VALUES(?,?,?,?,?)",[user_id,illness_id,lasteInsetMedication,val2,val3]);
 

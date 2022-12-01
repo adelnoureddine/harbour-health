@@ -285,8 +285,8 @@ Page {
             function(tx){
                 print("modifier illnes");
                 print(val1,val2,val3,val4);
-                var rs1 = tx.executeSql("UPDATE Illness SET name=? WHERE illness_id=?",[val1,illness_id]);
-                var res2 = tx.executeSql("UPDATE HaveIllness SET start_date=?, end_date=?,comments=? WHERE id_profile=? AND illness_id=?",[val2,val3,val4,user_id,illness_id]);
+                var rs1 = tx.executeSql("UPDATE Illness SET name=? WHERE id_illness=?",[val1,illness_id]);
+                var res2 = tx.executeSql("UPDATE HaveIllness SET start_date=?, end_date=?,comments=? WHERE id_profile=? AND id_illness=?",[val2,val3,val4,user_id,illness_id]);
             }
         )
     }
@@ -294,10 +294,8 @@ Page {
         var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
         db.transaction(
             function(tx){
-                print("add illnes");
-                print(val1,val2,val3,val4);
                 var rs1 = tx.executeSql("INSERT INTO Illness(name) VALUES(?)",val1);
-                rs1 = tx.executeSql("SELECT illness_id AS LastInsert FROM Illness ORDER BY LastInsert DESC LIMIT 0,1");
+                rs1 = tx.executeSql("SELECT id_illness AS LastInsert FROM Illness ORDER BY LastInsert DESC LIMIT 0,1");
                 var lasteInsetIllnes = rs1.rows.item(0).LastInsert;
                 rs1 = tx.executeSql("INSERT INTO HaveIllness VALUES(?,?,?,?,?)",[user_id,lasteInsetIllnes,val2,val3,val4]);
             }
