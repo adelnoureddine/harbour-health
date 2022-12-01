@@ -87,7 +87,8 @@ Page {
     function loadModel(){
         var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
         //Clear model before adding new data; (solved edit recall problem)
-        for(var i=0; i < listModel.count; i++){
+        var size = listModel.count
+        for(var i=0; i < size; i++){
             listModel.remove(0)
         }
 

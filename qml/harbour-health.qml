@@ -72,6 +72,7 @@ ApplicationWindow {
                 var createVaccinesTable = "CREATE TABLE IF NOT EXISTS Vaccines(
                                                 id_vaccine INTEGER PRIMARY KEY AUTOINCREMENT ,
                                                 name VARCHAR(30) NOT NULL,
+                                                isMandatory INTEGER NOT NULL,
                                                 number_boosters INTEGER NOT NULL
                                              );";
 
@@ -92,8 +93,6 @@ ApplicationWindow {
                                                 recall_month INTEGER NOT NULL,
                                                 FOREIGN KEY (id_vaccine) REFERENCES Vaccines(id_vaccine)
                                              );";
-
-
 
 
 
@@ -135,14 +134,16 @@ ApplicationWindow {
             function(tx){
                 tx.executeSql("INSERT INTO Profiles VALUES(?,?,?,?,?)", [null, "testname", "testlastname", "F", "20/13/1321"]);
 
+
                 //insert mandatory vaccines
-                tx.executeSql("INSERT INTO Vaccines VALUES(?,?,?)", [null, "DTP", 3]);
-                tx.executeSql("INSERT INTO Vaccines VALUES(?,?,?)", [null, "Coqueluche", 3]);
-                tx.executeSql("INSERT INTO Vaccines VALUES(?,?,?)", [null, "HIB", 3]);
-                tx.executeSql("INSERT INTO Vaccines VALUES(?,?,?)", [null, "Hépatite B", 3]);
-                tx.executeSql("INSERT INTO Vaccines VALUES(?,?,?)", [null, "Pneumocoque", 3]);
-                tx.executeSql("INSERT INTO Vaccines VALUES(?,?,?)", [null, "ROR", 2]);
-                tx.executeSql("INSERT INTO Vaccines VALUES(?,?,?)", [null, "Méningocoque C", 2]);
+                tx.executeSql("INSERT INTO Vaccines VALUES(?,?,?,?)", [null, "DTP", 1, 3]);
+                tx.executeSql("INSERT INTO Vaccines VALUES(?,?,?,?)", [null, "Coqueluche", 1, 3]);
+                tx.executeSql("INSERT INTO Vaccines VALUES(?,?,?,?)", [null, "HIB", 1, 3]);
+                tx.executeSql("INSERT INTO Vaccines VALUES(?,?,?,?)", [null, "Hépatite B", 1, 3]);
+                tx.executeSql("INSERT INTO Vaccines VALUES(?,?,?,?)", [null, "Pneumocoque", 1, 3]);
+                tx.executeSql("INSERT INTO Vaccines VALUES(?,?,?,?)", [null, "ROR", 1, 2]);
+                tx.executeSql("INSERT INTO Vaccines VALUES(?,?,?,?)", [null, "Méningocoque C", 1, 2]);
+
 
                 tx.executeSql("INSERT INTO Injection VALUES(?,?,?,?)", [null, 0, 8, "20/12/2032"]);
             });

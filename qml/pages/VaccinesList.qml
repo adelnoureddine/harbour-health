@@ -6,6 +6,7 @@ Page {
     id: vaccinesList
     property int vaccineId
     property int userId: 0
+    property bool isUpdate
 
     SilicaListView{
         anchors.fill: parent
@@ -15,7 +16,10 @@ Page {
         PullDownMenu {
             MenuItem {
                 text: qsTr("Add a vaccine")
-                onClicked: pageStack.animatorPush(Qt.resolvedUrl("NewVaccine.qml"))
+                onClicked: {
+                    vaccinesList.isUpdate = false
+                    pageStack.animatorPush(Qt.resolvedUrl("AddVaccine.qml"))
+                }
             }
             MenuItem {
                 text: qsTr("Menu")
@@ -33,7 +37,17 @@ Page {
         delegate: ListItem{
             property int vaccine: model.vaccine
             function remove() {
-                remorseDelete(function() { listModel.remove(index) })
+                if(model.mandatory === 0){
+                    var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
+                    db.transaction(
+                        function(tx){
+                            //remove from database
+                            var rs = tx.executeSql("DELETE FROM Vaccines WHERE id_vaccine = ?", model.vaccine);
+                        }
+                    );
+                    //remove from model
+                    remorseDelete(function() { listModel.remove(index) })
+                }
             }
 
             onClicked:function (){
@@ -48,9 +62,9 @@ Page {
                 ContextMenu {
                     MenuItem {
                         text: "Edit"
-
                     }
                     MenuItem {
+                        visible: model.mandatory === 0 //can't delete mandatory vaccine
                         text: "Delete"
                         onClicked: remove()
                     }
@@ -70,23 +84,40 @@ Page {
     ListModel{
         id: listModel
 
-
         Component.onCompleted: {
             load()
             //utils.js pour récupérer le dernier id_utilisateur
         }
+    }
 
-        function load(){
-            var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
-            db.transaction(
-                function(tx){
-                    var rs = tx.executeSql("SELECT * FROM Vaccines");
-                    for(var i = 0; i < rs.rows.length; i++){
-                        listModel.append({"text": rs.rows.item(i).name, "vaccine": rs.rows.item(i).id_vaccine})
-                    }
-                }
-            );
+    function load(){
+        var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
+        //Clear model before adding new data, to avoid adding the same data twice
+        var size = listModel.count
+        for(var i = 0; i < size; i++){
+            listModel.remove(0);
         }
 
+
+        db.transaction(
+            function(tx){
+                var rs = tx.executeSql("SELECT * FROM Vaccines WHERE Vaccines.isMandatory = 1 ");
+                for(var i = 0; i < rs.rows.length; i++){
+                    listModel.append({"text": rs.rows.item(i).name,
+                                         "vaccine": rs.rows.item(i).id_vaccine,
+                                         "mandatory": rs.rows.item(i).isMandatory
+                                    })
+                }
+
+                var rs = tx.executeSql("SELECT * FROM Vaccines INNER JOIN Injection WHERE Injection.id_profile = ? AND Vaccines.isMandatory = 0", [userId]);
+                for(var i = 0; i < rs.rows.length; i++){
+                    listModel.append({"text": rs.rows.item(i).name,
+                                         "vaccine": rs.rows.item(i).id_vaccine,
+                                         "mandatory": rs.rows.item(i).isMandatory
+                                    });
+                }
+            }
+        );
+        console.log("size: " + listModel.count)
     }
 }

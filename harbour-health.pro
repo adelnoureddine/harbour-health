@@ -20,6 +20,7 @@ SOURCES += src/harbour-health.cpp
 DISTFILES += qml/harbour-health.qml \
     qml/cover/CoverPage.qml \
     qml/pages/AboutPage.qml \
+    qml/pages/AddVaccine.qml \
     qml/pages/MainPage.qml \
     qml/pages/VaccineDetails.qml \
     qml/pages/VaccinesList.qml \
