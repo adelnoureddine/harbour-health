@@ -19,7 +19,7 @@ Page {
             }
             MenuItem {
                 text: qsTr("La Nutrition")
-                onClicked: pageStack.animatorPush(Qt.resolvedUrl("Welcomepage.qml"))
+                onClicked: pageStack.animatorPush(Qt.resolvedUrl("Nutrition.qml"))
             }
         }
 

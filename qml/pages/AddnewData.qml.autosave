@@ -4,8 +4,8 @@ import Sailfish.Silica 1.0
 Dialog {
     id: dialog
 
-    // The effective value will be restricted by ApplicationWindow.allowedOrientations
-   // allowedOrientations: Orientation.All
+    //The effective value will be restricted by ApplicationWindow.allowedOrientations
+   allowedOrientations: Orientation.All
 
 
 
@@ -30,19 +30,19 @@ Dialog {
         //load user_code from homepage, if(depth==3)adding from history else from homepage
         if(depth==3) user_code=previousPage().rootPage.user_code;
         else user_code=previousPage().user_code;
-        var db = LocalStorage.openDatabaseSync("WeightTracker", "1.0", "Database application", 100000);
+        var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
         db.transaction(
             function(tx){
-                var rs = tx.executeSql('SELECT MAX(id_metric) AS MetricValue FROM MetricValue  ');
+                var rs = tx.executeSql('SELECT MAX(id_metric) AS Metric FROM Metric  ');
                 if(rs.rows.item(0).METRIC===null) metric_code="1"
                 else{
-                    metric_code = rs.rows.item(0).MetricValue;
+                    metric_code = rs.rows.item(0).Metric;
                     metric_code = parseInt(metric_code) +1;
                 }
                 var date = new Date();
                 date = Qt.formatDate(date, "yyyy-MM-dd");
-                rs = tx.executeSql('INSERT INTO MetricValue VALUES (?,?,?,?,?)',[user_code,metric_code,date,"Calorie",value]);
-                rs = tx.executeSql('SELECT * FROM MetricValue WHERE id_profile=?',[user_code]);
+                rs = tx.executeSql('INSERT INTO Metric VALUES (?,?,?,?,?)',[user_code,metric_code,date,"Calorie",value]);
+                rs = tx.executeSql('SELECT * FROM Metric WHERE id_profile=?',[user_code]);
             }
         )
 

@@ -48,16 +48,13 @@
     </message>
 </context>
 <context>
-    <name>Consul-Jour</name>
-    <message>
-        <source>Modification</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
     <name>ConsultHistory</name>
     <message>
-        <source>Edit Information</source>
+        <source>History Consultation</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Add new data</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

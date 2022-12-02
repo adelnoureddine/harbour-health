@@ -21,12 +21,11 @@ DISTFILES += qml/harbour-health.qml \
     qml/js/fichierUtils.js \
     qml/pages/AboutPage.qml \
     qml/pages/AddnewData \
-    qml/pages/Consul-Jour.qml \
     qml/pages/ConsultHistory.qml \
     qml/pages/MainPage.qml \
+    qml/pages/Nutrition.qml \
     qml/pages/WelcomePage \
     qml/pages/Welcomepage \
-    qml/pages/Welcomepage.qml \
     rpm/harbour-health.changes.in \
     rpm/harbour-health.changes.run.in \
     rpm/harbour-health.spec \

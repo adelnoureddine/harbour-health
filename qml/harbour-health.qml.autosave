@@ -28,10 +28,12 @@ ApplicationWindow {
 
         //Metrics
         var createMetricsTable = "CREATE TABLE IF NOT EXISTS Metrics(
+                                    id_profile INTEGER NOT NULL,
                                     id_metric INTEGER NOT NULL,
                                     name VARCHAR(30) NOT NULL,
                                     unit VARCHAR(10) NOT NULL,
-                                    PRIMARY KEY(id_metric)
+                                    PRIMARY KEY(id_metric),
+                                    FOREIGN KEY(id_profile) REFERENCES Profiles(id_profile)
                                   );";
 
 
