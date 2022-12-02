@@ -39,6 +39,8 @@ ApplicationWindow {
         var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
         //PROFILE
 
+        //MENSTRUATION
+
 
 
         var createProfilesTable = "CREATE TABLE IF NOT EXISTS Profiles(
@@ -118,8 +120,12 @@ ApplicationWindow {
 
         var createMenstrualFeelingsTable = "CREATE TABLE IF NOT EXISTS MenstrualFeelings(
                                         id_menstrual INTEGER NOT NULL,
-                                        name VARCHAR(50) NOT NULL,
-                                        feeling_value VARCHAR(256) NOT NULL,
+                                        feeling_date DATE NOT NULL,
+                                        flow VARCHAR(50) NOT NULL,
+                                        feeling VARCHAR(50) NOT NULL,
+                                        pain VARCHAR(50) NOT NULL,
+                                        energy VARCHAR(50) NOT NULL,
+                                        sleepTime VARCHAR(50) NOT NULL,
                                         PRIMARY KEY(id_menstrual)
                                      );";
 
