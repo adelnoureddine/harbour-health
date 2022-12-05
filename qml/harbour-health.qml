@@ -16,8 +16,8 @@ ApplicationWindow {
 
     Component.onCompleted: {
         initDatabase();
-    createLastUser();
-
+        createLastUser();
+        insertMetric();
     }
 
 
@@ -38,11 +38,6 @@ ApplicationWindow {
     function initDatabase() {
         var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
         //PROFILE
-
-        //MENSTRUATION
-
-
-
         var createProfilesTable = "CREATE TABLE IF NOT EXISTS Profiles(
                                     id_profile INTEGER NOT NULL,
                                     firstname VARCHAR(30) NOT NULL,
@@ -196,5 +191,22 @@ ApplicationWindow {
 
                 }
             );
+    }
+
+    function insertMetric(){
+        var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
+        db.transaction(
+            function(tx){
+                if(tx.executeSql("SELECT * FROM Metrics").rows.length === 0 ){
+                    tx.executeSql("INSERT INTO Metrics VALUES(?,?,?)", [null, "height", "cm"]);
+                    tx.executeSql("INSERT INTO Metrics VALUES(?,?,?)", [null, "weight", "Kg"]);
+                    tx.executeSql("INSERT INTO Metrics VALUES(?,?,?)", [null, "neck", "cm"]);
+                    tx.executeSql("INSERT INTO Metrics VALUES(?,?,?)", [null, "calf", "cm"]);
+                    tx.executeSql("INSERT INTO Metrics VALUES(?,?,?)", [null, "arm", "cm"]);
+                    tx.executeSql("INSERT INTO Metrics VALUES(?,?,?)", [null, "thigh", "cm"]);
+                    tx.executeSql("INSERT INTO Metrics VALUES(?,?,?)", [null, "hip", "cm"]);
+                    tx.executeSql("INSERT INTO Metrics VALUES(?,?,?)", [null, "chest", "cm"]);
+                }
+            });
     }
 }
