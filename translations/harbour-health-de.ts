@@ -2,37 +2,51 @@
 <!DOCTYPE TS>
 <TS version="2.1">
 <context>
-    <name>AboutPage</name>
+    <name>CoverPage</name>
+    <message>
+        <source>My Cover</source>
+        <translation>Mein Cover</translation>
+    </message>
+</context>
+<context>
+    <name>MainPage</name>
+    <message>
+        <source>About</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>My Profile</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>New Profile</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Choose profile</source>
+        <translation type="unfinished"></translation>
+    </message>
     <message>
         <source>Health</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Health is a health and fitness tracker</source>
+        <source>Health App</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>chooseProfile</name>
+    <message>
+        <source>Accueil</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Maintainer and Current Developer</source>
+        <source>Information profil</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Adel Noureddine © 2022</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Initial Authors</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Source Code</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Licensed under the GNU GPL 3 license only (GPL-3.0-only)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>View source code on GitLab</source>
+        <source>Créer un profil</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -71,37 +85,58 @@
 <context>
     <name>CoverPage</name>
     <message>
-        <source>My Cover</source>
-        <translation>Mein Cover</translation>
+        <source>Supprimer le profil</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source> First Name : </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source> Last Name : </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source> Gender : </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source> Birthday : </source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
-    <name>MainHealthCondition</name>
+    <name>infosProfile</name>
     <message>
-        <source>All illness data</source>
+        <source>Afficher les profils</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source> Add illness</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
-    <name>MainPage</name>
-    <message>
-        <source>About</source>
+        <source>Modifier le profil</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Health</source>
+        <source>Supprimer le profil</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Health App</source>
+        <source>Information profil</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Sante</source>
+        <source> First Name : </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source> Last Name : </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source> Gender : </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source> Birthday : </source>
         <translation type="unfinished"></translation>
     </message>
 </context>
