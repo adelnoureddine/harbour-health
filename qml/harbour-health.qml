@@ -10,8 +10,29 @@ ApplicationWindow {
     cover: Qt.resolvedUrl("cover/CoverPage.qml")
     allowedOrientations: defaultAllowedOrientations
 
+
+
+    property string user_id;
+
     Component.onCompleted: {
         initDatabase();
+        createLastUser();
+        insertMetric();
+    }
+
+
+    function createLastUser() {
+        var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
+
+        var createUsersTable = 'CREATE TABLE IF NOT EXISTS SETTINGS(
+                                    USER_ID INTEGER NOT NULL,
+                                    PRIMARY KEY(USER_ID)
+                                 );';
+        db.transaction(
+            function(tx){
+                tx.executeSql(createUsersTable);
+            }
+        )
     }
 
     function initDatabase() {
@@ -26,6 +47,7 @@ ApplicationWindow {
                                     PRIMARY KEY(id_profile)
                                  );";
 
+
         //Metrics
         var createMetricsTable = "CREATE TABLE IF NOT EXISTS Metrics(
                                     id_metric INTEGER NOT NULL,
@@ -33,11 +55,6 @@ ApplicationWindow {
                                     unit VARCHAR(10) NOT NULL,
                                     PRIMARY KEY(id_metric)
                                   );";
-
-
-
-
-
 
         var createHave_metricsTable = "CREATE TABLE IF NOT EXISTS MetricValue(
                                     id_profile INTEGER NOT NULL,
@@ -98,8 +115,12 @@ ApplicationWindow {
 
         var createMenstrualFeelingsTable = "CREATE TABLE IF NOT EXISTS MenstrualFeelings(
                                         id_menstrual INTEGER NOT NULL,
-                                        name VARCHAR(50) NOT NULL,
-                                        feeling_value VARCHAR(256) NOT NULL,
+                                        feeling_date DATE NOT NULL,
+                                        flow VARCHAR(50) NOT NULL,
+                                        feeling VARCHAR(50) NOT NULL,
+                                        pain VARCHAR(50) NOT NULL,
+                                        energy VARCHAR(50) NOT NULL,
+                                        sleepTime VARCHAR(50) NOT NULL,
                                         PRIMARY KEY(id_menstrual)
                                      );";
 
@@ -170,5 +191,22 @@ ApplicationWindow {
 
                 }
             );
+    }
+
+    function insertMetric(){
+        var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
+        db.transaction(
+            function(tx){
+                if(tx.executeSql("SELECT * FROM Metrics").rows.length === 0 ){
+                    tx.executeSql("INSERT INTO Metrics VALUES(?,?,?)", [null, "height", "cm"]);
+                    tx.executeSql("INSERT INTO Metrics VALUES(?,?,?)", [null, "weight", "Kg"]);
+                    tx.executeSql("INSERT INTO Metrics VALUES(?,?,?)", [null, "neck", "cm"]);
+                    tx.executeSql("INSERT INTO Metrics VALUES(?,?,?)", [null, "calf", "cm"]);
+                    tx.executeSql("INSERT INTO Metrics VALUES(?,?,?)", [null, "arm", "cm"]);
+                    tx.executeSql("INSERT INTO Metrics VALUES(?,?,?)", [null, "thigh", "cm"]);
+                    tx.executeSql("INSERT INTO Metrics VALUES(?,?,?)", [null, "hip", "cm"]);
+                    tx.executeSql("INSERT INTO Metrics VALUES(?,?,?)", [null, "chest", "cm"]);
+                }
+            });
     }
 }

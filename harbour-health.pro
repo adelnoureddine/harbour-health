@@ -24,8 +24,16 @@ DISTFILES += qml/harbour-health.qml \
     qml/pages/ConsultHistory.qml \
     qml/pages/MainPage.qml \
     qml/pages/Nutrition.qml \
-    qml/pages/WelcomePage \
     qml/pages/Welcomepage \
+    qml/pages/chooseProfile.qml \
+    qml/pages/createProfile.qml \
+    qml/pages/deleteProfile.qml \
+    qml/pages/infosProfile.qml \
+    qml/pages/modifyProfile.qml \
+    qml/pages/MetricDetails.qml \
+    qml/pages/metricList.qml \
+    qml/pages/addEntryMetric.qml \
+    qml/utils.js \
     rpm/harbour-health.changes.in \
     rpm/harbour-health.changes.run.in \
     rpm/harbour-health.spec \
