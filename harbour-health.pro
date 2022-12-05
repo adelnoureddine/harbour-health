@@ -24,6 +24,9 @@ DISTFILES += qml/harbour-health.qml \
     qml/pages/deleteProfile.qml \
     qml/pages/infosProfile.qml \
     qml/pages/modifyProfile.qml \
+    qml/pages/MetricDetails.qml \
+    qml/pages/metricList.qml \
+    qml/pages/addEntryMetric.qml \
     qml/utils.js \
     rpm/harbour-health.changes.in \
     rpm/harbour-health.changes.run.in \
