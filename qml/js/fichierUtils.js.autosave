@@ -1,0 +1,44 @@
+.pragma library
+.import QtQuick.LocalStorage 2.0 as Sql
+
+function info_user(user_code) {
+    var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
+    var user_lastname, user_first_name, metric_code, user_Litre, user_Colories;
+    var arrayData = null;
+    db.transaction(
+        function(tx) {
+            var rs = tx.executeSql('SELECT * FROM Profiles WHERE id_profile=?',[user_code]);
+            if (rs.rows.length > 0) {
+                user_lastname = rs.rows.item(0).LASTNAME;
+                user_first_name = rs.rows.item(0).FIRSTNAME;
+            }
+
+            
+            
+           
+            rs = tx.executeSql('SELECT MAX(id_metric) AS METRIC FROM Metric WHERE id_profile=?',[user_code]);
+            if (rs.rows.item(0).METRIC===null) user_weight = 0
+            else {
+                metric_code = rs.rows.item(0).METRIC;
+            }
+
+            rs = tx.executeSql('SELECT * FROM Metric WHERE id_profile=? AND name=? AND id_metric=?',[user_code,"Litres",metric_code]);
+            if (rs.rows.length > 0) {
+                user_Litre = parseFloat(rs.rows.item(0).VAL);
+            }
+            
+            rs = tx.executeSql('SELECT * FROM Metric WHERE id_profile=? AND name=? AND id_metric=?',[user_code,"Calories",metric_code]);
+            if (rs.rows.length > 0) {
+                user_Colories = parseFloat(rs.rows.item(0).VAL);
+            }
+
+            arrayData = {
+                firstname: user_first_name,
+                lastname: user_lastname,
+                Calories: user_Colories,
+                Littre: user_Litre,
+            };
+        }
+    )
+    return arrayData;
+}

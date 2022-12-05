@@ -18,7 +18,13 @@ SOURCES += src/harbour-health.cpp
 
 DISTFILES += qml/harbour-health.qml \
     qml/cover/CoverPage.qml \
+    qml/js/fichierUtils.js \
+    qml/pages/AboutPage.qml \
+    qml/pages/AddnewData \
+    qml/pages/ConsultHistory.qml \
     qml/pages/MainPage.qml \
+    qml/pages/Nutrition.qml \
+    qml/pages/Welcomepage \
     qml/pages/chooseProfile.qml \
     qml/pages/createProfile.qml \
     qml/pages/deleteProfile.qml \
