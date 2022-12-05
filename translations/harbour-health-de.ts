@@ -51,7 +51,39 @@
     </message>
 </context>
 <context>
-    <name>deleteProfile</name>
+    <name>AddAndEditIllness</name>
+    <message>
+        <source>Illness list</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>AddAndEditMedication</name>
+    <message>
+        <source>Medication list</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>ConsultIllness</name>
+    <message>
+        <source>Illness list</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Add medication</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>ConsultMedication</name>
+    <message>
+        <source>Medication list</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>CoverPage</name>
     <message>
         <source>Supprimer le profil</source>
         <translation type="unfinished"></translation>

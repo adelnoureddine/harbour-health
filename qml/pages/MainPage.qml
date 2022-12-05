@@ -4,6 +4,9 @@ import QtQuick.LocalStorage 2.0
 
 Page {
     id: page
+    property string user_id
+
+    // The effective value will be restricted by ApplicationWindow.allowedOrientations
     allowedOrientations: Orientation.All
     property int nbProfile;
 
@@ -47,6 +50,7 @@ Page {
         // of the page, followed by our content.
         Column {
             id: column
+
 
             width: page.width
             spacing: Theme.paddingLarge
@@ -103,6 +107,7 @@ Page {
             }
 
         }
+        Component.onCompleted: user_id=1
     }
     Component.onCompleted:{
         nbrProfile()

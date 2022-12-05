@@ -20,6 +20,11 @@ DISTFILES += qml/harbour-health.qml \
     qml/cover/CoverPage.qml \
     qml/js/fichierUtils.js \
     qml/pages/AboutPage.qml \
+    qml/pages/AddAndEditIllness.qml \
+    qml/pages/AddAndEditMedication.qml \
+    qml/pages/ConsultIllness.qml \
+    qml/pages/ConsultMedication.qml \
+    qml/pages/MainHealthCondition.qml \
     qml/pages/AddnewData \
     qml/pages/ConsultHistory.qml \
     qml/pages/MainPage.qml \
