@@ -4,6 +4,7 @@ import QtQuick.LocalStorage 2.0
 
 Page {
     id: page
+    property int userId
     property string user_id
 
     // The effective value will be restricted by ApplicationWindow.allowedOrientations
@@ -110,8 +111,9 @@ Page {
         Component.onCompleted: user_id=1
     }
     Component.onCompleted:{
+        userId = WtUtils.getLastUser()
+    }
         nbrProfile()
     }
-
 }
 

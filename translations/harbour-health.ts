@@ -36,6 +36,13 @@
     </message>
 </context>
 <context>
+    <name>VaccineDetails</name>
+    <message>
+        <source>Update</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Menu</source>
     <name>chooseProfile</name>
     <message>
         <source>Accueil</source>
@@ -51,6 +58,13 @@
     </message>
 </context>
 <context>
+    <name>VaccinesList</name>
+    <message>
+        <source>Add a vaccine</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Menu</source>
     <name>AddAndEditIllness</name>
     <message>
         <source>Illness list</source>

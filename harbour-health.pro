@@ -16,11 +16,14 @@ CONFIG += sailfishapp
 
 SOURCES += src/harbour-health.cpp \
 
-
 DISTFILES += qml/harbour-health.qml \
     qml/cover/CoverPage.qml \
     qml/js/fichierUtils.js \
     qml/pages/AboutPage.qml \
+    qml/pages/AddVaccine.qml \
+    qml/pages/VaccineDetails.qml \
+    qml/pages/VaccinesList.qml \
+    qml/pages/updateRecall.qml \
     qml/pages/AddAndEditIllness.qml \
     qml/pages/AddAndEditMedication.qml \
     qml/pages/ConsultIllness.qml \
