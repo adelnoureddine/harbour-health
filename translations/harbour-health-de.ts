@@ -82,11 +82,94 @@
     </message>
     <message>
         <source>Infos profile</source>
+        <source>About</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>My Profile</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>New Profile</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Choose profile</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Health</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Health App</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
     <name>deleteProfile</name>
+    <name>VaccineDetails</name>
+    <message>
+        <source>Update</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Menu</source>
+    <name>chooseProfile</name>
+    <message>
+        <source>Accueil</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Information profil</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Créer un profil</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>VaccinesList</name>
+    <message>
+        <source>Add a vaccine</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Menu</source>
+    <name>AddAndEditIllness</name>
+    <message>
+        <source>Illness list</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>AddAndEditMedication</name>
+    <message>
+        <source>Medication list</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>ConsultIllness</name>
+    <message>
+        <source>Illness list</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Add medication</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>ConsultMedication</name>
+    <message>
+        <source>Medication list</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>CoverPage</name>
     <message>
         <source>Supprimer le profil</source>
         <translation type="unfinished"></translation>
