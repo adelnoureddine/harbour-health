@@ -22,4 +22,3 @@ function getLastUser() {
     print("user actif : "+ user_id)
     return user_id;
 }
-

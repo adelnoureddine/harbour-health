@@ -2,6 +2,41 @@
 <!DOCTYPE TS>
 <TS version="2.1">
 <context>
+    <name>AboutPage</name>
+    <message>
+        <source>Initial Authors</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Source Code</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Health</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Health is a health and fitness tracker</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Maintainer and Current Developer</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Adel Noureddine © 2022</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Licensed under the GNU GPL 3 license only (GPL-3.0-only)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>View source code on GitLab</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>CoverPage</name>
     <message>
         <source>My Cover</source>
@@ -9,8 +44,44 @@
     </message>
 </context>
 <context>
-    <name>MainPage</name>
+    <name>HistoryOfOneCycle</name>
     <message>
+        <source>Modify</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Delete</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>Menstruation</name>
+    <message>
+        <source>Add today&apos;s informations</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Consult history of all cycles</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Add new cycle</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>About</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Create profile</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Delete profile</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Infos profile</source>
         <source>About</source>
         <translation type="unfinished"></translation>
     </message>
@@ -36,6 +107,7 @@
     </message>
 </context>
 <context>
+    <name>deleteProfile</name>
     <name>VaccineDetails</name>
     <message>
         <source>Update</source>

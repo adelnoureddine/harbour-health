@@ -6,16 +6,30 @@ import "pages"
 import QtQuick.LocalStorage 2.0
 
 ApplicationWindow {
-    initialPage: Component { MainPage { } }
+    initialPage: Component { Menstruation { } }
     cover: Qt.resolvedUrl("cover/CoverPage.qml")
     allowedOrientations: defaultAllowedOrientations
-
-
-
     property string user_id;
 
     Component.onCompleted: {
         initDatabase();
+    createLastUser();
+
+    }
+
+
+    function createLastUser() {
+        var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
+
+        var createUsersTable = 'CREATE TABLE IF NOT EXISTS SETTINGS(
+                                    USER_ID INTEGER NOT NULL,
+                                    PRIMARY KEY(USER_ID)
+                                 );';
+        db.transaction(
+            function(tx){
+                tx.executeSql(createUsersTable);
+            }
+        )
         insertVaccine();
         createLastUser();
         insertMetric();
@@ -40,7 +54,8 @@ ApplicationWindow {
     function initDatabase() {
         var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
         //PROFILE
-        var createProfilesTable = "CREATE TABLE IF NOT EXISTS Profiles(
+
+      var createProfilesTable = "CREATE TABLE IF NOT EXISTS Profiles(
                                     id_profile INTEGER NOT NULL,
                                     firstname VARCHAR(30) NOT NULL,
                                     lastname VARCHAR(30) NOT NULL,
@@ -111,7 +126,6 @@ ApplicationWindow {
                                         recall_month INTEGER NOT NULL,
                                         FOREIGN KEY (id_vaccine) REFERENCES Vaccines(id_vaccine)
                                         );";
-
 
         //MENSTRUATION
 
