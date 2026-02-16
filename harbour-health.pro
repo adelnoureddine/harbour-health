@@ -14,17 +14,35 @@ TARGET = harbour-health
 
 CONFIG += sailfishapp
 
-SOURCES += src/harbour-health.cpp
-
+SOURCES += src/harbour-health.cpp \
 
 DISTFILES += qml/harbour-health.qml \
     qml/cover/CoverPage.qml \
+    qml/js/fichierUtils.js \
     qml/pages/AboutPage.qml \
     qml/pages/AddVaccine.qml \
-    qml/pages/MainPage.qml \
     qml/pages/VaccineDetails.qml \
     qml/pages/VaccinesList.qml \
     qml/pages/updateRecall.qml \
+    qml/pages/AddAndEditIllness.qml \
+    qml/pages/AddAndEditMedication.qml \
+    qml/pages/ConsultIllness.qml \
+    qml/pages/ConsultMedication.qml \
+    qml/pages/MainHealthCondition.qml \
+    qml/pages/AddnewData \
+    qml/pages/ConsultHistory.qml \
+    qml/pages/MainPage.qml \
+    qml/pages/Nutrition.qml \
+    qml/pages/Welcomepage \
+    qml/pages/chooseProfile.qml \
+    qml/pages/createProfile.qml \
+    qml/pages/deleteProfile.qml \
+    qml/pages/infosProfile.qml \
+    qml/pages/modifyProfile.qml \
+    qml/pages/MetricDetails.qml \
+    qml/pages/metricList.qml \
+    qml/pages/addEntryMetric.qml \
+    qml/utils.js \
     rpm/harbour-health.changes.in \
     rpm/harbour-health.changes.run.in \
     rpm/harbour-health.spec \

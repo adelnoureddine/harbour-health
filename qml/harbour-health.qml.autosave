@@ -10,32 +10,9 @@ ApplicationWindow {
     cover: Qt.resolvedUrl("cover/CoverPage.qml")
     allowedOrientations: defaultAllowedOrientations
 
-
-
-    property string user_id;
-
     Component.onCompleted: {
         initDatabase();
-        insertVaccine();
-        createLastUser();
-        insertMetric();
     }
-
-
-    function createLastUser() {
-        var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
-
-        var createUsersTable = 'CREATE TABLE IF NOT EXISTS SETTINGS(
-                                    USER_ID INTEGER NOT NULL,
-                                    PRIMARY KEY(USER_ID)
-                                 );';
-        db.transaction(
-            function(tx){
-                tx.executeSql(createUsersTable);
-            }
-        )
-    }
-    property string session: "New Session"
 
     function initDatabase() {
         var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
@@ -51,78 +28,80 @@ ApplicationWindow {
 
         //Metrics
         var createMetricsTable = "CREATE TABLE IF NOT EXISTS Metrics(
-                                    id_metric INTEGER PRIMARY KEY AUTOINCREMENT,
+                                    id_profile INTEGER NOT NULL,
+                                    id_metric INTEGER NOT NULL,
                                     name VARCHAR(30) NOT NULL,
-                                    unit VARCHAR(10) NOT NULL
-                                    );";
+                                    unit VARCHAR(10) NOT NULL,
+                                    PRIMARY KEY(id_metric),
+                                    FOREIGN KEY(id_profile) REFERENCES Profiles(id_profile)
+                                  );";
+
+
+
+
+
 
         var createHave_metricsTable = "CREATE TABLE IF NOT EXISTS MetricValue(
-                                    id_mectricsValue INTEGER PRIMARY KEY AUTOINCREMENT,
                                     id_profile INTEGER NOT NULL,
                                     id_metric INTEGER NOT NULL,
                                     date_metric DATE NOT NULL,
                                     value_metric INTEGER NOT NULL,
+                                    PRIMARY KEY(id_profile, id_metric),
                                     FOREIGN KEY(id_profile) REFERENCES Profiles(id_profile),
                                     FOREIGN KEY(id_metric) REFERENCES Metrics(id_metric)
-                                    );";
+                                  );";
 
         //MEDITATION
         var createMusicTable = "CREATE TABLE IF NOT EXISTS Musics(
-                                    id_music INTEGER PRIMARY KEY AUTOINCREMENT,
+                                    id_music INTEGER NOT NULL,
                                     name VARCHAR(50) NOT NULL,
-                                    path VARCHA(50) NOT NULL
+                                    path VARCHA(50) NOT NULL,
+                                    PRIMARY KEY(id_music)
                                 );";
 
         var createMeditationTable = "CREATE TABLE IF NOT EXISTS Meditation(
-                                        id_meditation INTEGER PRIMARY KEY AUTOINCREMENT,
                                         id_profile INTEGER NOT NULL,
                                         id_music INTEGER NOT NULL,
                                         meditation_date DATE NOT NULL,
                                         duration TIME NOT NULL,
+                                        PRIMARY KEY(id_profile, id_music),
                                         FOREIGN KEY(id_profile) REFERENCES Profiles(id_profile),
                                         FOREIGN KEY(id_music) REFERENCES Musics(id_music)
-                                        );";
-
-
-
+                                     );";
 
         //VACCINES
         var createVaccinesTable = "CREATE TABLE IF NOT EXISTS Vaccines(
-                                        id_vaccine INTEGER PRIMARY KEY AUTOINCREMENT ,
+                                        id_vaccine INTEGER NOT NULL,
                                         name VARCHAR(30) NOT NULL,
-                                        isMandatory INTEGER NOT NULL,
-                                        number_boosters INTEGER NOT NULL
-                                        );";
-
+                                        number_boosters INTEGER NOT NULL,
+                                        PRIMARY KEY(id_vaccine)
+                                     );";
 
         var createInjectionsTable = "CREATE TABLE IF NOT EXISTS Injection(
-                                        id_injection INTEGER PRIMARY KEY AUTOINCREMENT,
                                         id_profile INTEGER NOT NULL,
                                         id_vaccine INTEGER NOT NULL,
                                         injection_date DATE NOT NULL,
+                                        PRIMARY KEY(id_profile, id_vaccine),
                                         FOREIGN KEY(id_profile) REFERENCES Profiles(id_profile),
                                         FOREIGN KEY(id_vaccine) REFERENCES Vaccines(id_vaccine)
-                                        );";
+                                     );";
 
         var createVaccine_intervalTable = "CREATE TABLE IF NOT EXISTS Interval(
-                                        id_interval INTEGER PRIMARY KEY AUTOINCREMENT,
+                                        id_interval INTEGER NOT NULL,
                                         id_vaccine INTEGER NOT NULL,
                                         recall_number INTEGER NOT NULL,
                                         recall_month INTEGER NOT NULL,
+                                        PRIMARY KEY(id_interval),
                                         FOREIGN KEY (id_vaccine) REFERENCES Vaccines(id_vaccine)
-                                        );";
+                                     );";
 
 
         //MENSTRUATION
 
         var createMenstrualFeelingsTable = "CREATE TABLE IF NOT EXISTS MenstrualFeelings(
                                         id_menstrual INTEGER NOT NULL,
-                                        feeling_date DATE NOT NULL,
-                                        flow VARCHAR(50) NOT NULL,
-                                        feeling VARCHAR(50) NOT NULL,
-                                        pain VARCHAR(50) NOT NULL,
-                                        energy VARCHAR(50) NOT NULL,
-                                        sleepTime VARCHAR(50) NOT NULL,
+                                        name VARCHAR(50) NOT NULL,
+                                        feeling_value VARCHAR(256) NOT NULL,
                                         PRIMARY KEY(id_menstrual)
                                      );";
 
@@ -182,7 +161,6 @@ ApplicationWindow {
                     tx.executeSql(createMeditationTable);
                     tx.executeSql(createVaccinesTable);
                     tx.executeSql(createInjectionsTable);
-                    //tx.executeSql(createHave_intervalTable);
                     tx.executeSql(createVaccine_intervalTable);
                     tx.executeSql(createMenstrualFeelingsTable);
                     tx.executeSql(createMenstrualCyclesTable);
@@ -194,36 +172,5 @@ ApplicationWindow {
 
                 }
             );
-    }
-
-    function insertVaccine(){
-        var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
-        db.transaction(
-            function(tx){
-                if(tx.executeSql("SELECT * FROM Vaccines").rows.length === 0){
-                    //insert mandatory vaccines
-                    tx.executeSql("INSERT INTO Vaccines VALUES(?,?,?,?)", [null, "DTP", 1, 3]);
-                    tx.executeSql("INSERT INTO Vaccines VALUES(?,?,?,?)", [null, "Coqueluche", 1, 3]);
-                    tx.executeSql("INSERT INTO Vaccines VALUES(?,?,?,?)", [null, "HIB", 1, 3]);
-                    tx.executeSql("INSERT INTO Vaccines VALUES(?,?,?,?)", [null, "Hépatite B", 1, 3]);
-                    tx.executeSql("INSERT INTO Vaccines VALUES(?,?,?,?)", [null, "Pneumocoque", 1, 3]);
-                    tx.executeSql("INSERT INTO Vaccines VALUES(?,?,?,?)", [null, "ROR", 1, 2]);
-                    tx.executeSql("INSERT INTO Vaccines VALUES(?,?,?,?)", [null, "Méningocoque C", 1, 2]);
-    
-    function insertMetric(){
-        var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
-        db.transaction(
-            function(tx){
-                if(tx.executeSql("SELECT * FROM Metrics").rows.length === 0 ){
-                    tx.executeSql("INSERT INTO Metrics VALUES(?,?,?)", [null, "height", "cm"]);
-                    tx.executeSql("INSERT INTO Metrics VALUES(?,?,?)", [null, "weight", "Kg"]);
-                    tx.executeSql("INSERT INTO Metrics VALUES(?,?,?)", [null, "neck", "cm"]);
-                    tx.executeSql("INSERT INTO Metrics VALUES(?,?,?)", [null, "calf", "cm"]);
-                    tx.executeSql("INSERT INTO Metrics VALUES(?,?,?)", [null, "arm", "cm"]);
-                    tx.executeSql("INSERT INTO Metrics VALUES(?,?,?)", [null, "thigh", "cm"]);
-                    tx.executeSql("INSERT INTO Metrics VALUES(?,?,?)", [null, "hip", "cm"]);
-                    tx.executeSql("INSERT INTO Metrics VALUES(?,?,?)", [null, "chest", "cm"]);
-                }
-            });
     }
 }
