@@ -34,6 +34,7 @@ ApplicationWindow {
             }
         )
     }
+    property string session: "New Session"
 
     function initDatabase() {
         var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
