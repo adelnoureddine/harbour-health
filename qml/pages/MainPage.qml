@@ -1,6 +1,7 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
 import QtQuick.LocalStorage 2.0
+import "../utils.js" as WtUtils
 
 Page {
     id: page
@@ -62,7 +63,7 @@ Page {
             width: page.width
             spacing: Theme.paddingLarge
             PageHeader {
-                title: qsTr("Menstrual cycle management")
+                title: qsTr("Health")
             }
             Label {
                 id: label
@@ -118,7 +119,6 @@ Page {
     }
     Component.onCompleted:{
         userId = WtUtils.getLastUser()
-    }
         nbrProfile()
     }
 }
