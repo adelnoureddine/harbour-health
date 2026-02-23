@@ -15,56 +15,14 @@ Page {
     property string user_id;
     property Page previousPageID;
 
-
-
-
-
-    function setFirstname (){
-        var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
-        db.transaction(
-            function(tx){
-                var rs = tx.executeSql('SELECT * FROM Profiles WHERE id_profile=?',[user_id]) // MANQUE LE WHERE = ID PROFILE
-                if(rs.rows.length > 0){
-                   user_firstname = rs.rows.item(0).firstname;
-                }
-            }
-        )
+    function load(){
+	user_id = WtUtils.lastUsedProfile();
+	var profile = WtUtils.getProfile(user_id);
+	user_firstname = profile.firstname;
+	user_secondname = profile.secondname;
+	user_gender = profile.gender;
+	user_birthday = profile.birthday;
     }
-    function setLastname (){
-        var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
-        db.transaction(
-            function(tx){
-                var rs = tx.executeSql('SELECT * FROM Profiles WHERE id_profile=?',[user_id]) // MANQUE LE WHERE = ID PROFILE
-                if(rs.rows.length > 0){
-                    user_lastname = rs.rows.item(0).lastname;
-                }
-            }
-        )
-    }
-    function setGender (){
-        var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
-        db.transaction(
-            function(tx){
-                var rs = tx.executeSql('SELECT * FROM Profiles WHERE id_profile=?',[user_id]) // MANQUE LE WHERE = ID PROFILE
-                if(rs.rows.length > 0){
-                    user_gender = rs.rows.item(0).gender;
-                }
-            }
-        )
-    }
-
-    function setBirthday (){
-        var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
-        db.transaction(
-            function(tx){
-                var rs = tx.executeSql('SELECT * FROM Profiles WHERE id_profile=?',[user_id]) // MANQUE LE WHERE = ID PROFILE
-                if(rs.rows.length > 0){
-                    user_birthday = rs.rows.item(0).birthday;
-                }
-            }
-        )
-    }
-
 
     allowedOrientations: Orientation.All
 
@@ -166,14 +124,7 @@ Page {
             }
         }
         Component.onCompleted:{
-
-            user_id = WtUtils.getLastUser()
-
-            setFirstname()
-            setLastname()
-            setGender()
-            setBirthday()
+	    load();
         }
-
     }
 }

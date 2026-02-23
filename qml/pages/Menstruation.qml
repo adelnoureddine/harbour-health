@@ -409,7 +409,7 @@ Page {
 
 
         Component.onCompleted:{
-            user_id = WtUtils.getLastUser()
+            user_id = WtUtils.lastUsedProfile()
             print("id de l'user actif : " + user_id)
             setFirstname()
             setBirthday()

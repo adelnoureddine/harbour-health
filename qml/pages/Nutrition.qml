@@ -9,7 +9,6 @@ Page {
     // The effective value will be restricted by ApplicationWindow.allowedOrientations
     allowedOrientations: Orientation.Al
 
-    property variant usercodes: []
     property int currentProfileIndex
     property string user_description;
     property string user_calories;
@@ -33,43 +32,15 @@ Page {
     property string category_cal_icon;
     property string category_cal_description;
     property string slider_color;
-    property bool profiles;
 
-
-
-
-
-
-    // function to get profile
-    function getProfiles(){
-        var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
-        db.transaction(
-            function(tx){
-                var rs = tx.executeSql('SELECT * FROM Profiles');
-                if(rs.rows.length > 0){
-                    profiles = true;
-                }
-                else profiles=false;
-        })
-    }
 
 
     function load() {
-        wtData = WtUtils.info_user(user_code);
+        wtData = WtUtils.getProfile(user_code);
         user_description = "Welcome " + wtData.firstname + " " + wtData.lastname + "!"
-        getProfiles();
         calculateCal();
         calculateLit();
 
-    }
-
-    function loadUser(val) {
-        user_code=val;
-        var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
-        db.transaction(
-            function(tx){
-                tx.executeSql('UPDATE SETTINGS USER_CODE=?',[user_code]);
-            })
     }
 
     function calculateCal() {
@@ -208,28 +179,12 @@ Page {
                 title: qsTr("Graphical Report Consomation")
             }
 
-            ViewPlaceholder {
-                enabled: user_code=='' && profiles==false
-                text: "No profile created"
-                hintText: "Go to home to the principale page to create one  !"
-            }
-
-            ViewPlaceholder {
-                enabled: user_code=='' && profiles==true
-                text: "No profile selected"
-                hintText: "Go to home to the principale page select one !"
-            }
-
-
-
-
             Label {
                 x: Theme.horizontalPageMargin
                 text: qsTr("Welcome to Nutrition Page")
                 color: Theme.secondaryHighlightColor
                 font.pixelSize: Theme.fontSizeExtraLarge
             }
-
 
 
            //Welcome user

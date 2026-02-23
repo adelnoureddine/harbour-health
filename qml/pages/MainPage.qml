@@ -118,7 +118,7 @@ Page {
         Component.onCompleted: user_id=1
     }
     Component.onCompleted:{
-        userId = WtUtils.getLastUser()
+        userId = WtUtils.lastUsedProfile()
         nbrProfile()
     }
 }

@@ -8,7 +8,7 @@ Page {
     id: metricDetails
     property Page rootPage
     property int metricId
-    property int userId: WtUtils.getLastUser()
+    property int userId: WtUtils.lastUsedProfile()
 
 
     SilicaListView{

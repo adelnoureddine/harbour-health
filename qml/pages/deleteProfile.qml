@@ -7,78 +7,28 @@ Dialog {
     id: dialog
 
     property string user_firstname;
-    property string user_lastname;
+    property string user_secondname;
     property string user_gender;
     property string user_birthday;
     property string user_id;
 
     onAcceptPendingChanged: {
         if (acceptPending) {
-            var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
-            db.transaction(
-                function(tx){
-                    tx.executeSql('DELETE FROM Profiles WHERE id_profile=?',[user_id]); // Reussir a récuperer l'id de l'user
-                }
-            )
+            WtUtils.deleteProfile(user_id);
         }
         onClicked: pageStack.animatorPush(Qt.resolvedUrl("MainPage.qml"))
 
     }
 
     function load(){
-        setFirstname()
-        setLastname()
-        setGender()
-        setBirthday()
+	user_id = WtUtils.lastUsedProfile();
+	var profile = WtUtils.getProfile(user_id);
+	user_firstname = profile.firstname;
+	user_secondname = profile.secondname;
+	user_gender = profile.gender;
+	user_birthday = profile.birthday;
     }
 
-
-
-    function setFirstname (){
-        var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
-        db.transaction(
-            function(tx){
-                var rs = tx.executeSql('SELECT * FROM Profiles') // MANQUE LE WHERE = ID PROFILE
-                if(rs.rows.length > 0){
-                    user_firstname = rs.rows.item(0).firstname;
-                }
-            }
-        )
-    }
-    function setLastname (){
-        var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
-        db.transaction(
-            function(tx){
-                var rs = tx.executeSql('SELECT * FROM Profiles WHERE id_profile') // MANQUE LE WHERE = ID PROFILE
-                if(rs.rows.length > 0){
-                    user_lastname = rs.rows.item(0).lastname;
-                }
-            }
-        )
-    }
-    function setGender (){
-        var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
-        db.transaction(
-            function(tx){
-                var rs = tx.executeSql('SELECT * FROM Profiles') // MANQUE LE WHERE = ID PROFILE
-                if(rs.rows.length > 0){
-                    user_gender = rs.rows.item(0).gender;
-                }
-            }
-        )
-    }
-
-    function setBirthday (){
-        var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
-        db.transaction(
-            function(tx){
-                var rs = tx.executeSql('SELECT * FROM Profiles') // MANQUE LE WHERE = ID PROFILE
-                if(rs.rows.length > 0){
-                    user_birthday = rs.rows.item(0).birthday;
-                }
-            }
-        )
-    }
     SilicaFlickable {
         anchors.fill: parent
         contentHeight: column.height
@@ -164,11 +114,10 @@ Dialog {
             }
         }
         Component.onCompleted:{
-            user_id = WtUtils.getLastUser()
-                        load()
+	    load();
 
         }
 
     }
-    }
+}
 
