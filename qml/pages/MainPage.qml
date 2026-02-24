@@ -7,6 +7,7 @@ Page {
     id: page
     property int userId
     property string user_id
+    property var profile
 
     // The effective value will be restricted by ApplicationWindow.allowedOrientations
     allowedOrientations: Orientation.All
@@ -79,6 +80,14 @@ Page {
                 hintText: "Swipe down to create a profile"
             }
 
+            Label {
+                id: profileLabel
+                x: Theme.horizontalPageMargin
+                enabled: nbProfile == 0 && profile
+                text: qsTr("Profile: ") + profile.firstname
+                color: Theme.lightPrimaryColor
+            }
+
 
             ButtonLayout{//Visible only if there's at least one profile
                 visible: nbProfile > 0
@@ -120,7 +129,8 @@ Page {
     Component.onCompleted:{
         nbrProfile()
 	if (nbProfile > 0) {
-            userId = WtUtils.lastUsedProfile()
+            userId = WtUtils.lastUsedProfile();
+	    profile = WtUtils.getProfile(userId);
 	}
     }
 }

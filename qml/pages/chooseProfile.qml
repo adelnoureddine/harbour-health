@@ -50,7 +50,7 @@ Page {
                     onClicked: {
                         if (!menuOpen && pageStack.depth == 2) {
 			    WtUtils.useProfile(model.user_id);
-                            pageStack.animatorPush(Qt.resolvedUrl("./infosProfile.qml"))
+			    pageStack.pop();
                         }
                     }
 
