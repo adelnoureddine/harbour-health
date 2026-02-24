@@ -7,7 +7,7 @@ Page {
     id: root
 
     // The effective value will be restricted by ApplicationWindow.allowedOrientations
-    allowedOrientations: Orientation.Al
+    allowedOrientations: Orientation.All
 
     property int currentProfileIndex
     property string user_description;
