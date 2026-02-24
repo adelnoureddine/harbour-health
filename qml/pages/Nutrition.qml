@@ -1,7 +1,7 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
 
-import "../js/fichierUtils.js" as WtUtils
+import "../js/utils.js" as WtUtils
 
 Page {
     id: root
@@ -37,10 +37,19 @@ Page {
 
     function load() {
         wtData = WtUtils.getProfile(user_code);
+	calculateBMI(wtData);
         user_description = "Welcome " + wtData.firstname + " " + wtData.lastname + "!"
         calculateCal();
         calculateLit();
 
+    }
+
+    function calculateBMI(info) {
+        wtData.height = WtUtils.getLastMetricValue(user_id, "height");
+        wtData.weight = WtUtils.getLastMetricValue(user_id, "weight");
+	if (wtData.weight > 0 && wtData.height > 0) {
+	    wtData.bmi = wtData.weight / (wtData.height / 100) * (wtData.height / 100);
+        }
     }
 
     function calculateCal() {
@@ -353,7 +362,8 @@ Page {
         }
 
         Component.onCompleted:{
-                       load()
+		user_id = WtUtils.lastUsedProfile();
+                load();
         }
     }
 }

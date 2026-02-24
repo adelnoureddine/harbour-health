@@ -1,7 +1,7 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
 import QtQuick.LocalStorage 2.0
-import "../utils.js" as WtUtils
+import "../js/utils.js" as WtUtils
 
 Page {
     id: root
@@ -19,7 +19,7 @@ Page {
 	user_id = WtUtils.lastUsedProfile();
 	var profile = WtUtils.getProfile(user_id);
 	user_firstname = profile.firstname;
-	user_secondname = profile.secondname;
+	user_lastname = profile.lastname;
 	user_gender = profile.gender;
 	user_birthday = profile.birthday;
     }

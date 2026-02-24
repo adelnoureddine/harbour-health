@@ -1,7 +1,7 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
 import QtQuick.LocalStorage 2.0
-import "../utils.js" as WtUtils
+import "../js/utils.js" as WtUtils
 
 Page {
     id: page
@@ -118,8 +118,10 @@ Page {
         Component.onCompleted: user_id=1
     }
     Component.onCompleted:{
-        userId = WtUtils.lastUsedProfile()
         nbrProfile()
+	if (nbProfile > 0) {
+            userId = WtUtils.lastUsedProfile()
+	}
     }
 }
 

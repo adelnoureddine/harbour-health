@@ -1,11 +1,11 @@
 import QtQuick 2.6
 import Sailfish.Silica 1.0
 import QtQuick.LocalStorage 2.0
-import "../utils.js" as WtUtils
+import "../js/utils.js" as WtUtils
 
 Dialog {
     id: dialog
-    canAccept: firstnameField.text!="" && secondnameField.text!="" && genderField.text!="" && birthdayField.value!=""
+    canAccept: firstnameField.text!="" && lastnameField.text!="" && genderField.text!="" && birthdayField.value!=""
 
     property string user_lastname;
     property string user_firstname;
@@ -14,7 +14,7 @@ Dialog {
 
     onAcceptPendingChanged: {
         if (acceptPending) {
-            var user_id = WtUtils.addProfile(firstnameField.text, secondnameField.text, genderField.currentItem.text, birthdayField.value);
+            var user_id = WtUtils.addProfile(firstnameField.text, lastnameField.text, genderField.currentItem.text, birthdayField.value);
 	    WtUtils.useProfile(user_id);
         }
         onClicked: pageStack.animatorPush(Qt.resolvedUrl("MainPage.qml"))
@@ -47,7 +47,7 @@ Dialog {
                 placeholderText: label
             }
             TextField{
-                id : secondnameField
+                id : lastnameField
                 width:parent.width
                 label: "Second name";
                 placeholderText: label
