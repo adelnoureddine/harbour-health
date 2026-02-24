@@ -18,10 +18,9 @@ SOURCES += src/harbour-health.cpp \
 
 DISTFILES += \
     qml/cover/CoverPage.qml \
-    qml/js/fichierUtils.js \
+    qml/js/utils.js \
     qml/pages/AboutPage.qml \
     qml/pages/AddNewCycle.qml \
-    qml/pages/AddTodayInfo \
     qml/pages/AddTodayInfo.qml \
     qml/pages/HistoryOfAllCycle.qml \
     qml/pages/HistoryOfOneCycle.qml \
@@ -35,11 +34,9 @@ DISTFILES += \
     qml/pages/ConsultIllness.qml \
     qml/pages/ConsultMedication.qml \
     qml/pages/MainHealthCondition.qml \
-    qml/pages/AddnewData \
     qml/pages/ConsultHistory.qml \
     qml/pages/MainPage.qml \
     qml/pages/Nutrition.qml \
-    qml/pages/Welcomepage \
     qml/pages/chooseProfile.qml \
     qml/pages/createProfile.qml \
     qml/pages/deleteProfile.qml \
@@ -48,7 +45,6 @@ DISTFILES += \
     qml/pages/MetricDetails.qml \
     qml/pages/metricList.qml \
     qml/pages/addEntryMetric.qml \
-    qml/utils.js \
     rpm/harbour-health.changes.in \
     rpm/harbour-health.changes.run.in \
     rpm/harbour-health.spec \

@@ -1,79 +1,20 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
 import QtQuick.LocalStorage 2.0
-import "../utils.js" as WtUtils
+import "../js/utils.js" as WtUtils
 
 
 Page {
     id: root
 
-    property variant usercodes: []
-    property string usernewID;
-    property variant nameProfiles: []
-    property int numberProfile;
-    property int test;
-
-    property string user_id;
-
-
     property bool deletingItems
-
 
     allowedOrientations: Orientation.All
 
-    function nbrProfile (){
-        var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
-        db.transaction(
-            function(tx){
-                var rs = tx.executeSql('SELECT * FROM Profiles')
-                    numberProfile = rs.rows.length
-            }
-        )
-    }
-    function setLID (oui){
-        var code = oui
-        var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
-                db.transaction(
-                    function(tx){
-                        tx.executeSql('UPDATE SETTINGS set USER_ID=(?)',[code]);
-                    })
-    }
-
-
-    function remplirListeUser() {
-        var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
-        db.transaction(
-            function(tx){
-                var rs = tx.executeSql('SELECT * FROM Profiles');
-                for(var i =0; i< rs.rows.length;i++){
-                    usercodes[i]=rs.rows.item(i).id_profile;
-                    listModel.append({text: rs.rows.item(i).firstname})
-                }
-            }
-        )
-    }
-
-    function loadAllProfile (){
-        var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
-        var user_nameProfile, user_idProfile;
-
-        db.transaction(
-            function(tx){
-                var rs = tx.executeSql('SELECT * FROM Profiles')
-                if(rs.rows.length > 0){
-                    for(var i=0 ; i<<rs.rows.length-nbrProfile() ; i++ ){
-                        user_nameProfile = rs.rows.item(i).firstname;
-                        user_idProfile = rs.rows.item(i).id_profile;
-                        listModel.append({"text": user_nameProfile})
-                    }
-                }
-            }
-        )
-    }
-     SilicaGridView {
+    SilicaGridView {
         anchors.fill: parent
         id:gridView
-        model: listModel
+        model: modelProfiles
                readonly property int columnCount: Math.floor(width/(Screen.width/2))
                cellWidth: parent.width/columnCount
                cellHeight: cellWidth
@@ -83,7 +24,7 @@ Page {
                }
 
                ViewPlaceholder {
-                   enabled: (listModel.populated && listModel.count === 0) || root.deletingItems
+                   enabled: (modelProfiles.populated && modelProfiles.count === 0) || root.deletingItems
                    text: "No content"
                    hintText: "Pull down to add content"
                }
@@ -108,8 +49,8 @@ Page {
 
                     onClicked: {
                         if (!menuOpen && pageStack.depth == 2) {
-                            setLID(model.index+1)
-                            pageStack.animatorPush(Qt.resolvedUrl("./infosProfile.qml"))
+			    WtUtils.useProfile(model.user_id);
+			    pageStack.pop();
                         }
                     }
 
@@ -148,15 +89,12 @@ Page {
             }
 
             ListModel {
-                id: listModel
+                id: modelProfiles
 
                 }
 
     Component.onCompleted:{
-        user_id = WtUtils.getLastUser()
-    loadAllProfile()
-        nbrProfile()
-        remplirListeUser()
+        WtUtils.loadAllProfiles(modelProfiles)
 
     }
 }

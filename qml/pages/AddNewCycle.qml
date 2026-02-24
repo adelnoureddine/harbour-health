@@ -4,7 +4,7 @@ import Sailfish.Silica 1.0
 
 import QtQuick.LocalStorage 2.0
 
-import "../utils.js" as WtUtils
+import "../js/utils.js" as WtUtils
 
 
 Dialog {
@@ -155,7 +155,7 @@ Dialog {
 
         Component.onCompleted: {
 
-            user_id = WtUtils.getLastUser()
+            user_id = WtUtils.lastUsedProfile()
 
 
         }

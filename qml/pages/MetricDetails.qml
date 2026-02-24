@@ -1,14 +1,14 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
 import QtQuick.LocalStorage 2.0
-import "../utils.js" as WtUtils
+import "../js/utils.js" as WtUtils
 
 
 Page {
     id: metricDetails
     property Page rootPage
     property int metricId
-    property int userId: WtUtils.getLastUser()
+    property int userId: WtUtils.lastUsedProfile()
 
 
     SilicaListView{

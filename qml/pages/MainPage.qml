@@ -1,12 +1,13 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
 import QtQuick.LocalStorage 2.0
-import "../utils.js" as WtUtils
+import "../js/utils.js" as WtUtils
 
 Page {
     id: page
     property int userId
     property string user_id
+    property var profile
 
     // The effective value will be restricted by ApplicationWindow.allowedOrientations
     allowedOrientations: Orientation.All
@@ -79,6 +80,14 @@ Page {
                 hintText: "Swipe down to create a profile"
             }
 
+            Label {
+                id: profileLabel
+                x: Theme.horizontalPageMargin
+                enabled: nbProfile == 0 && profile
+                text: qsTr("Profile: ") + profile.firstname
+                color: Theme.lightPrimaryColor
+            }
+
 
             ButtonLayout{//Visible only if there's at least one profile
                 visible: nbProfile > 0
@@ -118,8 +127,11 @@ Page {
         Component.onCompleted: user_id=1
     }
     Component.onCompleted:{
-        userId = WtUtils.getLastUser()
         nbrProfile()
+	if (nbProfile > 0) {
+            userId = WtUtils.lastUsedProfile();
+	    profile = WtUtils.getProfile(userId);
+	}
     }
 }
 

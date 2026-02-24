@@ -1,42 +1,25 @@
 import QtQuick 2.6
 import Sailfish.Silica 1.0
 import QtQuick.LocalStorage 2.0
-import "../utils.js" as WtUtils
+import "../js/utils.js" as WtUtils
 
 Dialog {
     id: dialog
-    canAccept: firstnameField.text!="" && secondnameField.text!="" && genderField.text!="" && birthdayField.value!=""
+    canAccept: firstnameField.text!="" && lastnameField.text!="" && genderField.text!="" && birthdayField.value!=""
 
     property string user_lastname;
     property string user_firstname;
     property string birth;
     property string gender;
-    property string user_id;
-
-
-
 
     onAcceptPendingChanged: {
         if (acceptPending) {
-            var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
-            db.transaction(
-                function(tx){
-                    var code
-                    var rs = tx.executeSql('SELECT MAX(id_profile) AS id_profile FROM Profiles');
-                    if(rs.rows.item(0)===null) code = 1
-                    else{
-                        code = (rs.rows.item(0).id_profile) + 1;
-                    }
-                   tx.executeSql('INSERT INTO Profiles VALUES (?,?,?,?,?)',[code,firstnameField.text,secondnameField.text,genderField.currentItem.text,birthdayField.value]);
-                   tx.executeSql('UPDATE SETTINGS set USER_ID=(?)',[code]);
-                    user_id=code;
-                }
-            )
+            var user_id = WtUtils.addProfile(firstnameField.text, lastnameField.text, genderField.currentItem.text, birthdayField.value);
+	    WtUtils.useProfile(user_id);
         }
         onClicked: pageStack.animatorPush(Qt.resolvedUrl("MainPage.qml"))
 
     }
-
 
     SilicaFlickable {
         anchors.fill: parent
@@ -64,7 +47,7 @@ Dialog {
                 placeholderText: label
             }
             TextField{
-                id : secondnameField
+                id : lastnameField
                 width:parent.width
                 label: "Second name";
                 placeholderText: label

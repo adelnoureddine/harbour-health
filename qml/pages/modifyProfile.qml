@@ -1,11 +1,11 @@
 import QtQuick 2.6
 import Sailfish.Silica 1.0
 import QtQuick.LocalStorage 2.0
-import "../utils.js" as WtUtils
+import "../js/utils.js" as WtUtils
 
 Dialog {
     id: dialog
-    canAccept: firstnameField.text!="" && secondnameField.text!="" && genderField.text!="" && birthdayField.value!=""
+    canAccept: firstnameField.text!="" && lastnameField.text!="" && genderField.text!="" && birthdayField.value!=""
 
     property string user_lastname;
     property string user_firstname;
@@ -13,68 +13,21 @@ Dialog {
     property string user_gender;
     property string user_id;
 
-    function setFirstname (){
-        var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
-        db.transaction(
-            function(tx){
-                var rs = tx.executeSql('SELECT * FROM Profiles WHERE id_profile = ?',[user_id]) // MANQUE LE WHERE = ID PROFILE
-                if(rs.rows.length > 0){
-                    user_firstname = rs.rows.item(0).firstname;
-                }
-            }
-        )
+    function load(){
+	user_id = WtUtils.lastUsedProfile();
+	var profile = WtUtils.getProfile(user_id);
+	user_firstname = profile.firstname;
+	user_lastname = profile.lastname;
+	user_gender = profile.gender;
+	user_birthday = profile.birthday;
     }
-    function setLastname (){
-        var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
-        db.transaction(
-            function(tx){
-                var rs = tx.executeSql('SELECT * FROM Profiles WHERE id_profile = ?',[user_id]) // MANQUE LE WHERE = ID PROFILE
-                if(rs.rows.length > 0){
-                    user_lastname = rs.rows.item(0).lastname;
-                }
-            }
-        )
-    }
-    function setGender (){
-        var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
-        db.transaction(
-            function(tx){
-                var rs = tx.executeSql('SELECT * FROM Profiles WHERE id_profile = ?',[user_id]) // MANQUE LE WHERE = ID PROFILE
-                if(rs.rows.length > 0){
-                    user_gender = rs.rows.item(0).gender;
-                }
-            }
-        )
-    }
-
-    function setBirthday (){
-        var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
-        db.transaction(
-            function(tx){
-                var rs = tx.executeSql('SELECT * FROM Profiles WHERE id_profile = ?',[user_id]) // MANQUE LE WHERE = ID PROFILE
-                if(rs.rows.length > 0){
-                    user_birthday = rs.rows.item(0).birthday;
-                }
-            }
-        )
-    }
-
 
     onAcceptPendingChanged: {
         if (acceptPending) {
-            var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
-            db.transaction(
-                function(tx){
-                   tx.executeSql('UPDATE Profiles SET firstname = ?,lastname = ?,gender = ?,birthday = ? WHERE id_profile = ?',[firstnameField.text,secondnameField.text,genderField.currentItem.text,birthdayField.value,user_id]);
-
-
-
-                }
-            )
+	    WtUtils.modifyProfile(user_id, firstnameField.text, lastnameField.text, genderField.currentItem.text, birthdayField.value);
         }
         onClicked: pageStack.animatorPush(Qt.resolvedUrl("MainPage.qml"))
     }
-
 
     SilicaFlickable {
         anchors.fill: parent
@@ -94,7 +47,6 @@ Dialog {
 
             }
 
-
             TextField{
                 id : firstnameField
                 width:parent.width
@@ -102,7 +54,7 @@ Dialog {
                 placeholderText: label
             }
             TextField{
-                id : secondnameField
+                id : lastnameField
                 width:parent.width
                 label: "Second name";
                 placeholderText: label
@@ -138,12 +90,7 @@ Dialog {
             }
         }
         Component.onCompleted:{
-            user_id = WtUtils.getLastUser()
-
-            setFirstname()
-            setLastname()
-            setGender()
-            setBirthday()
+	    load();
         }
     }
 }
