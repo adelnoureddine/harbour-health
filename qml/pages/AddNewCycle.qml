@@ -1,167 +1,59 @@
 import QtQuick 2.0
-
 import Sailfish.Silica 1.0
-
-import QtQuick.LocalStorage 2.0
-
-import "../js/utils.js" as WtUtils
-
+import "../js/DataManager.js" as DataManager
 
 Dialog {
-
-    backNavigation: true
+    id: dialog
     allowedOrientations: Orientation.All
-    id: newMenstrual
 
-    property string user_id ;
+    property date startDate: new Date()
+    property string note
 
-    onAcceptPendingChanged: {
+    canAccept: true
 
-        if (acceptPending) {
-
-            var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
-
-            db.transaction(
-
-                function(tx){
-
-                    var code = 0 ;
-
-                    var rs1 = tx.executeSql('SELECT id_menstrual FROM MenstrualCycles');
-
-                    if(rs1.rows.length <= 0)
-
-                    {
-
-                       code = 1
-
-                    }
-
-                    else{
-
-                        var rs2 = tx.executeSql('SELECT MAX(id_menstrual) AS id_MAXCycle FROM MenstrualCycles');
-
-                        code = (rs2.rows.item(0).id_MAXCycle) + 1 ;
-
-                    }
-
-                    tx.executeSql('INSERT INTO MenstrualCycles VALUES (?,?,?)',[user_id,code,dateMenstrual.value]);
-
-
-                    print("user_id : " + user_id) ;
-
-                    print("code : " + code) ;
-
-                    print("menstrualdate : " + dateMenstrual.value) ;
-
-                  // tx.executeSql('TRUNCATE TABLE MenstrualCycles') ;
-
-                  // tx.executeSql('ALTER TABLE MenstrualCycles AUTO_INCREMENT=0') ;
-
-
-                }
-
-            )
-
+    onAccepted: {
+        var profiles = DataManager.getProfiles();
+        if (profiles.length > 0) {
+            var profileId = profiles[0].id;
+            var startStr = startDate.toISOString().split('T')[0];
+            DataManager.addMenstrualCycle(profileId, startStr, null, notesField.text);
         }
-
     }
 
-
-
-
     SilicaFlickable {
-
         anchors.fill: parent
         contentHeight: column.height
-        VerticalScrollDecorator {}   /* ----------- */
-        Column {
 
+        Column {
             id: column
             width: parent.width
             spacing: Theme.paddingLarge
 
+            DialogHeader {
+                title: qsTr("Record New Cycle")
+                acceptText: qsTr("Start")
+            }
 
-/* ***************************************************************** */
-
-            /* Titre de la page */
-
-            PageHeader {
-
-                title: 'Managing the Menstrual Cycle' }
-
-
-            Dialog {
-
-                DialogHeader {
-
-                    acceptText: "Save"
-
-                    title: 'Add todays informations'
-
+            ValueButton {
+                label: qsTr("Start Date")
+                value: startDate.toLocaleDateString()
+                onClicked: {
+                    var dateDialog = pageStack.push("Sailfish.Silica.DatePickerDialog", {
+                        date: startDate
+                    })
+                    dateDialog.accepted.connect(function() {
+                        startDate = dateDialog.date
+                    })
                 }
-
             }
 
-
-            Label {
-
-                 text: 'Add new menstrual cycle'
-
+            TextField {
+                id: notesField
+                width: parent.width
+                label: qsTr("Notes")
+                text: note
+                placeholderText: qsTr("Optional notes")
             }
-
-/* ***************************************************************** */
-
-
-            /* Sélection de la date */
-
-
-                 ValueButton {
-
-                     property date selectedDate
-                     function openDateDialog() {
-                         var obj = pageStack.animatorPush("Sailfish.Silica.DatePickerDialog",
-                                                          { date: selectedDate })
-
-                         obj.pageCompleted.connect(function(page) {
-                             page.accepted.connect(function() {
-
-                                 value = page.dateText
-
-                                 selectedDate = page.date
-
-                             })
-
-                         })
-
-                     }
-
-
-                     label: "Date : "
-
-                     id: dateMenstrual
-
-                     value: Qt.formatDate(new Date())
-
-                     width: parent.width
-
-                     onClicked: openDateDialog()
-
-                 }
-
-
         }
-
-
-        Component.onCompleted: {
-
-            user_id = WtUtils.lastUsedProfile()
-
-
-        }
-
-
     }
-
-
 }

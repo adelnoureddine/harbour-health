@@ -1,94 +1,74 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
-import QtQuick.LocalStorage 2.0
+import "../js/DataManager.js" as DataManager
 
 Page {
     id: metricList
-    property Page rootPage
-    property int metricId
-    property int userId
-    property string metricName
+    allowedOrientations: Orientation.All
 
-    signal nameSignal(string txt)
+    function refresh() {
+        listModel.clear();
+        var metrics = DataManager.getMetrics();
+        metrics.forEach(function(m) {
+            listModel.append(m);
+        });
+    }
 
-    SilicaListView{
+    SilicaListView {
         anchors.fill: parent
+
+        header: PageHeader {
+            title: qsTr("Health Metrics")
+        }
 
         PullDownMenu {
             MenuItem {
-                text: qsTr("Menu")
-                onClicked: pageStack.animatorPush(Qt.resolvedUrl("MainPage.qml"))
+                text: qsTr("Dashboard")
+                onClicked: pageStack.pop()
             }
         }
-
-        header: PageHeader {
-            title: "Metrics list"
-        }
-
 
         model: listModel
 
-        delegate: ListItem{
-
-            function remove() {
-                remorseDelete(function() { listModel.remove(index) })
+        delegate: ListItem {
+            onClicked: {
+                pageStack.animatorPush(Qt.resolvedUrl("MetricDetails.qml"), {
+                    metricId: model.id,
+                    metricName: model.name,
+                    metricUnit: model.unit
+                })
             }
 
-            onClicked:{
-                metricList.metricId = metric
-                metricList.metricName = model.name
-                pageStack.animatorPush(Qt.resolvedUrl("MetricDetails.qml"))
-            }
-
-            menu: Component {
-                ContextMenu {
-                    MenuItem {
-                        text: "Edit"
-                    }
-                    MenuItem {
-                        text: "Delete"
-                        onClicked: remove()
-                    }
-                }
-            }
             Label {
                 x: Theme.horizontalPageMargin
-                width: parent.width - 2 * x
                 anchors.verticalCenter: parent.verticalCenter
-                text: model.text
-                truncationMode: TruncationMode.Fade
+                text: qsTr(model.name)
+                color: Theme.primaryColor
                 font.capitalization: Font.Capitalize
             }
+
+            Label {
+                anchors.right: parent.right
+                anchors.rightMargin: Theme.horizontalPageMargin
+                anchors.verticalCenter: parent.verticalCenter
+                text: model.unit
+                color: Theme.secondaryColor
+                font.pixelSize: Theme.fontSizeExtraSmall
+            }
         }
+
+        VerticalScrollDecorator {}
     }
 
-    ListModel{
+    ListModel {
         id: listModel
-        property int userId
-
-        Component.onCompleted: {
-            rootPage = previousPage()
-            userId = rootPage.userId
-            load()
-            //utils.js pour récupérer le dernier id_utilisateur
-        }
-
-        function load(){
-            var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
-            db.transaction(
-                function(tx){
-                    var rs = tx.executeSql("SELECT * FROM Metrics");
-                    for(var i = 0; i < rs.rows.length; i++){
-                        listModel.append({"text": rs.rows.item(i).name,
-                                             "metric": rs.rows.item(i).id_metric,
-                                             "name": rs.rows.item(i).name
-                                         })
-                    }
-                }
-            );
-        }
-
-
-
     }
+
+    onStatusChanged: {
+        if (status === PageStatus.Active) {
+            refresh();
+        }
+    }
+
+    Component.onCompleted: refresh()
 }

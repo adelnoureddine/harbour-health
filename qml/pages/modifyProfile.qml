@@ -1,98 +1,100 @@
-import QtQuick 2.6
+import QtQuick 2.0
 import Sailfish.Silica 1.0
-import QtQuick.LocalStorage 2.0
-import "../js/utils.js" as WtUtils
+import "../js/DataManager.js" as DataManager
 
 Dialog {
     id: dialog
-    canAccept: firstnameField.text!="" && lastnameField.text!="" && genderField.text!="" && birthdayField.value!=""
+    allowedOrientations: Orientation.All
 
-    property string user_lastname;
-    property string user_firstname;
-    property string user_birthday;
-    property string user_gender;
-    property string user_id;
+    property int profileId: 1
+    property string firstName
+    property string lastName
+    property string gender: "Female"
+    property string birthDate
 
-    function load(){
-	user_id = WtUtils.lastUsedProfile();
-	var profile = WtUtils.getProfile(user_id);
-	user_firstname = profile.firstname;
-	user_lastname = profile.lastname;
-	user_gender = profile.gender;
-	user_birthday = profile.birthday;
+    canAccept: firstnameField.text !== "" && lastnameField.text !== ""
+
+    function load() {
+        var profiles = DataManager.getProfiles();
+        var profile = null;
+        for (var i=0; i<profiles.length; i++) {
+            if (profiles[i].id === profileId) {
+                profile = profiles[i];
+                break;
+            }
+        }
+        
+        if (profile) {
+            firstName = profile.firstName;
+            lastName = profile.lastName;
+            gender = profile.gender;
+            birthDate = profile.birthDate;
+        }
     }
 
-    onAcceptPendingChanged: {
-        if (acceptPending) {
-	    WtUtils.modifyProfile(user_id, firstnameField.text, lastnameField.text, genderField.currentItem.text, birthdayField.value);
-        }
-        onClicked: pageStack.animatorPush(Qt.resolvedUrl("MainPage.qml"))
+    onAccepted: {
+        DataManager.updateProfile(profileId, firstnameField.text, lastnameField.text, genderField.value, birthdayBtn.value);
     }
 
     SilicaFlickable {
         anchors.fill: parent
         contentHeight: column.height
 
-        VerticalScrollDecorator {}
-
         Column {
             id: column
             width: parent.width
-            bottomPadding: Theme.paddingLarge
+            spacing: Theme.paddingLarge
 
             DialogHeader {
-
-                acceptText: "Save"
-                title: "Modify a profile"
-
+                title: qsTr("Edit Profile")
+                acceptText: qsTr("Save")
             }
 
-            TextField{
-                id : firstnameField
-                width:parent.width
-                label: "First name";
+            TextField {
+                id: firstnameField
+                width: parent.width
+                label: qsTr("First Name")
+                text: firstName
                 placeholderText: label
             }
-            TextField{
-                id : lastnameField
-                width:parent.width
-                label: "Second name";
+
+            TextField {
+                id: lastnameField
+                width: parent.width
+                label: qsTr("Last Name")
+                text: lastName
                 placeholderText: label
             }
+
             ComboBox {
-                id:genderField
-                label: "Gender"
+                id: genderField
+                width: parent.width
+                label: qsTr("Gender")
+                currentIndex: gender === "Male" ? 1 : (gender === "Other" ? 2 : 0)
                 menu: ContextMenu {
-                    MenuItem { text: "F" }
-                    MenuItem { text: "M" }
+                    MenuItem { text: qsTr("Female") }
+                    MenuItem { text: qsTr("Male") }
+                    MenuItem { text: qsTr("Other") }
                 }
-                width: parent.width/2
             }
+
             ValueButton {
-                property date selectedDate
-
-                function openDateDialog() {
-                    var obj = pageStack.animatorPush("Sailfish.Silica.DatePickerDialog",
-                                                     { date: selectedDate })
-
-                    obj.pageCompleted.connect(function(page) {
-                        page.accepted.connect(function() {
-                            selectedDate = page.date
-                            value = selectedDate.toLocaleDateString("yyyy-MM-dd")
-                        })
+                id: birthdayBtn
+                label: qsTr("Birthday")
+                value: birthDate
+                onClicked: {
+                    var dateDialog = pageStack.push("Sailfish.Silica.DatePickerDialog", {
+                        date: birthDate ? new Date(birthDate) : new Date()
+                    })
+                    dateDialog.accepted.connect(function() {
+                        birthDate = dateDialog.date.toISOString().split('T')[0]
                     })
                 }
-                label: "Birthday date"
-                id : birthdayField
-                width: parent.width
-                onClicked: openDateDialog()
-
             }
         }
-        Component.onCompleted:{
-	    load();
-        }
     }
+
+    Component.onCompleted: load()
 }
 
 

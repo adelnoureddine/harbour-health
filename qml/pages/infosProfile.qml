@@ -1,130 +1,87 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
-import QtQuick.LocalStorage 2.0
-import "../js/utils.js" as WtUtils
+import "../js/DataManager.js" as DataManager
 
 Page {
-    id: root
-
-    property string user_firstname;
-    property string user_lastname;
-    property string user_gender;
-    property string user_birthday;
-
-
-    property string user_id;
-    property Page previousPageID;
-
-    function load(){
-	user_id = WtUtils.lastUsedProfile();
-	var profile = WtUtils.getProfile(user_id);
-	user_firstname = profile.firstname;
-	user_lastname = profile.lastname;
-	user_gender = profile.gender;
-	user_birthday = profile.birthday;
-    }
-
+    id: page
     allowedOrientations: Orientation.All
+
+    property int profileId: 1
+    property var profile: null
+
+    function refresh() {
+        var profiles = DataManager.getProfiles();
+        if (profiles.length > 0) {
+            // Find profile by ID or fallback to first one
+            var found = false;
+            for (var i=0; i<profiles.length; i++) {
+                if (profiles[i].id === profileId) {
+                    profile = profiles[i];
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) profile = profiles[0];
+        }
+    }
 
     SilicaFlickable {
         anchors.fill: parent
+        contentHeight: column.height
 
         PullDownMenu {
             MenuItem {
-                text: qsTr("Show profile")
-                onClicked: pageStack.animatorPush(Qt.resolvedUrl("MainPage.qml"))
+                text: qsTr("Edit Profile")
+                onClicked: pageStack.animatorPush(Qt.resolvedUrl("modifyProfile.qml"), {profileId: profile.id})
             }
             MenuItem {
-                text: qsTr("Change profile")
-                onClicked: pageStack.animatorPush(Qt.resolvedUrl("modifyProfile.qml"))
-            }
-            MenuItem {
-                text: qsTr("Delete profile")
-                onClicked: pageStack.animatorPush(Qt.resolvedUrl("deleteProfile.qml"))
+                text: qsTr("Delete Profile")
+                onClicked: pageStack.animatorPush(Qt.resolvedUrl("deleteProfile.qml"), {profileId: profile.id})
             }
         }
-
-        contentHeight: column.height
 
         Column {
             id: column
-            width: page.width
+            width: parent.width
             spacing: Theme.paddingLarge
+
             PageHeader {
-                title: qsTr("Profile information")
-            }
-            Row{
-                Label {
-                    x: Theme.horizontalPageMargin
-                    width: page.width/2
-                    text: qsTr(" First Name : ")
-                    color: Theme.secondaryHighlightColor
-                    font.pixelSize: Theme.fontSizeExtraLarge
-                }
-                Label {
-                    width: page.width/2
-                    x: Theme.horizontalPageMargin
-                    text: user_firstname
-                    color: Theme.secondaryHighlightColor
-                    font.pixelSize: Theme.fontSizeExtraLarge
-                }
+                title: qsTr("Profile")
             }
 
-            Row{
-                Label {
-                    x: Theme.horizontalPageMargin
-                    width: page.width/2
-                    text: qsTr(" Last Name : ")
-                    color: Theme.secondaryHighlightColor
-                    font.pixelSize: Theme.fontSizeExtraLarge
-                }
-                Label {
-                    width: page.width/2
-                    x: Theme.horizontalPageMargin
-                    text: user_lastname
-                    color: Theme.secondaryHighlightColor
-                    font.pixelSize: Theme.fontSizeExtraLarge
-                }
+            SectionHeader {
+                text: qsTr("Personal Information")
             }
 
-            Row{
-                Label {
-                    x: Theme.horizontalPageMargin
-                    width: page.width/2
-
-                    text: qsTr(" Gender : ")
-                    color: Theme.secondaryHighlightColor
-                    font.pixelSize: Theme.fontSizeExtraLarge
-                }
-                Label {
-                    width: page.width/2
-                    x: Theme.horizontalPageMargin
-                    text: user_gender
-                    color: Theme.secondaryHighlightColor
-                    font.pixelSize: Theme.fontSizeExtraLarge
-                }
+            DetailItem {
+                label: qsTr("First Name")
+                value: profile ? profile.firstName : ""
             }
 
-            Row{
-                Label {
-                    x: Theme.horizontalPageMargin
-                    width: page.width/2
+            DetailItem {
+                label: qsTr("Last Name")
+                value: profile ? profile.lastName : ""
+            }
 
-                    text: qsTr(" Birthday : ")
-                    color: Theme.secondaryHighlightColor
-                    font.pixelSize: Theme.fontSizeExtraLarge
-                }
-                Label {
-                    width: page.width/2
-                    x: Theme.horizontalPageMargin
-                    text: user_birthday
-                    color: Theme.secondaryHighlightColor
-                    font.pixelSize: Theme.fontSizeExtraLarge
-                }
+            DetailItem {
+                label: qsTr("Gender")
+                value: profile ? profile.gender : ""
+            }
+
+            DetailItem {
+                label: qsTr("Birthday")
+                value: profile ? profile.birthDate : ""
             }
         }
-        Component.onCompleted:{
-	    load();
+
+        VerticalScrollDecorator {}
+    }
+
+    onStatusChanged: {
+        if (status === PageStatus.Active) {
+            refresh();
         }
     }
+
+    Component.onCompleted: refresh()
 }

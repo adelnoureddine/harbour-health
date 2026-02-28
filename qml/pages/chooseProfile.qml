@@ -1,101 +1,76 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
-import QtQuick.LocalStorage 2.0
-import "../js/utils.js" as WtUtils
-
+import "../js/DataManager.js" as DataManager
 
 Page {
     id: root
-
-    property bool deletingItems
-
     allowedOrientations: Orientation.All
 
-    SilicaGridView {
+    function refreshProfiles() {
+        modelProfiles.clear();
+        var profiles = DataManager.getProfiles();
+        profiles.forEach(function(p) {
+            modelProfiles.append(p);
+        });
+    }
+
+    SilicaListView {
         anchors.fill: parent
-        id:gridView
+        id: listView
         model: modelProfiles
-               readonly property int columnCount: Math.floor(width/(Screen.width/2))
-               cellWidth: parent.width/columnCount
-               cellHeight: cellWidth
 
-               header: PageHeader {
-                   title: "Choose a profile"
-               }
+        header: PageHeader {
+            title: qsTr("Profiles")
+        }
 
-               ViewPlaceholder {
-                   enabled: (modelProfiles.populated && modelProfiles.count === 0) || root.deletingItems
-                   text: "No content"
-                   hintText: "Pull down to add content"
-               }
         PullDownMenu {
-            id: pullDownMenu
             MenuItem {
-                text: qsTr("Home")
-                onClicked: pageStack.animatorPush(Qt.resolvedUrl("MainPage.qml")) // Changer l'url pour mettre la page de l'autre groupe
-            }
-            MenuItem { // Si un nbrProfil = 0, ne pas afficher l'onglet information profil
-
-                text: qsTr("Profile information")
-                onClicked: pageStack.push(Qt.resolvedUrl("infosProfile.qml"))
-            }
-
-            MenuItem {
-                text: qsTr("Create a profile")
+                text: qsTr("Create New Profile")
                 onClicked: pageStack.animatorPush(Qt.resolvedUrl("createProfile.qml"))
             }
         }
-        delegate: GridItem {
 
-                    onClicked: {
-                        if (!menuOpen && pageStack.depth == 2) {
-			    WtUtils.useProfile(model.user_id);
-			    pageStack.pop();
-                        }
-                    }
-
-                    enabled: !root.deletingItems
-                    opacity: enabled ? 1.0 : 0.0
-                    Behavior on opacity { FadeAnimator {}}
-
-                    Column {
-                        id: content
-
-                        x: Theme.paddingLarge
-                        y: Theme.paddingLarge
-                        width: parent.width - 2 * x
-                        height: parent.height - y
-                        spacing: Theme.paddingMedium
-
-                        Label {
-                            width: parent.width
-                            maximumLineCount: 3
-                            elide: Text.ElideRight
-                            text: "User : " + model.text
-                            wrapMode: Text.Wrap
-                            font.capitalization: Font.Capitalize
-                        }
-
-                    }
-
-                    OpacityRampEffect {
-                        sourceItem: content
-                        slope: 1
-                        offset: 0
-                        direction: OpacityRamp.TopToBottom
-                    }
-                }
-                VerticalScrollDecorator {}
+        delegate: ListItem {
+            contentHeight: Theme.itemSizeMedium
+            onClicked: {
+                activeProfile = model; // Set property in ApplicationWindow
+                pageStack.pop();
             }
 
-            ListModel {
-                id: modelProfiles
-
+            Column {
+                anchors.verticalCenter: parent.verticalCenter
+                x: Theme.horizontalPageMargin
+                Label {
+                    text: model.firstName + " " + model.lastName
+                    color: Theme.primaryColor
                 }
+                Label {
+                    text: qsTr("Gender: %1 | Birthday: %2").arg(model.gender).arg(model.birthday)
+                    font.pixelSize: Theme.fontSizeExtraSmall
+                    color: Theme.secondaryColor
+                }
+            }
+        }
 
-    Component.onCompleted:{
-        WtUtils.loadAllProfiles(modelProfiles)
+        ViewPlaceholder {
+            enabled: modelProfiles.count === 0
+            text: qsTr("No profiles found")
+            hintText: qsTr("Pull down to create one")
+        }
 
+        VerticalScrollDecorator {}
     }
+
+    ListModel {
+        id: modelProfiles
+    }
+
+    onStatusChanged: {
+        if (status === PageStatus.Active) {
+            refreshProfiles();
+        }
+    }
+
+    Component.onCompleted: refreshProfiles()
 }
 

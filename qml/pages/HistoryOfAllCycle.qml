@@ -1,238 +1,76 @@
 import QtQuick 2.0
-
 import Sailfish.Silica 1.0
-
-import QtQuick.LocalStorage 2.0
-
-import "../js/utils.js" as WtUtils
-
+import "../js/DataManager.js" as DataManager
 
 Page {
+    id: page
+    allowedOrientations: Orientation.All
 
-    id: historyOfAllCycle
-
-    property bool deletingItems
-    property variant ids_menstrual :[]
-    property string idMenstrual
-    property string flow
-    property string feeling
-    property string pain
-    property string energy
-    property string sleepTime
-    property string dateMenstrual
-
-
-    function loadAllCycle (){
-
-        var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
-
-        db.transaction(
-
-            function(tx){
-
-                var rs = tx.executeSql('SELECT * FROM MenstrualCycles WHERE id_profile=?',[user_id])
-                if(rs.rows.length > 0){
-                   var user_dateOfCycle;
-                    for(var i=0 ; i<rs.rows.length ; i++ ){
-                        user_dateOfCycle = rs.rows.item(i).menstrual_date;
-                        listModel.append({"text": user_dateOfCycle}) ;
-                        ids_menstrual[i] = rs.rows.item(i).id_menstrual
-                        print(user_dateOfCycle)  ;
-                    }
-
-                }
-
+    function refresh() {
+        var profiles = DataManager.getProfiles();
+        if (profiles.length > 0) {
+            var profileId = profiles[0].id;
+            var cycles = DataManager.getMenstrualCycles(profileId);
+            listModel.clear();
+            for (var i = 0; i < cycles.length; i++) {
+                listModel.append(cycles[i]);
             }
-
-        )
-
+        }
     }
 
-
-    SilicaGridView {
-
-        id: gridView
-        model: listModel
+    SilicaListView {
+        id: listView
         anchors.fill: parent
-        readonly property int columnCount: Math.floor(width/(Screen.width/2))
-        cellWidth: parent.width/columnCount
-        cellHeight: cellWidth
+        model: listModel
 
         header: PageHeader {
-            title: "History of all cycle"
-        }
-
-
-        ViewPlaceholder {
-            enabled: listModel.count === 0
-            text: "No content"
-            hintText: "Pull down to add content"
-
+            title: qsTr("Cycle History")
         }
 
         PullDownMenu {
-            id: pullDownMenu
             MenuItem {
-
-                text: "Clear all"
-                visible: gridView.count
-                onClicked: {
-                    root.deletingItems = true
-                    var remorse = Remorse.popupAction(
-                                root, "Cleared",
-                                function() {
-                                    listModel.clear()
-                                })
-                    remorse.canceled.connect(function() { root.deletingItems = false })
-                }
+                text: qsTr("Refresh")
+                onClicked: refresh()
             }
-
-            /* ************************************************ */
-
-            MenuItem {
-                text: "Add Items"
-                visible: !gridView.count
-                onClicked: listModel.addItems()
-            }
-
-            /* ************************************************ */
-
         }
 
-        delegate: GridItem {
-            function loadInfosForCyle (){
-                var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
-                db.transaction(
-                    function(tx){
-
-                        idMenstrual =ids_menstrual[index];
-                        print("tttttttt " + idMenstrual);
-                        var rs = tx.executeSql('SELECT * FROM MenstrualFeelings WHERE id_menstrual=?',idMenstrual)
-                        if(rs.rows.length > 0){
-
-                            flow = rs.rows.item(0).flow;
-                            feeling = rs.rows.item(0).feeling;
-                            pain = rs.rows.item(0).pain;
-                            energy = rs.rows.item(0).energy;
-                            sleepTime = rs.rows.item(0).sleepTime;
-                            dateMenstrual = rs.rows.item(0).feeling_date;
-                            print("tttttttt " + dateMenstrual);
-
-                        }
-
-                    }
-
-                )
-
-            }
-            function remove() {
-                remorseDelete(function() { listModel.remove(index) })
-            }
-            onClicked: {
-                    loadInfosForCyle ()
-                    pageStack.animatorPush(Qt.resolvedUrl("./HistoryOfOneCycle.qml"))
-
-            }
-            enabled: !root.deletingItems
-            opacity: enabled ? 1.0 : 0.0
-            Behavior on opacity { FadeAnimator {}}
-
-            menu: Component {
-
-                ContextMenu {
-                    MenuItem {
-                        text: "Delete"
-                        onClicked: remove()
-
-                    }
-
-                    MenuItem {
-                        text: "Modify"
-
-                    }
-
-                }
-
-            }
-
+        delegate: ListItem {
+            contentHeight: Theme.itemSizeMedium
 
             Column {
-                id: content
-                x: Theme.paddingLarge
-                y: Theme.paddingLarge
-                width: parent.width - 2 * x
-                height: parent.height - y
-                spacing: Theme.paddingMedium
-
-
+                anchors.verticalCenter: parent.verticalCenter
+                x: Theme.horizontalPageMargin
+                
                 Label {
-                    width: parent.width
-                    maximumLineCount: 3
-                    elide: Text.ElideRight
-                    text: (model.index+1) + ". " + model.text
-                    wrapMode: Text.Wrap
-                    font.capitalization: Font.Capitalize
+                    text: qsTr("Started on %1").arg(model.startDate)
+                    color: highlighted ? Theme.highlightColor : Theme.primaryColor
                 }
-
-
                 Label {
-                    width: parent.width
-                    text: "Description du cas"
+                    text: model.note || qsTr("No notes")
                     font.pixelSize: Theme.fontSizeSmall
-                    elide: Text.ElideRight
-                    wrapMode: Text.Wrap
+                    color: highlighted ? Theme.secondaryHighlightColor : Theme.secondaryColor
+                    visible: model.note !== null
                 }
-
             }
 
-
-            OpacityRampEffect {
-                sourceItem: content
-                slope: 1
-                offset: 0
-                direction: OpacityRamp.TopToBottom
-            }
-
+            onClicked: pageStack.animatorPush(Qt.resolvedUrl("HistoryOfOneCycle.qml"), {
+                "startDate": model.startDate,
+                "endDate": model.endDate,
+                "note": model.note
+            })
         }
 
         VerticalScrollDecorator {}
 
+        ViewPlaceholder {
+            enabled: listModel.count === 0
+            text: qsTr("No cycles recorded")
+        }
     }
-
 
     ListModel {
-
         id: listModel
-        property bool populated
-        Component.onCompleted: addItems()
-        function addItems() {
-            var entries = 2   // Nombre d'entités par colonnes
-            for (var index = 0; index < entries; index++) {
-                listModel.append({"text": spaceIpsumWords[index*2] + " " + spaceIpsumWords[index*2+1]})
-            }
-
-            for (index = 0; index < entries; index++) {
-                listModel.append({"text": spaceIpsumWords[index*2] + " " + spaceIpsumWords[index*2+1]})
-            }
-            root.deletingItems = false
-            populated = true
-
-        }
-
     }
 
-
-    Component.onCompleted:{
-
-        user_id = WtUtils.lastUsedProfile()
-
-        print("id de l'user actif : " + user_id)
-
-        loadAllCycle()
-
-    }
-
-
-
-
+    Component.onCompleted: refresh()
 }

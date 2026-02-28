@@ -1,85 +1,71 @@
-import QtQuick 2.6
+import QtQuick 2.0
 import Sailfish.Silica 1.0
-import QtQuick.LocalStorage 2.0
-import "../js/utils.js" as WtUtils
+import "../js/DataManager.js" as DataManager
 
 Dialog {
     id: dialog
-    canAccept: firstnameField.text!="" && lastnameField.text!="" && genderField.text!="" && birthdayField.value!=""
+    allowedOrientations: Orientation.All
 
-    property string user_lastname;
-    property string user_firstname;
-    property string birth;
-    property string gender;
+    property date birthDate: new Date()
+    canAccept: firstnameField.text !== "" && lastnameField.text !== ""
 
-    onAcceptPendingChanged: {
-        if (acceptPending) {
-            var user_id = WtUtils.addProfile(firstnameField.text, lastnameField.text, genderField.currentItem.text, birthdayField.value);
-	    WtUtils.useProfile(user_id);
-        }
-        onClicked: pageStack.animatorPush(Qt.resolvedUrl("MainPage.qml"))
-
+    onAccepted: {
+        var dateStr = birthDate.toISOString().split('T')[0];
+        DataManager.addProfile(firstnameField.text, lastnameField.text, genderField.value, dateStr);
     }
 
     SilicaFlickable {
         anchors.fill: parent
         contentHeight: column.height
 
-        VerticalScrollDecorator {}
-
         Column {
             id: column
             width: parent.width
-            bottomPadding: Theme.paddingLarge
+            spacing: Theme.paddingLarge
 
             DialogHeader {
-
-                acceptText: "Save"
-                title: "Create a profile"
-
+                title: qsTr("Create Profile")
+                acceptText: qsTr("Save")
             }
 
+            TextField {
+                id: firstnameField
+                width: parent.width
+                label: qsTr("First Name")
+                placeholderText: label
+                EnterKey.onClicked: lastnameField.focus = true
+            }
 
-            TextField{
-                id : firstnameField
-                width:parent.width
-                label: "First name";
+            TextField {
+                id: lastnameField
+                width: parent.width
+                label: qsTr("Last Name")
                 placeholderText: label
             }
-            TextField{
-                id : lastnameField
-                width:parent.width
-                label: "Second name";
-                placeholderText: label
-            }
+
             ComboBox {
-                id:genderField
-                label: "Gender"
+                id: genderField
+                label: qsTr("Gender")
+                currentIndex: 0
                 menu: ContextMenu {
-                    MenuItem { text: "F" }
-                    MenuItem { text: "M" }
+                    MenuItem { text: qsTr("Female") }
+                    MenuItem { text: qsTr("Male") }
+                    MenuItem { text: qsTr("Other") }
                 }
-                width: parent.width/2
             }
+
             ValueButton {
-                property date selectedDate
-
-                function openDateDialog() {
-                    var obj = pageStack.animatorPush("Sailfish.Silica.DatePickerDialog",
-                                                     { date: selectedDate })
-
-                    obj.pageCompleted.connect(function(page) {
-                        page.accepted.connect(function() {
-                            selectedDate = page.date
-                            value = selectedDate.toLocaleDateString("yyyy-MM-dd")
-                        })
+                id: birthdayField
+                label: qsTr("Birthday")
+                value: birthDate.toLocaleDateString()
+                onClicked: {
+                    var dateDialog = pageStack.push("Sailfish.Silica.DatePickerDialog", {
+                        date: birthDate
+                    })
+                    dateDialog.accepted.connect(function() {
+                        birthDate = dateDialog.date
                     })
                 }
-                label: "Birthday date"
-                id : birthdayField
-                width: parent.width
-                onClicked: openDateDialog()
-
             }
         }
     }

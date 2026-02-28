@@ -1,102 +1,87 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
-import QtQuick.LocalStorage 2.0
+import "../js/DataManager.js" as DataManager
 
 Page {
-    id: consultIlness
-    property string user_id
-    property Page pageConsuleIllness
-    property string illness_id
-    property string id_medication
-    property string name_medication
-    property string medication_date
-    property string duration
-
+    id: page
     allowedOrientations: Orientation.All
-    // To enable PullDownMenu, place our content in a SilicaFlickable
-    SilicaFlickable {
-        anchors.fill: parent
-        contentHeight: column.height + Theme.paddingLarge
-        contentWidth: parent.width
 
-        VerticalScrollDecorator {}
+    property int profileId: 1
+    property int medicationId
+    property string medicationName
+
+    function refresh() {
+        listModel.clear();
+        var treatments = DataManager.getTreatments(profileId, medicationId);
+        treatments.forEach(function(t) {
+            listModel.append(t);
+        });
+    }
+
+    SilicaListView {
+        anchors.fill: parent
+
+        header: PageHeader {
+            title: qsTr("Medication: %1").arg(medicationName)
+        }
 
         PullDownMenu {
             MenuItem {
-                text: qsTr("Medication list")
-                onClicked: pageStack.animatorPush(Qt.resolvedUrl("ConsultIllness.qml"))
+                text: qsTr("Add Treatment")
+                onClicked: pageStack.animatorPush(Qt.resolvedUrl("AddAndEditMedication.qml"), {
+                    profileId: page.profileId,
+                    medicationId: page.medicationId
+                })
             }
         }
 
-        Column {
-            id: column
-            spacing: Theme.paddingLarge
-            //anchors.fill: parent
-            width: parent.width
+        model: listModel
 
-            PageHeader {
-                title: "Consult medication"
-            }
+        delegate: ListItem {
+            contentHeight: Theme.itemSizeLarge
+            
+            Column {
+                anchors.verticalCenter: parent.verticalCenter
+                x: Theme.horizontalPageMargin
+                width: parent.width - 2 * Theme.horizontalPageMargin
 
-            SectionHeader {
-                text: "Information about this medication"
-            }
-            Rectangle {
-                color: Theme.rgba(Theme.primaryColor, 0.1)
-                height: Theme.itemSizeSmall
-                width: page.width
                 Label {
-                    color: Theme.lightPrimaryColor
-                    text: "the name : " +name_medication
-                    anchors.centerIn: parent
+                    text: qsTr("Dosage: %1").arg(model.dosage)
+                    color: Theme.primaryColor
+                }
+                Label {
+                    text: qsTr("Frequency: %1").arg(model.frequency)
+                    font.pixelSize: Theme.fontSizeExtraSmall
+                    color: Theme.secondaryColor
+                }
+                Label {
+                    text: qsTr("%1 to %2").arg(model.startDate).arg(model.endDate || qsTr("ongoing"))
+                    font.pixelSize: Theme.fontSizeExtraSmall
+                    color: Theme.secondaryColor
                 }
             }
+        }
 
-            Rectangle {
-                color: Theme.rgba(Theme.primaryColor, 0.1)
-                height: Theme.itemSizeSmall
-                width: page.width
-                Label {
-                    color: Theme.lightPrimaryColor
-                    text: "Date :" +medication_date
-                    anchors.centerIn: parent
-                }
-            }
+        ViewPlaceholder {
+            enabled: listModel.count === 0
+            text: qsTr("No treatments found")
+            hintText: qsTr("Pull down to add a treatment")
+        }
 
-            Rectangle {
-                color: Theme.rgba(Theme.primaryColor, 0.1)
-                height: Theme.itemSizeSmall
-                width: page.width
-                Label {
-                    color: Theme.lightPrimaryColor
-                    text: "Duration :" +duration
-                    anchors.centerIn: parent
-                }
-            }
+        VerticalScrollDecorator {}
+    }
+
+    ListModel {
+        id: listModel
+    }
+
+    onStatusChanged: {
+        if (status === PageStatus.Active) {
+            refresh();
         }
     }
 
-    Component.onCompleted: {
-        pageConsuleIllness=previousPage()
-        user_id = pageConsuleIllness.user_id
-        illness_id = pageConsuleIllness.illness_id
-        id_medication = pageConsuleIllness.id_medication
-
-
-        function load(){
-            var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
-            db.transaction(
-                function(tx){
-                    var res1 =  tx.executeSql('SELECT medication_date,duration FROM HaveMedication WHERE id_illness=? AND id_profile =? AND id_medication=?',[illness_id,user_id,id_medication]);
-                    medication_date = res1.rows.item(0).medication_date;
-                    duration = res1.rows.item(0).duration;
-                    var res2 = tx.executeSql('SELECT name FROM Medication WHERE id_medication=?',[id_medication]);
-                    name_medication = res2.rows.item(0).name;
-                }
-                )
-        }
-
-    }
+    Component.onCompleted: refresh()
 }
 
 

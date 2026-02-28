@@ -1,119 +1,69 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
-import QtQuick.LocalStorage 2.0
+import "../js/DataManager.js" as DataManager
 
 Dialog {
-    id: addvaccine
-    property Page rootPage: previousPage()
-    property bool isUpdate: rootPage.isUpdate
-    property int userId: rootPage.userId
-    property int vaccineId: rootPage.vaccineId
-    canAccept: vaccineName.text!="" && boostersNumber.text!="" && nextRecallButton.value!="" && firstTakeButton.value!=""
+    id: dialog
+    allowedOrientations: Orientation.All
 
-    onAcceptPendingChanged: {
-        if (acceptPending) {
-            var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
-            db.transaction(
-                function(tx){
-                    if(isUpdate == true){
-                        var rs = tx.executeSql('INSERT INTO Vaccines VALUES(?,?,?,?)', [null, vaccineName.text, parseInt(boostersNumber.text), 0]);
-                    }else{
-                        tx.executeSql('INSERT INTO Vaccines VALUES(?,?,?,?)', [null, vaccineName.text, 0,parseInt(boostersNumber.text)]);
-                    }
-                    //Reload the page before comming back, to see updates
-                    rootPage.load()
-                }
-            )
+    property date injectionDate: new Date()
+    canAccept: vaccineName.text !== ""
+
+    onAccepted: {
+        var profiles = DataManager.getProfiles();
+        if (profiles.length > 0) {
+            var profileId = profiles[0].id;
+        // First add the vaccine record (if it doesn't exist)
+        var vaccineId = DataManager.getOrCreateVaccine(vaccineName.text, false);
+            var dateStr = injectionDate.toISOString().split('T')[0];
+            DataManager.addVaccineLog(profileId, vaccineId, dateStr, notesField.text);
         }
     }
 
-
-    SilicaFlickable{
+    SilicaFlickable {
         anchors.fill: parent
         contentHeight: column.height
 
-        Column{
+        Column {
             id: column
             width: parent.width
-
-
+            spacing: Theme.paddingLarge
 
             DialogHeader {
-                acceptText: "Save"
-                title: "Update Recall"
-
+                title: qsTr("Add Vaccine Record")
+                acceptText: qsTr("Save")
             }
 
-            TextField{
-                id : vaccineName
-                width:parent.width
-                placeholderText: "Name"
-            }
-            TextField{
-                id : boostersNumber
-                width:parent.width
-                placeholderText: "Number of boosters"
+            TextField {
+                id: vaccineName
+                width: parent.width
+                label: qsTr("Vaccine Name")
+                placeholderText: label
+                focus: true
+                EnterKey.onClicked: notesField.focus = true
             }
 
-            /*
-            Row{
+            TextField {
+                id: notesField
+                width: parent.width
+                label: qsTr("Notes")
+                placeholderText: qsTr("Optional notes")
+                EnterKey.onClicked: dateButton.focus = true
+            }
 
-                Icon{
-                    source: "image://theme/icon-m-date"
+            ValueButton {
+                id: dateButton
+                label: qsTr("Injection Date")
+                value: injectionDate.toLocaleDateString()
+                onClicked: {
+                    var dateDialog = pageStack.push("Sailfish.Silica.DatePickerDialog", {
+                        date: injectionDate
+                    })
+                    dateDialog.accepted.connect(function() {
+                        injectionDate = dateDialog.date
+                    })
                 }
-*/
-
-
-                ValueButton {
-                    id: firstTakeButton
-                    property date selectedDate
-
-                    function openDateDialog() {
-                        var obj = pageStack.animatorPush("Sailfish.Silica.DatePickerDialog",
-                                                         { date: selectedDate })
-
-                        obj.pageCompleted.connect(function(page) {
-                            page.accepted.connect(function() {
-                                selectedDate = page.date
-                                value = selectedDate.toLocaleDateString(Locale.ShortFormat)
-                            })
-                        })
-                    }
-                    label: "Date of first take"
-                    width: parent.width
-                    onClicked: openDateDialog()
-                }
-            //}
-
-            /*
-            Row{
-
-                Icon{
-                    source: "image://theme/icon-m-date"
-                }
-                */
-
-                ValueButton {
-                    id: nextRecallButton
-                    property date selectedDate
-
-                    function openDateDialog() {
-                        var obj = pageStack.animatorPush("Sailfish.Silica.DatePickerDialog",
-                                                         { date: selectedDate })
-
-                        obj.pageCompleted.connect(function(page) {
-                            page.accepted.connect(function() {
-                                selectedDate = page.date
-                                value = selectedDate.toLocaleDateString(Locale.ShortFormat)
-                            })
-                        })
-                    }
-                    label: "Date of next recall"
-                    width: parent.width
-                    onClicked: openDateDialog()
-                }
-            //}
-
+            }
         }
     }
 }

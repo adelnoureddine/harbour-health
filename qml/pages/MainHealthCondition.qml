@@ -1,166 +1,100 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
-import QtQuick.LocalStorage 2.0
+import "../js/DataManager.js" as DataManager
 
 Page {
-    id: rootHealthPage
-    property bool editIllness: false
-    property string user_id
-    property Page mainPage
-    property string illness_id
-    property string name_illnes
-    property string start_date
-    property string end_date
-    property string comments
-    property variant ids_illness :[]
+    id: root
+    allowedOrientations: Orientation.All
 
+    function refresh() {
+        listModel.clear();
+        var profiles = DataManager.getProfiles();
+        if (profiles.length > 0) {
+            var conditions = DataManager.getConditions(profiles[0].id);
+            conditions.forEach(function(c) {
+                listModel.append(c);
+            });
+        }
+    }
 
+    SilicaListView {
+        anchors.fill: parent
 
-    // To enable PullDownMenu, place our content in a SilicaFlickable
-    SilicaGridView {
-       id: gridView
-       anchors.fill: parent
-       model : listModel
-       readonly property int columnCount: Math.floor(width/(Screen.width/2))
-       cellWidth: parent.width/columnCount
-       cellHeight: cellWidth
-
-
-       header: PageHeader {
-            title: qsTr("All illness data")
-       }
-
-       ViewPlaceholder {
-            enabled: listModel.count === 0
-            text: "No illness"
-            hintText: "Pull down to add illness"
+        header: PageHeader {
+            title: qsTr("Health Conditions")
         }
 
-       PullDownMenu {
-
+        PullDownMenu {
             MenuItem {
-                text: qsTr(" Add illness")
-                onClicked: {
-                    editIllness = false
-                    pageStack.animatorPush(Qt.resolvedUrl("AddAndEditIllness.qml"))}
+                text: qsTr("Add Condition")
+                onClicked: pageStack.animatorPush(Qt.resolvedUrl("AddAndEditIllness.qml"), {profileId: root.profileId})
             }
         }
-       delegate: ListItem {
 
-            function loadInfosIllnes(){
-                var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
-                illness_id = ids_illness[index];
-                name_illnes = listModel.get(index).text;
-                db.transaction(
-                   function(tx){
-                       var rs1 = tx.executeSql('SELECT start_date,end_date,comments FROM HaveIllness WHERE id_profile=? AND id_illness=?',[user_id,illness_id]);
-                       if(rs1.rows.length > 0){
-                           start_date = rs1.rows.item(0).start_date;
-                           end_date = rs1.rows.item(0).end_date;
-                           comments = rs1.rows.item(0).comments;
-                       }
-                   }
-                   )
+        model: listModel
 
-
-            }
-
-            function removeFromDataBase(){
-                var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
-                illness_id = ids_illness[index];
-                db.transaction(
-                   function(tx){
-                        tx.executeSql('DELETE FROM HaveIllness WHERE id_profile=? AND id_illness =?',[user_id,illness_id]);
-                        tx.executeSql('DELETE FROM Illness WHERE id_illness =?',illness_id);
-                    })
-            }
-
-            function remove() {
-                remorseDelete(function() { listModel.remove(index) })
-            }
-
+        delegate: ListItem {
+            contentHeight: Theme.itemSizeMedium
             onClicked: {
-                loadInfosIllnes()
-                pageStack.animatorPush(Qt.resolvedUrl("ConsultIllness.qml"))
-            }
-            menu: Component {
-                ContextMenu {
-                    MenuItem {
-                        text: "Edit"
-                        onClicked:{
-                            loadInfosIllnes()
-                            editIllness = true
-                            pageStack.animatorPush(Qt.resolvedUrl("AddAndEditIllness.qml"))
-                        }
-
-                    }
-                    MenuItem {
-                        text: "Delete"
-                        onClicked:{
-                            remove()
-                            removeFromDataBase()
-                        }
-                    }
-                }
+                pageStack.animatorPush(Qt.resolvedUrl("ConsultIllness.qml"), {
+                    conditionId: model.id,
+                    conditionName: model.name
+                })
             }
 
             Column {
-                id: content
-                x: Theme.paddingLarge
-                y: Theme.paddingLarge
-                width: parent.width - 2 * x
-                height: parent.height
-                spacing: Theme.paddingMedium
+                anchors.verticalCenter: parent.verticalCenter
+                x: Theme.horizontalPageMargin
+                width: parent.width - 2 * Theme.horizontalPageMargin
 
                 Label {
-                    width: parent.width
-                    maximumLineCount: 3
-                    elide: Text.ElideRight
-                    text: (model.index+1) + ". " + model.text
-                    wrapMode: Text.Wrap
-                    font.capitalization: Font.Capitalize
+                    text: model.name
+                    color: Theme.primaryColor
+                }
+                Label {
+                    text: qsTr("Status: %1").arg(model.status)
+                    font.pixelSize: Theme.fontSizeExtraSmall
+                    color: Theme.secondaryColor
+                }
+                Label {
+                    text: qsTr("Since: %1").arg(model.startDate)
+                    font.pixelSize: Theme.fontSizeExtraSmall
+                    color: Theme.secondaryColor
+                    visible: model.startDate !== ""
                 }
             }
 
-          }
+            menu: Component {
+                ContextMenu {
+                    MenuItem {
+                        text: qsTr("Edit")
+                        onClicked: pageStack.animatorPush(Qt.resolvedUrl("AddAndEditIllness.qml"), {
+                            conditionId: model.id
+                        })
+                    }
+                }
+            }
+        }
 
+        ViewPlaceholder {
+            enabled: listModel.count === 0
+            text: qsTr("No health conditions recorded")
+            hintText: qsTr("Pull down to add a condition")
+        }
 
-       VerticalScrollDecorator {}
+        VerticalScrollDecorator {}
     }
-
 
     ListModel {
         id: listModel
-        Component.onCompleted: {
-            mainPage=previousPage()
-            user_id = mainPage.user_id
-            load()
+    }
+
+    onStatusChanged: {
+        if (status === PageStatus.Active) {
+            refresh();
         }
+    }
 
-        function load(){
-            var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
-            db.transaction(
-                function(tx){
-                   var rs1 = tx.executeSql('SELECT * FROM HaveIllness WHERE id_profile=?',user_id);
-                    if(rs1.rows.length > 0){
-                        var rs2;
-                        var name_Illness;
-                        var illness_id;
-                        for(var i = 0;i<rs1.rows.length;i++){
-                            illness_id=rs1.rows.item(i).id_illness;
-                            ids_illness[i]= illness_id;
-                            rs2 = tx.executeSql('SELECT * FROM Illness WHERE id_illness=?',illness_id);
-                            name_Illness=rs2.rows.item(0).name;
-                            listModel.append({"text":name_Illness})
-                        }
-
-                }
-                }
-            )
-
-        }
-
-
-}
+    Component.onCompleted: refresh()
 }
 

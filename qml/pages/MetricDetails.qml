@@ -1,117 +1,97 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
-import QtQuick.LocalStorage 2.0
-import "../js/utils.js" as WtUtils
-
+import "../js/DataManager.js" as DataManager
 
 Page {
-    id: metricDetails
-    property Page rootPage
+    id: page
+    allowedOrientations: Orientation.All
+
     property int metricId
-    property int userId: WtUtils.lastUsedProfile()
+    property string metricName
+    property string metricUnit
 
+    function refresh() {
+        listModel.clear();
+        var profiles = DataManager.getProfiles();
+        if (profiles.length > 0) {
+            var logs = DataManager.getLogs(profiles[0].id, metricId);
+            logs.forEach(function(l) {
+                listModel.append(l);
+            });
+        }
+    }
 
-    SilicaListView{
+    SilicaListView {
         anchors.fill: parent
+
+        header: PageHeader {
+            title: qsTr("%1 History").arg(metricName)
+        }
 
         PullDownMenu {
             MenuItem {
-                text: qsTr("add an entry")
-                onClicked: {
-                    metricDetails.metricId = metricId
-                    pageStack.animatorPush(Qt.resolvedUrl("addEntryMetric.qml"))
-                }
+                text: qsTr("Add Entry")
+                onClicked: pageStack.animatorPush(Qt.resolvedUrl("addEntryMetric.qml"), {
+                    metricId: page.metricId,
+                    metricName: page.metricName,
+                    metricUnit: page.metricUnit
+                })
             }
-            MenuItem {
-                text: qsTr("Menu")
-                onClicked: pageStack.animatorPush(Qt.resolvedUrl("MainPage.qml"))
-            }
-            MenuItem{
-                text: qsTr("Delete Values")
-                onClicked:{
-                    var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
-                    db.transaction(
-                        function(tx){
-                            var size = listModel.count
-                            for(var i = 0; i < size; i++){
-                                listModel.remove(0);
-                            }
-                            tx.executeSql("DELETE FROM MetricValue WHERE id_profile = ? AND id_metric = ?", [userId, metricId]);
-                    });
-
-                }
-            }
-
         }
-
-        header: PageHeader {
-            title: rootPage.metricName + " Details"
-        }
-
-
 
         model: listModel
 
-                delegate: ListItem{
-                    menu: Component {
-                        ContextMenu {
-                            MenuItem {
-                                text: "Edit"
-                                onClicked: pageStack.animatorPush(Qt.resolvedUrl("UpdateRecall.qml"))
-                            }
-                        }
-                    }
+        delegate: ListItem {
+            id: listItem
+            contentHeight: Theme.itemSizeSmall
 
-                    Label {
-                        x: Theme.horizontalPageMargin
-                        width: parent.width - 2 * x
-                        anchors.verticalCenter: parent.verticalCenter
-                        text: model.text + " " + model.unit + "     " + model.date
-                        truncationMode: TruncationMode.Fade
-                        font.capitalization: Font.Capitalize
+            menu: ContextMenu {
+                MenuItem {
+                    text: qsTr("Delete")
+                    onClicked: {
+                        listItem.remorseDelete(function() {
+                            DataManager.deleteLog(model.id);
+                            refresh();
+                        })
                     }
-
                 }
             }
-
-            ListModel{
-                id: listModel
-
-
-                Component.onCompleted: {
-                    rootPage = previousPage()
-                    metricId = rootPage.metricId
-
-                    console.log("metric: " + metricId + " userId = " + userId)
-                    console.log("SELECT * FROM MetricValue WHERE id_profile = ? ", [userId])
-                    //utils.js pour récupérer le dernier id_utilisateur
-                    load()
-                }
-
-
-
-            }
-            function load(){
-                var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
-                var size = listModel.count
-                for(var i=0; i < size; i++){
-                    listModel.remove(0)
-                }
-
-                db.transaction(
-                    function(tx){
-                        var rs = tx.executeSql("SELECT * FROM MetricValue INNER JOIN Metrics on Metrics.id_metric = MetricValue.id_metric  WHERE id_profile = ? AND MetricValue.id_metric = ?",[userId,metricId]);
-                        for(var i = 0; i < rs.rows.length; i++){
-                            console.log(rs.rows.item(i).id_profile)
-                            console.log(rs.rows.item(i).id_metric)
-                            console.log(rs.rows.item(i).value_metric)
-                            listModel.append({"text": rs.rows.item(i).value_metric,
-                                                "unit": rs.rows.item(i).unit,
-                                                 "date": rs.rows.item(i).date_metric,
-                                             })
-                        }
-                    }
-                );
+            
+            Label {
+                x: Theme.horizontalPageMargin
+                anchors.verticalCenter: parent.verticalCenter
+                text: model.value + " " + metricUnit
+                color: highlighted ? Theme.highlightColor : Theme.primaryColor
             }
 
+            Label {
+                anchors.right: parent.right
+                anchors.rightMargin: Theme.horizontalPageMargin
+                anchors.verticalCenter: parent.verticalCenter
+                text: model.timestamp
+                font.pixelSize: Theme.fontSizeExtraSmall
+                color: highlighted ? Theme.secondaryHighlightColor : Theme.secondaryColor
+            }
         }
+
+        ViewPlaceholder {
+            enabled: listModel.count === 0
+            text: qsTr("No data points recorded")
+            hintText: qsTr("Pull down to add the first entry")
+        }
+
+        VerticalScrollDecorator {}
+    }
+
+    ListModel {
+        id: listModel
+    }
+
+    onStatusChanged: {
+        if (status === PageStatus.Active) {
+            refresh();
+        }
+    }
+
+    Component.onCompleted: refresh()
+}

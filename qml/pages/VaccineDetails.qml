@@ -1,105 +1,83 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
-import QtQuick.LocalStorage 2.0
+import "../js/DataManager.js" as DataManager
 
 Page {
-    id: vaccineDetails
-    property Page rootPage
-    property int vaccineId
-    property int userId
-    property bool isUpdate
-    property int injectionId
+    id: page
+    allowedOrientations: Orientation.All
 
-    SilicaListView{
+    property int vaccineId
+    property string vaccineName
+    property bool isMandatory
+
+    function refresh() {
+        listModel.clear();
+        var profiles = DataManager.getProfiles();
+        if (profiles.length > 0) {
+            var logs = DataManager.getVaccineLogs(profiles[0].id, vaccineId);
+            logs.forEach(function(l) {
+                listModel.append(l);
+            });
+        }
+    }
+
+    SilicaListView {
         anchors.fill: parent
+
+        header: PageHeader {
+            title: qsTr("%1 History").arg(vaccineName)
+        }
 
         PullDownMenu {
             MenuItem {
-                text: qsTr("Update")
-
-                onClicked:{
-                    vaccineDetails.isUpdate = true
-                    pageStack.animatorPush(Qt.resolvedUrl("updateRecall.qml"))
-                }
-            }
-            MenuItem {
-                text: qsTr("Menu")
-                onClicked: pageStack.animatorPush(Qt.resolvedUrl("MainPage.qml"))
+                text: qsTr("Record Injection")
+                onClicked: pageStack.animatorPush(Qt.resolvedUrl("AddVaccine.qml"), {
+                    // In a more complex app we might pass the vaccine ID to auto-fill
+                })
             }
         }
-
-        header: PageHeader {
-            title: "Vaccines details"
-        }
-
-        ViewPlaceholder {
-            enabled: listModel.count ===  0
-            text: "No injection for this vaccine"
-            hintText: "Swipe down to add one !"
-        }
-
 
         model: listModel
 
-        delegate: ListItem{
-            menu: Component {
-                ContextMenu {
-                    MenuItem {
-                        text: "Edit"
-                        onClicked:{
-                            vaccineDetails.isUpdate = false
-                            vaccineDetails.injectionId = id
-                            pageStack.animatorPush(Qt.resolvedUrl("updateRecall.qml"))
-                        }
-                    }
-                }
+        delegate: ListItem {
+            contentHeight: Theme.itemSizeSmall
+            
+            Label {
+                x: Theme.horizontalPageMargin
+                anchors.verticalCenter: parent.verticalCenter
+                text: model.date
+                color: Theme.primaryColor
             }
 
             Label {
-                x: Theme.horizontalPageMargin
-                width: parent.width - 2 * x
+                anchors.right: parent.right
+                anchors.rightMargin: Theme.horizontalPageMargin
                 anchors.verticalCenter: parent.verticalCenter
-                text: model.text
-                truncationMode: TruncationMode.Fade
-                font.capitalization: Font.Capitalize
+                text: model.note || ""
+                font.pixelSize: Theme.fontSizeExtraSmall
+                color: Theme.secondaryColor
+                visible: text !== ""
             }
-
         }
+
+        ViewPlaceholder {
+            enabled: listModel.count === 0
+            text: qsTr("No injections recorded")
+            hintText: qsTr("Pull down to record an injection")
+        }
+
+        VerticalScrollDecorator {}
     }
 
-    ListModel{
+    ListModel {
         id: listModel
-
-
-        Component.onCompleted: {
-            //get vaccineId and userId from previousPage
-            rootPage = previousPage()
-            vaccineId = rootPage.vaccineId
-            userId = rootPage.userId
-
-            //load the model from database
-            loadModel()
-        }
-
-
-
-    }
-    function loadModel(){
-        var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
-        //Clear model before adding new data; (solved edit recall problem)
-        var size = listModel.count
-        for(var i=0; i < size; i++){
-            listModel.remove(0)
-        }
-
-        db.transaction(
-            function(tx){
-                var rs = tx.executeSql("SELECT * FROM Injection WHERE id_profile = ? AND id_vaccine = ? ", [userId,vaccineId]);
-                for(var i = 0; i < rs.rows.length; i++){
-                    listModel.append({"text": rs.rows.item(i).injection_date, "id":rs.rows.item(i).id_injection})
-                }
-            }
-        );
     }
 
+    onStatusChanged: {
+        if (status === PageStatus.Active) {
+            refresh();
+        }
+    }
+
+    Component.onCompleted: refresh()
 }

@@ -1,123 +1,84 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
-import QtQuick.LocalStorage 2.0
-import "../js/utils.js" as WtUtils
+import "../js/DataManager.js" as DataManager
 
 Dialog {
     id: dialog
+    allowedOrientations: Orientation.All
 
-    property string user_firstname;
-    property string user_lastname;
-    property string user_gender;
-    property string user_birthday;
-    property string user_id;
+    property int profileId: 1
+    property var profile: null
 
-    onAcceptPendingChanged: {
-        if (acceptPending) {
-            WtUtils.deleteProfile(user_id);
+    function load() {
+        var profiles = DataManager.getProfiles();
+        if (profiles.length > 0) {
+            var found = false;
+            for (var i=0; i<profiles.length; i++) {
+                if (profiles[i].id === profileId) {
+                    profile = profiles[i];
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) profile = profiles[0];
         }
-        onClicked: pageStack.animatorPush(Qt.resolvedUrl("MainPage.qml"))
-
     }
 
-    function load(){
-	user_id = WtUtils.lastUsedProfile();
-	var profile = WtUtils.getProfile(user_id);
-	user_firstname = profile.firstname;
-	user_lastname = profile.lastname;
-	user_gender = profile.gender;
-	user_birthday = profile.birthday;
+    onAccepted: {
+        if (profile) {
+            DataManager.deleteProfile(profile.id);
+            var remaining = DataManager.getProfiles();
+            if (remaining.length === 0) {
+                pageStack.replace(Qt.resolvedUrl("createProfile.qml"));
+            } else {
+                pageStack.pop();
+            }
+        }
     }
 
     SilicaFlickable {
         anchors.fill: parent
         contentHeight: column.height
 
-        VerticalScrollDecorator {}
-
         Column {
             id: column
-            width: page.width
+            width: parent.width
             spacing: Theme.paddingLarge
-            PageHeader {
-                title: qsTr("Delete a profile")
 
-            }
-            Row{
-                Label {
-                    x: Theme.horizontalPageMargin
-                    width: page.width/2
-                    text: qsTr(" First Name : ")
-                    color: Theme.secondaryHighlightColor
-                    font.pixelSize: Theme.fontSizeExtraLarge
-                }
-                Label {
-                    width: page.width/2
-                    x: Theme.horizontalPageMargin
-                    text: user_firstname
-                    color: Theme.secondaryHighlightColor
-                    font.pixelSize: Theme.fontSizeExtraLarge
-                }
+            DialogHeader {
+                title: qsTr("Delete Profile")
+                acceptText: qsTr("Delete")
             }
 
-            Row{
-                Label {
-                    x: Theme.horizontalPageMargin
-                    width: page.width/2
-                    text: qsTr(" Last Name : ")
-                    color: Theme.secondaryHighlightColor
-                    font.pixelSize: Theme.fontSizeExtraLarge
-                }
-                Label {
-                    width: page.width/2
-                    x: Theme.horizontalPageMargin
-                    text: user_lastname
-                    color: Theme.secondaryHighlightColor
-                    font.pixelSize: Theme.fontSizeExtraLarge
-                }
+            Label {
+                x: Theme.horizontalPageMargin
+                width: parent.width - 2 * Theme.horizontalPageMargin
+                text: qsTr("Are you sure you want to delete this profile? This action cannot be undone and all associated data will be lost.")
+                color: Theme.highlightColor
+                wrapMode: Text.Wrap
             }
 
-            Row{
-                Label {
-                    x: Theme.horizontalPageMargin
-                    width: page.width/2
-
-                    text: qsTr(" Gender : ")
-                    color: Theme.secondaryHighlightColor
-                    font.pixelSize: Theme.fontSizeExtraLarge
-                }
-                Label {
-                    width: page.width/2
-                    x: Theme.horizontalPageMargin
-                    text: user_gender
-                    color: Theme.secondaryHighlightColor
-                    font.pixelSize: Theme.fontSizeExtraLarge
-                }
+            SectionHeader {
+                text: qsTr("Profile to Delete")
             }
 
-            Row{
-                Label {
-                    x: Theme.horizontalPageMargin
-                    width: page.width/2
+            DetailItem {
+                label: qsTr("Name")
+                value: profile ? (profile.firstName + " " + profile.lastName) : ""
+            }
+            
+            DetailItem {
+                label: qsTr("Gender")
+                value: profile ? profile.gender : ""
+            }
 
-                    text: qsTr(" Birthday : ")
-                    color: Theme.secondaryHighlightColor
-                    font.pixelSize: Theme.fontSizeExtraLarge
-                }
-                Label {
-                    width: page.width/2
-                    x: Theme.horizontalPageMargin
-                    text: user_birthday
-                    color: Theme.secondaryHighlightColor
-                    font.pixelSize: Theme.fontSizeExtraLarge
-                }
+            DetailItem {
+                label: qsTr("Birthday")
+                value: profile ? profile.birthDate : ""
             }
         }
-        Component.onCompleted:{
-	    load();
-
-        }
-
     }
+
+    Component.onCompleted: load()
 }
 

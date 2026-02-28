@@ -1,131 +1,170 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
-import QtQuick.LocalStorage 2.0
-import "../js/utils.js" as WtUtils
+import "../js/DataManager.js" as DataManager
+import "../components"
 
 Page {
     id: page
-    property int userId
-    property string user_id
-    property var profile
-
-    // The effective value will be restricted by ApplicationWindow.allowedOrientations
     allowedOrientations: Orientation.All
-    property int nbProfile;
 
-    function nbrProfile (){
-        var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
-        db.transaction(
-            function(tx){
-                var rs = tx.executeSql('SELECT * FROM Profiles')
-                    nbProfile = rs.rows.length
-            }
-        )
+    property var profile: null
+    property var weightLog: null
+    property var waterLog: null
+    property var calorieLog: null
+    property int vaccineCount: 0
+
+    function updateData() {
+        var profiles = DataManager.getProfiles();
+        if (profiles.length > 0) {
+            profile = profiles[0];
+            weightLog = DataManager.getLatestLog(profile.id, "weight");
+            waterLog = DataManager.getLatestLog(profile.id, "water");
+            calorieLog = DataManager.getLatestLog(profile.id, "calories");
+            vaccineCount = DataManager.getVaccineCount(profile.id);
+        }
     }
+
+    onStatusChanged: {
+        if (status === PageStatus.Active) {
+            updateData();
+        }
+    }
+
     SilicaFlickable {
         anchors.fill: parent
+        contentHeight: column.height
 
         PullDownMenu {
-
-            MenuItem {
-                text: qsTr("Add new data")
-                onClicked: pageStack.animatorPush(Qt.resolvedUrl('./AddnewData.qml'))
-            }
-
             MenuItem {
                 text: qsTr("About")
-                onClicked: pageStack.animatorPush(Qt.resolvedUrl('./AboutPage.qml'))
+                onClicked: pageStack.animatorPush(Qt.resolvedUrl("AboutPage.qml"))
             }
-            MenuItem{//Visible only if there's at least one profile
-                visible: nbProfile > 0
-                text: qsTr("My Profile")
-                onClicked: pageStack.animatorPush(Qt.resolvedUrl("infosProfile.qml"))
-            }
-            MenuItem{//Visible only if there's no profile
-                visible: nbProfile == 0
-                text: qsTr("New Profile")
-                onClicked: pageStack.animatorPush(Qt.resolvedUrl("createProfile.qml"))
-            }
-            MenuItem{
-                text: qsTr("Choose profile")
+            MenuItem {
+                text: qsTr("Settings / Profiles")
                 onClicked: pageStack.animatorPush(Qt.resolvedUrl("chooseProfile.qml"))
             }
         }
 
-        // Tell SilicaFlickable the height of its content.
-        contentHeight: column.height
-
-        // Place our content in a Column.  The PageHeader is always placed at the top
-        // of the page, followed by our content.
         Column {
             id: column
-
-
-            width: page.width
+            width: parent.width
             spacing: Theme.paddingLarge
+
             PageHeader {
-                title: qsTr("Health")
+                title: qsTr("My Health")
             }
+
             Label {
-                id: label
                 x: Theme.horizontalPageMargin
-                text: qsTr("Health App")
-                color: Theme.secondaryHighlightColor
+                text: profile ? qsTr("Hello, %1").arg(profile.firstName) : qsTr("No Profile Selected")
                 font.pixelSize: Theme.fontSizeExtraLarge
+                color: Theme.highlightColor
             }
 
-            ViewPlaceholder{//Visible only if there's no profile
-                enabled: nbProfile == 0
-                text: "No existing profile"
-                hintText: "Swipe down to create a profile"
+            // Dashboard Grid
+            Grid {
+                id: dashboardGrid
+                width: parent.width - 2 * Theme.horizontalPageMargin
+                anchors.horizontalCenter: parent.horizontalCenter
+                columns: 2
+                spacing: Theme.paddingMedium
+
+                // Weight Card
+                SummaryCard {
+                    width: (dashboardGrid.width - dashboardGrid.spacing) / 2
+                    title: qsTr("Weight")
+                    value: weightLog ? weightLog.value : "--"
+                    unit: weightLog ? weightLog.unit : "kg"
+                    icon: "image://theme/icon-m-health"
+                    onClicked: pageStack.animatorPush(Qt.resolvedUrl("MetricDetails.qml"), {
+                        profileId: profile ? profile.id : 1,
+                        metricId: 1, 
+                        metricName: "weight",
+                        metricUnit: "kg"
+                    })
+                }
+
+                // Water Card
+                SummaryCard {
+                    width: (dashboardGrid.width - dashboardGrid.spacing) / 2
+                    title: qsTr("Water")
+                    value: waterLog ? waterLog.value : "0"
+                    unit: "L"
+                    icon: "image://theme/icon-m-levels"
+                    onClicked: pageStack.animatorPush(Qt.resolvedUrl("Nutrition.qml"), {profileId: profile ? profile.id : 1})
+                }
+
+                // Calories Card
+                SummaryCard {
+                    width: (dashboardGrid.width - dashboardGrid.spacing) / 2
+                    title: qsTr("Calories")
+                    value: calorieLog ? calorieLog.value : "0"
+                    unit: "kcal"
+                    icon: "image://theme/icon-m-levels"
+                    onClicked: pageStack.animatorPush(Qt.resolvedUrl("Nutrition.qml"), {profileId: profile ? profile.id : 1})
+                }
+
+                // Vaccines Card
+                SummaryCard {
+                    width: (dashboardGrid.width - dashboardGrid.spacing) / 2
+                    title: qsTr("Vaccines")
+                    value: vaccineCount
+                    unit: qsTr("records")
+                    icon: "image://theme/icon-m-certificates"
+                    onClicked: pageStack.animatorPush(Qt.resolvedUrl("VaccinesList.qml"), {profileId: profile ? profile.id : 1})
+                }
             }
 
-            Label {
-                id: profileLabel
-                x: Theme.horizontalPageMargin
-                enabled: nbProfile == 0 && profile
-                text: qsTr("Profile: ") + profile.firstname
-                color: Theme.lightPrimaryColor
+            SectionHeader {
+                text: qsTr("Quick Actions")
             }
 
+            Row {
+                width: parent.width - 2 * Theme.horizontalPageMargin
+                anchors.horizontalCenter: parent.horizontalCenter
+                spacing: Theme.paddingMedium
 
-            ButtonLayout{//Visible only if there's at least one profile
-                visible: nbProfile > 0
-                Button{
-                    text: "Metrics"
-                    onClicked: pageStack.animatorPush(Qt.resolvedUrl("MetricList.qml"))
+                Button {
+                    width: (parent.width - Theme.paddingMedium) / 2
+                    text: qsTr("Log Water")
+                    onClicked: pageStack.animatorPush(Qt.resolvedUrl("AddnewData.qml"), {
+                        profileId: profile ? profile.id : 1,
+                        metricType: "water"
+                    })
                 }
-                Button{
-                    text: "Meditation"
-                    onClicked: pageStack.animatorPush(Qt.resolvedUrl("MeditationMenu.qml"))
-                }
-                Button{
-                    text: "Vaccines"
-                    onClicked: pageStack.animatorPush(Qt.resolvedUrl("VaccinesList.qml"))
-                }
-                Button{
-                    text: "Health condition"
-                    onClicked: pageStack.animatorPush(Qt.resolvedUrl("MainHealthCondition.qml"))
-                }
-                Button{
-                    text: "Nutrition"
-                    onClicked: pageStack.animatorPush(Qt.resolvedUrl("Nutrition.qml"))
-                }
-                Button{
-                    text: "Menstruation"
-                    onClicked: pageStack.animatorPush(Qt.resolvedUrl("Menstruation.qml"))
+                Button {
+                    width: (parent.width - Theme.paddingMedium) / 2
+                    text: qsTr("Log Weight")
+                    onClicked: pageStack.animatorPush(Qt.resolvedUrl("addEntryMetric.qml"), {
+                        profileId: profile ? profile.id : 1,
+                        metricId: 1,
+                        metricName: "weight",
+                        metricUnit: "kg"
+                    })
                 }
             }
 
+            SectionHeader {
+                text: qsTr("All Modules")
+            }
+
+            ButtonLayout {
+                Button {
+                    text: qsTr("Meditation")
+                    onClicked: pageStack.animatorPush(Qt.resolvedUrl("MeditationMenu.qml"), {profileId: profile ? profile.id : 1})
+                }
+                Button {
+                    text: qsTr("Health Condition")
+                    onClicked: pageStack.animatorPush(Qt.resolvedUrl("MainHealthCondition.qml"), {profileId: profile ? profile.id : 1})
+                }
+                Button {
+                    text: qsTr("Menstruation")
+                    onClicked: pageStack.animatorPush(Qt.resolvedUrl("Menstruation.qml"), {profileId: profile ? profile.id : 1})
+                }
+            }
         }
-        Component.onCompleted: user_id=1
     }
-    Component.onCompleted:{
-        nbrProfile()
-	if (nbProfile > 0) {
-            userId = WtUtils.lastUsedProfile();
-	    profile = WtUtils.getProfile(userId);
-	}
-    }
+
+    Component.onCompleted: updateData()
 }
 
