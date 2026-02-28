@@ -48,7 +48,7 @@ Page {
         wtData.height = WtUtils.getLastMetricValue(user_id, "height");
         wtData.weight = WtUtils.getLastMetricValue(user_id, "weight");
 	if (wtData.weight > 0 && wtData.height > 0) {
-	    wtData.bmi = wtData.weight / (wtData.height / 100) * (wtData.height / 100);
+	    wtData.bmi = wtData.weight / ((wtData.height / 100) * (wtData.height / 100));
         }
     }
 
@@ -218,7 +218,7 @@ Page {
                 wrapMode: Text.Wrap
                 width: parent.width
                 text: u_liquid
-                color: 'white'
+                color: Theme.primaryColor
             }
 
 
@@ -306,7 +306,7 @@ Page {
                 color: Theme.highlightColor
                 font.pixelSize: Theme.fontSizeLarge
                 anchors.left: parent.left
-                anchors.leftMargin: 30
+                anchors.leftMargin: Theme.horizontalPageMargin
             }
 
             Label {
@@ -315,7 +315,7 @@ Page {
                 color: Theme.highlightColor
                 font.pixelSize: Theme.fontSizeLarge
                 anchors.left: parent.left
-                anchors.leftMargin: 30
+                anchors.leftMargin: Theme.horizontalPageMargin
             }
 
 

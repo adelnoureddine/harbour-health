@@ -42,7 +42,7 @@ Page {
                 x: Theme.horizontalPageMargin
                 width: parent.width - ( 2 * Theme.horizontalPageMargin )
                 horizontalAlignment: Text.AlignHCenter
-                text: qsTr("Adel Noureddine © 2022")
+                text: qsTr("Adel Noureddine (project lead and maintainer) © 2022")
                 font.pixelSize: Theme.fontSizeSmall
                 anchors {
                     horizontalCenter: parent.horizontalCenter
@@ -50,7 +50,7 @@ Page {
             }
 
             SectionHeader {
-                text: qsTr("Initial Authors")
+                text: qsTr("Students and Contributors")
             }
 
             Column {
@@ -58,43 +58,57 @@ Page {
                 width: parent.width
 
                 Label {
-                    text: "AKOUN Bienvenu Romain © 2022"
+                    text: "Dylan Mignot-Bousseau (student) © 2022"
                     font.pixelSize: Theme.fontSizeSmall
-                    anchors {
-                        horizontalCenter: parent.horizontalCenter
-                    }
+                    anchors.horizontalCenter: parent.horizontalCenter
                 }
 
                 Label {
-                    text: "AJOUKA Ashraf © 2022"
+                    text: "Lucille Rey (student) © 2022"
                     font.pixelSize: Theme.fontSizeSmall
-                    anchors {
-                        horizontalCenter: parent.horizontalCenter
-                    }
+                    anchors.horizontalCenter: parent.horizontalCenter
                 }
 
                 Label {
-                    text: "ABADI Thomas © 2022"
+                    text: "Mathieu Vazquez (student) © 2022"
                     font.pixelSize: Theme.fontSizeSmall
-                    anchors {
-                        horizontalCenter: parent.horizontalCenter
-                    }
+                    anchors.horizontalCenter: parent.horizontalCenter
                 }
 
                 Label {
-                    text: "BUEPOYO Sopale Jose J © 2022"
+                    text: "Angel Gezat (student) © 2022"
                     font.pixelSize: Theme.fontSizeSmall
-                    anchors {
-                        horizontalCenter: parent.horizontalCenter
-                    }
+                    anchors.horizontalCenter: parent.horizontalCenter
                 }
 
                 Label {
-                    text: "ORTALI Charlotte © 2022"
+                    text: "Bienvenu Akoun (student) © 2022"
                     font.pixelSize: Theme.fontSizeSmall
-                    anchors {
-                        horizontalCenter: parent.horizontalCenter
-                    }
+                    anchors.horizontalCenter: parent.horizontalCenter
+                }
+
+                Label {
+                    text: "Thomas Abadie (student) © 2022"
+                    font.pixelSize: Theme.fontSizeSmall
+                    anchors.horizontalCenter: parent.horizontalCenter
+                }
+
+                Label {
+                    text: "Ashraf Ajouka (student) © 2022"
+                    font.pixelSize: Theme.fontSizeSmall
+                    anchors.horizontalCenter: parent.horizontalCenter
+                }
+
+                Label {
+                    text: "Jose Buepoyo Sopale (student) © 2022"
+                    font.pixelSize: Theme.fontSizeSmall
+                    anchors.horizontalCenter: parent.horizontalCenter
+                }
+
+                Label {
+                    text: "Charlotte Ortali (student) © 2022"
+                    font.pixelSize: Theme.fontSizeSmall
+                    anchors.horizontalCenter: parent.horizontalCenter
                 }
 
             }

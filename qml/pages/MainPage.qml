@@ -28,8 +28,8 @@ Page {
         PullDownMenu {
 
             MenuItem {
-                text: qsTr("Add new cycle")
-                onClicked: pageStack.animatorPush(Qt.resolvedUrl('./AboutPage.qml'))
+                text: qsTr("Add new data")
+                onClicked: pageStack.animatorPush(Qt.resolvedUrl('./AddnewData.qml'))
             }
 
             MenuItem {
@@ -92,32 +92,26 @@ Page {
             ButtonLayout{//Visible only if there's at least one profile
                 visible: nbProfile > 0
                 Button{
-                    implicitHeight: 200
                     text: "Metrics"
-                    onClicked: pageStack.animatorPush(Qt.resolvedUrl("Metrics.qml"))
+                    onClicked: pageStack.animatorPush(Qt.resolvedUrl("MetricList.qml"))
                 }
                 Button{
-                    implicitHeight: 200
                     text: "Meditation"
-                    onClicked: pageStack.animatorPush(Qt.resolvedUrl("Meditation.qml"))
+                    onClicked: pageStack.animatorPush(Qt.resolvedUrl("MeditationMenu.qml"))
                 }
                 Button{
-                    implicitHeight: 200
                     text: "Vaccines"
-                    onClicked: pageStack.animatorPush(Qt.resolvedUrl("Vaccines.qml"))
+                    onClicked: pageStack.animatorPush(Qt.resolvedUrl("VaccinesList.qml"))
                 }
                 Button{
-                    implicitHeight: 200
                     text: "Health condition"
-                    onClicked: pageStack.animatorPush(Qt.resolvedUrl("Health_condition.qml"))
+                    onClicked: pageStack.animatorPush(Qt.resolvedUrl("MainHealthCondition.qml"))
                 }
                 Button{
-                    implicitHeight: 200
                     text: "Nutrition"
                     onClicked: pageStack.animatorPush(Qt.resolvedUrl("Nutrition.qml"))
                 }
                 Button{
-                    implicitHeight: 200
                     text: "Menstruation"
                     onClicked: pageStack.animatorPush(Qt.resolvedUrl("Menstruation.qml"))
                 }

@@ -37,7 +37,7 @@ Page {
             }
 
             Rectangle {
-                color: "black"
+                color: Theme.rgba(Theme.primaryColor, 0.1)
                 height: Theme.itemSizeSmall
                 width: page.width
                 ValueButton {
@@ -215,7 +215,7 @@ Page {
                         }
                      }
                      onAccepted: {
-                         edditMedication(nameIllness.text,startDate.value,endDate.value,txtcomments.text)
+                         edditMedication(nameMedication.text,medicationDate.value,txtDuration.text)
                      }
                  }
             }

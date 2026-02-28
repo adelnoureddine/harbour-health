@@ -42,7 +42,7 @@ Page {
                 text: "Information about this medication"
             }
             Rectangle {
-                color: "black"
+                color: Theme.rgba(Theme.primaryColor, 0.1)
                 height: Theme.itemSizeSmall
                 width: page.width
                 Label {
@@ -53,7 +53,7 @@ Page {
             }
 
             Rectangle {
-                color: "black"
+                color: Theme.rgba(Theme.primaryColor, 0.1)
                 height: Theme.itemSizeSmall
                 width: page.width
                 Label {
@@ -64,7 +64,7 @@ Page {
             }
 
             Rectangle {
-                color: "black"
+                color: Theme.rgba(Theme.primaryColor, 0.1)
                 height: Theme.itemSizeSmall
                 width: page.width
                 Label {
