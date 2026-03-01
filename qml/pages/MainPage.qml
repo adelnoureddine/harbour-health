@@ -127,7 +127,7 @@ Page {
                 Button {
                     width: (parent.width - Theme.paddingMedium) / 2
                     text: qsTr("Log Water")
-                    onClicked: pageStack.animatorPush(Qt.resolvedUrl("AddnewData.qml"), {
+                    onClicked: pageStack.animatorPush(Qt.resolvedUrl("AddNewData.qml"), {
                         profileId: profile ? profile.id : 1,
                         metricType: "water"
                     })
