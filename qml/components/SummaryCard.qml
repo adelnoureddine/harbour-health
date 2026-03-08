@@ -37,7 +37,7 @@ BackgroundItem {
 
             Row {
                 anchors.horizontalCenter: parent.horizontalCenter
-                spacing: Theme.paddingTiny
+                spacing: Theme.paddingSmall
                 
                 Label {
                     text: root.value
@@ -50,7 +50,7 @@ BackgroundItem {
                     font.pixelSize: Theme.fontSizeSmall
                     color: Theme.secondaryColor
                     anchors.bottom: parent.bottom
-                    anchors.bottomMargin: Theme.paddingTiny
+                    anchors.bottomMargin: Theme.paddingSmall
                 }
             }
         }
