@@ -45,7 +45,7 @@ Page {
                     color: Theme.primaryColor
                 }
                 Label {
-                    text: qsTr("Gender: %1 | Birthday: %2").arg(model.gender).arg(model.birthday)
+                    text: qsTr("Gender: %1 | Birthday: %2").arg(model.gender).arg(model.birthDate)
                     font.pixelSize: Theme.fontSizeExtraSmall
                     color: Theme.secondaryColor
                 }

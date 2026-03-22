@@ -1,11 +1,76 @@
 .pragma library
-    .import QtQuick.LocalStorage 2.0 as Sql
+.import QtQuick.LocalStorage 2.0 as Sql
 
 // Database constants
 var DB_NAME = "HarbourHealth";
 var DB_VERSION = "2.0";
 var DB_DESCRIPTION = "Harbour Health Application Database";
 var DB_SIZE = 1000000;
+
+// Metrics
+var METRIC_WEIGHT = "weight";
+var METRIC_HEIGHT = "height";
+var METRIC_WATER = "water";
+var METRIC_CALORIES = "calories";
+
+
+function allFields(data) {
+    var fields = [];
+    for (var i in data) {
+        for (var index in data[i]) {
+            if (fields.indexOf(index) < 0) {
+                fields.push(index);
+            }
+        }
+    }
+    return fields;
+}
+
+function getValues(o) {
+    var results = [];
+    for (var k in o) {
+        results.push(o[k]);
+    }
+    return results;
+}
+
+function debugDB(q, headers) {
+    var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
+    var data = [];
+    db.transaction(function (tx) {
+        var rs = tx.executeSql(q);
+        for (var i = 0; i < rs.rows.length; i++) {
+            data.append(rs.rows.item(i));
+        }
+    });
+    if (headers) {
+        var fields = allFields(data);
+        var o = {};
+        for (var i in fields) {
+            o[fields[i]] = fields[i];
+        }
+        data.unshift(o);
+    }
+    return data;
+}
+
+function debugDBToModel(q, a_model) {
+    var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
+    db.transaction(function (tx) {
+        var rs = tx.executeSql(q);
+        var fields = [];
+        a_model.clear();
+        for (var i = 0; i < rs.rows.length; i++) {
+            for (var k in rs.rows.item(i)) {
+                if (fields.indexOf(k) < 0) {
+                    fields.push(k);
+                }
+            }
+            a_model.append({line: getValues(rs.rows.item(i)).join(',')});
+        }
+        a_model.insert(0, {line: "fields: " + fields.join(',')})
+    });
+}
 
 // Initialize the database and tables
 function init() {
@@ -71,20 +136,83 @@ function init() {
         // Seed default metrics if empty
         var rs = tx.executeSql('SELECT count(*) as count FROM Metrics');
         if (rs.rows.item(0).count === 0) {
-            tx.executeSql('INSERT INTO Metrics (name, unit, category) VALUES (?,?,?)', ["weight", "kg", "Body"]);
-            tx.executeSql('INSERT INTO Metrics (name, unit, category) VALUES (?,?,?)', ["height", "cm", "Body"]);
-            tx.executeSql('INSERT INTO Metrics (name, unit, category) VALUES (?,?,?)', ["calories", "kcal", "Nutrition"]);
-            tx.executeSql('INSERT INTO Metrics (name, unit, category) VALUES (?,?,?)', ["water", "L", "Nutrition"]);
+            tx.executeSql('INSERT INTO Metrics (name, unit, category) VALUES (?,?,?)', [METRIC_WEIGHT, "kg", "Body"]);
+            tx.executeSql('INSERT INTO Metrics (name, unit, category) VALUES (?,?,?)', [METRIC_HEIGHT, "cm", "Body"]);
+            tx.executeSql('INSERT INTO Metrics (name, unit, category) VALUES (?,?,?)', [METRIC_CALORIES, "kcal", "Nutrition"]);
+            tx.executeSql('INSERT INTO Metrics (name, unit, category) VALUES (?,?,?)', [METRIC_WATER, "l", "Nutrition"]);
         }
     });
 }
 
 // Profile Operations
+function countProfiles() {
+    var count = 0;
+    var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
+    db.transaction(
+        function(tx){
+            var rs = tx.executeSql('SELECT COUNT(*) AS count FROM Profiles');
+            if (rs.rows.length > 0) {
+                count = rs.rows.item(0).count;
+            }
+        }
+    )
+    return count;
+}
+
+function lastUsedProfileId() {
+    var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
+    var id = -1;
+    db.transaction(
+        function(tx){
+            var rs = tx.executeSql('SELECT id FROM Profiles ORDER BY lastUsed DESC LIMIT 1');
+            if (rs.rows.length > 0) {
+                id = rs.rows.item(0).id;
+            }
+        }
+    )
+    return id;
+}
+
+function useProfile(profile_id) {
+    var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
+    db.transaction(
+        function(tx){
+            tx.executeSql('UPDATE Profiles SET lastUsed=CURRENT_TIMESTAMP WHERE id=?', [profile_id]);
+        }
+    )
+}
+
+function getProfile(profile_id) {
+    var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
+    var profile;
+    db.transaction(
+        function(tx){
+            var rs = tx.executeSql('SELECT id, firstname, lastname, gender, birthDate FROM Profiles WHERE id=?', [profile_id]);
+	        if (rs.rows.length > 0) {
+	            profile = rs.rows.item(0);
+	        }
+	    }
+    );
+    return profile;
+}
+
+function loadAllProfiles(a_model) {
+    var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
+    db.transaction(
+        function(tx){
+            var rs = tx.executeSql('SELECT id, firstname, lastname, birthDate FROM Profiles')
+            for (var i = 0; i < rs.rows.length; i++) {
+                a_model.append(rs.rows.item(i));
+            }
+        }
+    )
+}
+
 function addProfile(firstName, lastName, gender, birthDate) {
     var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
     var id;
     db.transaction(function (tx) {
-        var rs = tx.executeSql('INSERT INTO Profiles (firstName, lastName, gender, birthDate, lastUsed) VALUES (?,?,?,?,CURRENT_TIMESTAMP)',
+        var rs = tx.executeSql('INSERT INTO Profiles (firstName, lastName, gender, birthDate) VALUES (?,?,?,?)',
             [firstName, lastName, gender, birthDate]);
         id = rs.insertId;
     });
@@ -124,15 +252,57 @@ function getProfiles() {
     return profiles;
 }
 
-// Log Operations
-function addLog(profileId, metricName, value, note) {
+// Metric operations
+
+function getMetricId(metricName) {
+    var id;
     var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
     db.transaction(function (tx) {
         var rs = tx.executeSql('SELECT id FROM Metrics WHERE name=?', [metricName]);
         if (rs.rows.length > 0) {
+            id = rs.rows.item(0).id;
+        }
+    });
+    return id;
+}
+
+function getMetricUnit(metricName) {
+    var unit;
+    var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
+    db.transaction(function (tx) {
+        var rs = tx.executeSql('SELECT unit FROM Metrics WHERE name=?', [metricName]);
+        if (rs.rows.length > 0) {
+            unit = rs.rows.item(0).unit;
+        }
+    });
+    return unit;
+}
+
+function getMetrics() {
+    var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
+    var metrics = [];
+    db.transaction(function (tx) {
+        var rs = tx.executeSql('SELECT * FROM Metrics');
+        for (var i = 0; i < rs.rows.length; i++) {
+            metrics.push(rs.rows.item(i));
+        }
+    });
+    return metrics;
+}
+
+// Log Operations
+function addLog(profileId, metricName, value, timestamp, note) {
+    var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
+    db.transaction(function (tx) {
+        var rs = tx.executeSql('SELECT id FROM Metrics WHERE name=?', [metricName]);
+        print("found " + metricName + ": " + rs.rows.length);
+        if (rs.rows.length > 0) {
             var metricId = rs.rows.item(0).id;
-            tx.executeSql('INSERT INTO HealthLogs (profileId, metricId, value, note) VALUES (?,?,?,?)',
-                [profileId, metricId, value, note || ""]);
+            print("found " + metricName + " = " + metricId);
+            var rs2 = tx.executeSql('INSERT INTO HealthLogs (profileId, metricId, value, timestamp, note) VALUES (?,?,?,?,?)',
+                [profileId, metricId, value, timestamp, note || ""]);
+            var id = rs2.insertId;
+            print("inserted: " + id);
         }
     });
 }
@@ -157,16 +327,41 @@ function getLatestLog(profileId, metricName) {
     return log;
 }
 
-function getMetrics() {
+function getLatestLogValue(profileId, metricName) {
     var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
-    var metrics = [];
+    var value = null;
     db.transaction(function (tx) {
-        var rs = tx.executeSql('SELECT * FROM Metrics');
-        for (var i = 0; i < rs.rows.length; i++) {
-            metrics.push(rs.rows.item(i));
+        var rs = tx.executeSql('SELECT l.value FROM HealthLogs l JOIN Metrics m ON l.metricId = m.id ' +
+            'WHERE l.profileId=? AND m.name=? ORDER BY l.timestamp DESC LIMIT 1', [profileId, metricName]);
+        if (rs.rows.length > 0) {
+            value = rs.rows.item(0).value;
         }
     });
-    return metrics;
+    return value;
+}
+
+function getLatestLogText(profileId, metricName) {
+    var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
+    var text = "";
+    db.transaction(function (tx) {
+        var rs = tx.executeSql('SELECT CONCAT(l.value,m.unit) AS text FROM HealthLogs l JOIN Metrics m ON l.metricId = m.id ' +
+            'WHERE l.profileId=? AND m.name=? ORDER BY l.timestamp DESC LIMIT 1', [profileId, metricName]);
+        if (rs.rows.length > 0) {
+            text = rs.rows.item(0).text;
+        }
+    });
+    return text;
+}
+
+function addLogsToModel(profileId, metricName, a_model) {
+    var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
+    db.transaction(function (tx) {
+        var rs = tx.executeSql('SELECT timestamp,value FROM HealthLogs LEFT JOIN Metrics ON HealthLogs.MetricId=Metrics.id WHERE profileId=? AND Metrics.name=? ORDER BY timestamp DESC', [profileId, metricName]);
+        print("found logs for " + metricName + ": " + rs.rows.length);
+        for (var i = 0; i < rs.rows.length; i++) {
+            a_model.append(rs.rows.item(i));
+        }
+    });
 }
 
 function getLogs(profileId, metricId) {
@@ -179,6 +374,17 @@ function getLogs(profileId, metricId) {
         }
     });
     return logs;
+}
+
+// BMI from Logs
+function calcBMI(profileId) {
+    var height = getLatestLogValue(profileId, METRIC_HEIGHT);
+    var weight = getLatestLogValue(profileId, METRIC_WEIGHT);
+    if (!height || !weight) {
+        return null;
+    }
+    var squareheight_cm = height * height / 10000;
+    return weight / squareheight_cm;
 }
 
 // Vaccine Operations
@@ -410,3 +616,5 @@ function deleteMeditationHistory(profileId) {
         tx.executeSql('DELETE FROM MeditationSessions WHERE profileId=?', [profileId]);
     });
 }
+
+// vim:et:ts=4:sw=4

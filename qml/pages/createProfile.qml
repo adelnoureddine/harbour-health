@@ -6,12 +6,13 @@ Dialog {
     id: dialog
     allowedOrientations: Orientation.All
 
-    property date birthDate: new Date()
-    canAccept: firstnameField.text !== "" && lastnameField.text !== ""
+    property var birthDate
+    canAccept: firstnameField.text !== "" && lastnameField.text !== "" && genderField.text !== "" && birthDate
 
     onAccepted: {
         var dateStr = birthDate.toISOString().split('T')[0];
-        DataManager.addProfile(firstnameField.text, lastnameField.text, genderField.value, dateStr);
+        var profile_id = DataManager.addProfile(firstnameField.text, lastnameField.text, genderField.value, dateStr);
+	DataManager.useProfile(profile_id);
     }
 
     SilicaFlickable {
@@ -46,7 +47,7 @@ Dialog {
             ComboBox {
                 id: genderField
                 label: qsTr("Gender")
-                currentIndex: 0
+                currentIndex: -1
                 menu: ContextMenu {
                     MenuItem { text: qsTr("Female") }
                     MenuItem { text: qsTr("Male") }
@@ -55,13 +56,15 @@ Dialog {
             }
 
             ValueButton {
-                id: birthdayField
+                id: birthDateField
                 label: qsTr("Birthday")
-                value: birthDate.toLocaleDateString()
+                value: birthDate ? birthDate.toLocaleDateString() : ''
                 onClicked: {
-                    var dateDialog = pageStack.push("Sailfish.Silica.DatePickerDialog", {
-                        date: birthDate
-                    })
+                    var start = {}
+		    if (birthDate) {
+			    start['date'] = birthDate;
+		    }
+                    var dateDialog = pageStack.push("Sailfish.Silica.DatePickerDialog", start)
                     dateDialog.accepted.connect(function() {
                         birthDate = dateDialog.date
                     })

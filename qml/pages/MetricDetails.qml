@@ -6,19 +6,14 @@ Page {
     id: page
     allowedOrientations: Orientation.All
 
-    property int metricId
+    property int profileId: -1
     property string metricName
     property string metricUnit
+    property var invalidateSignal
 
     function refresh() {
         listModel.clear();
-        var profiles = DataManager.getProfiles();
-        if (profiles.length > 0) {
-            var logs = DataManager.getLogs(profiles[0].id, metricId);
-            logs.forEach(function(l) {
-                listModel.append(l);
-            });
-        }
+	DataManager.addLogsToModel(profileId, metricName, listModel);
     }
 
     SilicaListView {
@@ -32,9 +27,10 @@ Page {
             MenuItem {
                 text: qsTr("Add Entry")
                 onClicked: pageStack.animatorPush(Qt.resolvedUrl("addEntryMetric.qml"), {
-                    metricId: page.metricId,
+		            profileId: profileId,
                     metricName: page.metricName,
-                    metricUnit: page.metricUnit
+                    metricUnit: page.metricUnit,
+                    invalidateSignal: invalidateSignal
                 })
             }
         }
@@ -95,3 +91,5 @@ Page {
 
     Component.onCompleted: refresh()
 }
+
+// vim:et:ts=4:sw=4
