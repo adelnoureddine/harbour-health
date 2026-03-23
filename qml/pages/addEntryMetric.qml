@@ -6,17 +6,17 @@ Dialog {
     id: dialog
     allowedOrientations: Orientation.All
 
-    property int profileId: 1
-    property int metricId
+    property int profileId: -1
     property string metricName
     property string metricUnit
     property date selectedDate: new Date()
+    property var invalidateSignal
 
     canAccept: metricValue.text !== ""
 
     onAccepted: {
-        var dateStr = selectedDate.toISOString().split('T')[0];
-        DataManager.addLog(profileId, metricName, parseFloat(metricValue.text.replace(',', '.')), "");
+        DataManager.addLog(profileId, metricName, parseFloat(metricValue.text.replace(',', '.')), selectedDate, noteField.text);
+        dialog.invalidateSignal(dialog.metricName)
     }
 
     SilicaFlickable {
@@ -41,7 +41,6 @@ Dialog {
                 inputMethodHints: Qt.ImhFormattedNumbersOnly
                 validator: RegExpValidator { regExp: /^\d+([\.|,]\d{1,2})?$/ }
                 focus: true
-                EnterKey.onClicked: dateButton.focus = true
             }
 
             ValueButton {
@@ -53,10 +52,35 @@ Dialog {
                         date: selectedDate
                     })
                     dateDialog.accepted.connect(function() {
-                        selectedDate = dateDialog.date
+			            var dateStr = dateDialog.date.toISOString().split('T')[0];
+			            var timeStr = selectedDate.toISOString().split('T')[1];
+                        selectedDate = new Date(dateStr + ' ' + timeStr);
                     })
                 }
+            }
+
+            ValueButton {
+                id: timeButton
+                label: qsTr("Time")
+                value: selectedDate.toLocaleTimeString()
+                onClicked: {
+                    var timeDialog = pageStack.push("Sailfish.Silica.TimePickerDialog", {
+                        time: selectedDate
+                    })
+                    timeDialog.accepted.connect(function() {
+			            var dateStr = selectedDate.toISOString().split('T')[0];
+			            var timeStr = timeDialog.timeText + ":00";
+                        selectedDate = new Date(dateStr + ' ' + timeStr);
+                    })
+                }
+            }
+
+            TextField {
+                id: noteField
+                label: qsTr("Note")
             }
         }
     }
 }
+
+// vim:et:ts=4:sw=4

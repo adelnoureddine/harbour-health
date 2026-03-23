@@ -33,7 +33,7 @@ Dialog {
     }
 
     onAccepted: {
-        DataManager.updateProfile(profileId, firstnameField.text, lastnameField.text, genderField.value, birthdayBtn.value);
+        DataManager.updateProfile(profileId, firstnameField.text, lastnameField.text, genderField.value, birthDateBtn.value);
     }
 
     SilicaFlickable {
@@ -79,7 +79,7 @@ Dialog {
             }
 
             ValueButton {
-                id: birthdayBtn
+                id: birthDateBtn
                 label: qsTr("Birthday")
                 value: birthDate
                 onClicked: {

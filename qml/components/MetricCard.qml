@@ -1,16 +1,34 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
+import "../js/DataManager.js" as DataManager
 
 BackgroundItem {
     id: root
     
+    property int profileId: -1
+    property string metricName
     property string title
-    property string value
-    property string unit
     property string icon
+    property var value
+    property var unit
+    property var invalidateSignal
 
     width: parent.width
     height: Theme.itemSizeHuge
+
+    function refreshValue() {
+        print("MetricCard " + root.metricName + ": refreshValue is called for profile " + root.profileId);
+        if (root.profileId >= 0) {
+            root.value = DataManager.getLatestLogValue(root.profileId, root.metricName);
+            print("MetricCard " + root.metricName + ": value is now " + root.value + " for profile " + root.profileId);
+        }
+    }
+
+    function invalidateMetric(metricName) {
+        if (metricName == root.metricName) {
+            refreshValue();
+        }
+    }
 
     Rectangle {
         anchors.fill: parent
@@ -40,7 +58,7 @@ BackgroundItem {
                 spacing: Theme.paddingSmall
                 
                 Label {
-                    text: root.value
+                    text: root.value ? root.value : '?'
                     font.pixelSize: Theme.fontSizeLarge
                     color: Theme.primaryColor
                 }
@@ -55,4 +73,27 @@ BackgroundItem {
             }
         }
     }
+
+    onClicked: {
+        if (root.profileId >= 0) {
+            pageStack.animatorPush(Qt.resolvedUrl("../pages/MetricDetails.qml"), {
+                profileId: root.profileId,
+                metricName: root.metricName,
+                metricUnit: root.unit,
+                invalidateSignal: root.invalidateSignal
+            });
+        }
+    }
+
+    onMetricNameChanged: root.unit = DataManager.getMetricUnit(root.metricName);
+
+    onProfileIdChanged: refreshValue();
+
+    Component.onCompleted: {
+        root.invalidateSignal.connect(root.invalidateMetric);
+        //root.unit = DataManager.getMetricUnit(root.metricName);
+        //refreshValue();
+    }
 }
+
+// vim:et:ts=4:sw=4

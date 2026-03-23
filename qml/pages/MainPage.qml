@@ -4,28 +4,41 @@ import "../js/DataManager.js" as DataManager
 import "../components"
 
 Page {
-    id: page
+    id: mainPage
+
+    signal invalidateMetric(string metricName)
+
     allowedOrientations: Orientation.All
 
-    property var profile: null
-    property var weightLog: null
-    property var waterLog: null
-    property var calorieLog: null
-    property int vaccineCount: 0
+    property bool debug: true
+    property int profileCount: 0
+    property int profileId: -1
+    property var profile
+    property var weightLog
+    property var waterLog
+    property var calorieLog
+    property var countVaccines
+
 
     function updateData() {
-        var profiles = DataManager.getProfiles();
-        if (profiles.length > 0) {
-            profile = profiles[0];
-            weightLog = DataManager.getLatestLog(profile.id, "weight");
-            waterLog = DataManager.getLatestLog(profile.id, "water");
-            calorieLog = DataManager.getLatestLog(profile.id, "calories");
-            vaccineCount = DataManager.getVaccineCount(profile.id);
+	    mainPage.profileCount = DataManager.countProfiles();
+	    if (mainPage.profileCount > 0) {
+	        mainPage.profileId = DataManager.lastUsedProfileId();
+            print("setting profile to id " + mainPage.profileId);
+        }
+	    if (mainPage.profileId >= 0) {
+	        mainPage.profile = DataManager.getProfile(mainPage.profileId);
+            bmiCard.calculate();
+            //lastWeight = DataManager.getLastMetric(profileId, DataManager.METRIC_WEIGHT);
+            //lastWater = DataManager.getLastMetric(profileId, DataManager.METRIC_WATER);
+            //lastCalories = DataManager.getLastMetric(profileId, DataManager.METRIC_CALORIES);
+            mainPage.countVaccines = DataManager.getVaccineCount(mainPage.profileId);
         }
     }
 
     onStatusChanged: {
         if (status === PageStatus.Active) {
+            print("page status changed");
             updateData();
         }
     }
@@ -36,12 +49,23 @@ Page {
 
         PullDownMenu {
             MenuItem {
+                text: qsTr("Debug DB")
+		        visible: debug
+                onClicked: pageStack.animatorPush(Qt.resolvedUrl("DebugDB.qml"))
+            }
+            MenuItem {
                 text: qsTr("About")
                 onClicked: pageStack.animatorPush(Qt.resolvedUrl("AboutPage.qml"))
             }
             MenuItem {
-                text: qsTr("Settings / Profiles")
+                text: qsTr("Profiles")
+		        visible: profileCount > 0
                 onClicked: pageStack.animatorPush(Qt.resolvedUrl("chooseProfile.qml"))
+            }
+            MenuItem {
+                text: qsTr("Create a new profile")
+		        visible: profileCount == 0
+                onClicked: pageStack.animatorPush(Qt.resolvedUrl("createProfile.qml"))
             }
         }
 
@@ -56,7 +80,7 @@ Page {
 
             Label {
                 x: Theme.horizontalPageMargin
-                text: profile ? qsTr("Hello, %1").arg(profile.firstName) : qsTr("No Profile Selected")
+                text: profile ? profile.firstName : qsTr("No Profile Selected")
                 font.pixelSize: Theme.fontSizeExtraLarge
                 color: Theme.highlightColor
             }
@@ -68,20 +92,41 @@ Page {
                 anchors.horizontalCenter: parent.horizontalCenter
                 columns: 2
                 spacing: Theme.paddingMedium
+		        visible: profile
+
+                // height Card
+                MetricCard {
+                    width: (dashboardGrid.width - dashboardGrid.spacing) / 2
+                    icon: "image://theme/icon-m-health"
+                    title: qsTr("Height")
+                    profileId: mainPage.profileId
+                    metricName: DataManager.METRIC_HEIGHT
+                    invalidateSignal: mainPage.invalidateMetric
+                }
 
                 // Weight Card
-                SummaryCard {
+                MetricCard {
                     width: (dashboardGrid.width - dashboardGrid.spacing) / 2
-                    title: qsTr("Weight")
-                    value: weightLog ? weightLog.value : "--"
-                    unit: weightLog ? weightLog.unit : "kg"
                     icon: "image://theme/icon-m-health"
-                    onClicked: pageStack.animatorPush(Qt.resolvedUrl("MetricDetails.qml"), {
-                        profileId: profile ? profile.id : 1,
-                        metricId: 1, 
-                        metricName: "weight",
-                        metricUnit: "kg"
-                    })
+                    title: qsTr("Weight")
+                    profileId: mainPage.profileId
+                    metricName: DataManager.METRIC_WEIGHT
+                    invalidateSignal: mainPage.invalidateMetric
+                }
+
+                // BMI Card
+                SummaryCard {
+                    id: bmiCard
+
+                    width: (dashboardGrid.width - dashboardGrid.spacing) / 2
+                    icon: "image://theme/icon-m-health"
+                    title: qsTr("BMI")
+                    value: '?'
+
+                    function calculate() {
+                        var bmi = DataManager.calcBMI(mainPage.profileId)
+                        bmiCard.value = bmi ? bmi.toFixed(1) : '?';
+                    }
                 }
 
                 // Water Card
@@ -108,7 +153,7 @@ Page {
                 SummaryCard {
                     width: (dashboardGrid.width - dashboardGrid.spacing) / 2
                     title: qsTr("Vaccines")
-                    value: vaccineCount
+                    value: countVaccines
                     unit: qsTr("records")
                     icon: "image://theme/icon-m-certificates"
                     onClicked: pageStack.animatorPush(Qt.resolvedUrl("VaccinesList.qml"), {profileId: profile ? profile.id : 1})
@@ -127,7 +172,7 @@ Page {
                 Button {
                     width: (parent.width - Theme.paddingMedium) / 2
                     text: qsTr("Log Water")
-                    onClicked: pageStack.animatorPush(Qt.resolvedUrl("AddnewData.qml"), {
+                    onClicked: pageStack.animatorPush(Qt.resolvedUrl("AddNewData.qml"), {
                         profileId: profile ? profile.id : 1,
                         metricType: "water"
                     })
@@ -136,8 +181,8 @@ Page {
                     width: (parent.width - Theme.paddingMedium) / 2
                     text: qsTr("Log Weight")
                     onClicked: pageStack.animatorPush(Qt.resolvedUrl("addEntryMetric.qml"), {
-                        profileId: profile ? profile.id : 1,
-                        metricId: 1,
+                        profileId: profile ? profile.id : 1, // TODO: no fallback!
+                        //metricId: 1,
                         metricName: "weight",
                         metricUnit: "kg"
                     })
@@ -165,6 +210,13 @@ Page {
         }
     }
 
+    onInvalidateMetric: {
+        if (metricName == DataManager.METRIC_HEIGHT || metricName == DataManager.METRIC_WEIGHT) {
+            bmiCard.calculate();
+        }
+    }
+
     Component.onCompleted: updateData()
 }
 
+// vim:et:ts=4:sw=4

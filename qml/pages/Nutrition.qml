@@ -33,7 +33,7 @@ Page {
         PullDownMenu {
             MenuItem {
                 text: qsTr("Add New Data")
-                onClicked: pageStack.animatorPush(Qt.resolvedUrl("AddnewData.qml"), {profileId: root.profileId})
+                onClicked: pageStack.animatorPush(Qt.resolvedUrl("AddNewData.qml"), {profileId: root.profileId})
             }
         }
 

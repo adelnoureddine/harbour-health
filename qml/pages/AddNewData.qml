@@ -12,7 +12,7 @@ Dialog {
     function addData(value) {
         value = value.replace(',', '.');
         var selectedMetric = selectData.currentItem.text === "Input Calorie" ? "calories" : "water";
-        DataManager.addLog(profileId, selectedMetric, parseFloat(value), "");
+        DataManager.addLog(profileId, selectedMetric, parseFloat(value), new Date(), "");
     }
 
     SilicaListView {
