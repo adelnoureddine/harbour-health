@@ -290,6 +290,17 @@ function getMetrics() {
     return metrics;
 }
 
+function getMetricsToModel(a_model) {
+    var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
+    db.transaction(function (tx) {
+        var rs = tx.executeSql('SELECT id,name,unit FROM Metrics');
+        a_model.clear();
+        for (var i = 0; i < rs.rows.length; i++) {
+            a_model.append(rs.rows.item(i));
+        }
+    });
+}
+
 // Log Operations
 function addLog(profileId, metricName, value, timestamp, note) {
     var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
