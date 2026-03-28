@@ -6,6 +6,8 @@ Page {
     id: page
     allowedOrientations: Orientation.All
 
+    property int profileId: -1
+
     SilicaFlickable {
         anchors.fill: parent
         contentHeight: column.height
@@ -22,13 +24,13 @@ Page {
             Button {
                 anchors.horizontalCenter: parent.horizontalCenter
                 text: qsTr("New Session")
-                onClicked: pageStack.animatorPush(Qt.resolvedUrl("NewSession.qml"), {profileId: root.profileId})
+                onClicked: pageStack.animatorPush(Qt.resolvedUrl("NewSession.qml"), {profileId: page.profileId})
             }
 
             Button {
                 anchors.horizontalCenter: parent.horizontalCenter
                 text: qsTr("Session History")
-                onClicked: pageStack.animatorPush(Qt.resolvedUrl("History.qml"), {profileId: root.profileId})
+                onClicked: pageStack.animatorPush(Qt.resolvedUrl("History.qml"), {profileId: page.profileId})
             }
         }
     }

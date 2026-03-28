@@ -6,14 +6,13 @@ Page {
     id: page
     allowedOrientations: Orientation.All
 
+    property int profileId: -1
     property var lastCycle: null
     property var todayLog: null
     property int dayOfCycle: 0
 
     function refresh() {
-        var profiles = DataManager.getProfiles();
-        if (profiles.length > 0) {
-            var profileId = profiles[0].id;
+        if (profileId >= 0) {
             var cycles = DataManager.getMenstrualCycles(profileId);
             if (cycles.length > 0) {
                 lastCycle = cycles[0];
@@ -39,15 +38,15 @@ Page {
         PullDownMenu {
             MenuItem {
                 text: qsTr("Add Today's Data")
-                onClicked: pageStack.animatorPush(Qt.resolvedUrl("AddTodayInfo.qml"), {profileId: root.profileId})
+                onClicked: pageStack.animatorPush(Qt.resolvedUrl("AddTodayInfo.qml"), {profileId: page.profileId})
             }
             MenuItem {
                 text: qsTr("History")
-                onClicked: pageStack.animatorPush(Qt.resolvedUrl("HistoryOfAllCycle.qml"), {profileId: root.profileId})
+                onClicked: pageStack.animatorPush(Qt.resolvedUrl("HistoryOfAllCycle.qml"), {profileId: page.profileId})
             }
             MenuItem {
                 text: qsTr("New Cycle")
-                onClicked: pageStack.animatorPush(Qt.resolvedUrl("AddNewCycle.qml"), {profileId: root.profileId})
+                onClicked: pageStack.animatorPush(Qt.resolvedUrl("AddNewCycle.qml"), {profileId: page.profileId})
             }
         }
 

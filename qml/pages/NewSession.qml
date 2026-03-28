@@ -6,6 +6,7 @@ Page {
     id: page
     allowedOrientations: Orientation.All
 
+    property int profileId: -1
     property int duration: 0
     property bool running: false
     property string sessionName: qsTr("Meditation Session")
@@ -87,9 +88,8 @@ Page {
                 text: qsTr("Save and Finish")
                 enabled: duration > 0
                 onClicked: {
-                    var profiles = DataManager.getProfiles();
-                    if (profiles.length > 0) {
-                        DataManager.addMeditationSession(profiles[0].id, Math.ceil(duration / 60), sessionName);
+                    if (profileId >= 0) {
+                        DataManager.addMeditationSession(profileId, Math.ceil(duration / 60), sessionName);
                         pageStack.pop();
                     }
                 }
