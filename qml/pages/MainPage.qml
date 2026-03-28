@@ -29,9 +29,6 @@ Page {
 	    if (mainPage.profileId >= 0) {
 	        mainPage.profile = DataManager.getProfile(mainPage.profileId);
             bmiCard.calculate();
-            //lastWeight = DataManager.getLastMetric(profileId, DataManager.METRIC_WEIGHT);
-            //lastWater = DataManager.getLastMetric(profileId, DataManager.METRIC_WATER);
-            //lastCalories = DataManager.getLastMetric(profileId, DataManager.METRIC_CALORIES);
             mainPage.countVaccines = DataManager.getVaccineCount(mainPage.profileId);
         }
     }
@@ -56,6 +53,13 @@ Page {
             MenuItem {
                 text: qsTr("About")
                 onClicked: pageStack.animatorPush(Qt.resolvedUrl("AboutPage.qml"))
+            }
+            MenuItem {
+                text: qsTr("Add entry")
+		        visible: mainPage.profileId >= 0
+                onClicked: pageStack.animatorPush(Qt.resolvedUrl("addEntryMetric.qml"), {
+                    profileId: mainPage.profileId
+                })
             }
             MenuItem {
                 text: qsTr("Profiles")
@@ -154,57 +158,40 @@ Page {
                     width: (dashboardGrid.width - dashboardGrid.spacing) / 2
                     title: qsTr("Vaccines")
                     value: countVaccines
+		            visible: mainPage.profileId >= 0
                     unit: qsTr("records")
                     icon: "image://theme/icon-m-certificates"
-                    onClicked: pageStack.animatorPush(Qt.resolvedUrl("VaccinesList.qml"), {profileId: profile ? profile.id : 1})
-                }
-            }
-
-            SectionHeader {
-                text: qsTr("Quick Actions")
-            }
-
-            Row {
-                width: parent.width - 2 * Theme.horizontalPageMargin
-                anchors.horizontalCenter: parent.horizontalCenter
-                spacing: Theme.paddingMedium
-
-                Button {
-                    width: (parent.width - Theme.paddingMedium) / 2
-                    text: qsTr("Log Water")
-                    onClicked: pageStack.animatorPush(Qt.resolvedUrl("AddNewData.qml"), {
-                        profileId: profile ? profile.id : 1,
-                        metricType: "water"
-                    })
-                }
-                Button {
-                    width: (parent.width - Theme.paddingMedium) / 2
-                    text: qsTr("Log Weight")
-                    onClicked: pageStack.animatorPush(Qt.resolvedUrl("addEntryMetric.qml"), {
-                        profileId: profile ? profile.id : 1, // TODO: no fallback!
-                        //metricId: 1,
-                        metricName: "weight",
-                        metricUnit: "kg"
+                    onClicked: pageStack.animatorPush(Qt.resolvedUrl("VaccinesList.qml"), {
+                        profileId: mainPage.profileId
                     })
                 }
             }
 
             SectionHeader {
-                text: qsTr("All Modules")
+                text: qsTr("Other Modules")
             }
 
             ButtonLayout {
                 Button {
                     text: qsTr("Meditation")
-                    onClicked: pageStack.animatorPush(Qt.resolvedUrl("MeditationMenu.qml"), {profileId: profile ? profile.id : 1})
+		            visible: mainPage.profileId >= 0
+                    onClicked: pageStack.animatorPush(Qt.resolvedUrl("MeditationMenu.qml"), {
+                        profileId: mainPage.profileId
+                    })
                 }
                 Button {
                     text: qsTr("Health Condition")
-                    onClicked: pageStack.animatorPush(Qt.resolvedUrl("MainHealthCondition.qml"), {profileId: profile ? profile.id : 1})
+		            visible: mainPage.profileId >= 0
+                    onClicked: pageStack.animatorPush(Qt.resolvedUrl("MainHealthCondition.qml"), {
+                        profileId: mainPage.profileId
+                    })
                 }
                 Button {
                     text: qsTr("Menstruation")
-                    onClicked: pageStack.animatorPush(Qt.resolvedUrl("Menstruation.qml"), {profileId: profile ? profile.id : 1})
+		            visible: mainPage.profileId >= 0
+                    onClicked: pageStack.animatorPush(Qt.resolvedUrl("Menstruation.qml"), {
+                        profileId: mainPage.profileId
+                    })
                 }
             }
         }

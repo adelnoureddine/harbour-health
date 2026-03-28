@@ -29,7 +29,7 @@ Dialog {
             spacing: Theme.paddingLarge
 
             DialogHeader {
-                title: qsTr("Add %1 (%2)").arg(metricName).arg(metricUnit)
+                title: qsTr("Add %1 (%2)").arg(metricName || '?').arg(metricUnit || '?')
                 acceptText: qsTr("Save")
             }
 

@@ -4,10 +4,11 @@ import "pages"
 import "js/DataManager.js" as DataManager
 
 ApplicationWindow {
+    id: appWindow
     initialPage: Component { MainPage { } }
     cover: Qt.resolvedUrl("cover/CoverPage.qml")
     allowedOrientations: defaultAllowedOrientations
-    property var activeProfile: null
+    property var profileId
 
     Component.onCompleted: {
         DataManager.init();
@@ -17,7 +18,9 @@ ApplicationWindow {
     function loadActiveProfile() {
         var profiles = DataManager.getProfiles();
         if (profiles.length > 0) {
-            activeProfile = profiles[0];
+            profileId = profiles[0];
         }
     }
 }
+
+// vim:et:ts=4:sw=4
