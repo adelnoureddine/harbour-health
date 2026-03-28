@@ -6,18 +6,14 @@ Page {
     id: page
     allowedOrientations: Orientation.All
 
+    property int profileId: -1
     property int vaccineId
     property string vaccineName
     property bool isMandatory
 
     function refresh() {
-        listModel.clear();
-        var profiles = DataManager.getProfiles();
-        if (profiles.length > 0) {
-            var logs = DataManager.getVaccineLogs(profiles[0].id, vaccineId);
-            logs.forEach(function(l) {
-                listModel.append(l);
-            });
+        if (profileId >= 0) {
+            DataManager.getVaccineLogsToModel(profiles[0].id, vaccineId, vaccinesDetailModel);
         }
     }
 
@@ -33,11 +29,12 @@ Page {
                 text: qsTr("Record Injection")
                 onClicked: pageStack.animatorPush(Qt.resolvedUrl("AddVaccine.qml"), {
                     // In a more complex app we might pass the vaccine ID to auto-fill
+		    profileId: page.profileId
                 })
             }
         }
 
-        model: listModel
+        model: vaccinesDetailModel
 
         delegate: ListItem {
             contentHeight: Theme.itemSizeSmall
@@ -61,7 +58,7 @@ Page {
         }
 
         ViewPlaceholder {
-            enabled: listModel.count === 0
+            enabled: vaccinesDetailModel.count === 0
             text: qsTr("No injections recorded")
             hintText: qsTr("Pull down to record an injection")
         }
@@ -70,7 +67,7 @@ Page {
     }
 
     ListModel {
-        id: listModel
+        id: vaccinesDetailModel
     }
 
     onStatusChanged: {

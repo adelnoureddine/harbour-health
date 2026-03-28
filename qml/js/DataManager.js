@@ -441,6 +441,19 @@ function getVaccines(profileId) {
     return vaccines;
 }
 
+function getVaccinesToModel(profileId, a_model) {
+    var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
+    a_model.clear();
+    db.transaction(function (tx) {
+        var rs = tx.executeSql('SELECT DISTINCT v.* FROM Vaccines v ' +
+            'LEFT JOIN Injections i ON v.id = i.vaccineId AND i.profileId = ? ' +
+            'WHERE v.isMandatory = 1 OR i.id IS NOT NULL', [profileId]);
+        for (var i = 0; i < rs.rows.length; i++) {
+            a_model.append(rs.rows.item(i));
+        }
+    });
+}
+
 function getVaccineCount(profileId) {
     var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
     var count = 0;
@@ -481,6 +494,18 @@ function getVaccineLogs(profileId, vaccineId) {
         var rs = tx.executeSql('SELECT * FROM Injections WHERE profileId=? AND vaccineId=? ORDER BY date DESC', [profileId, vaccineId]);
         for (var i = 0; i < rs.rows.length; i++) {
             logs.push(rs.rows.item(i));
+        }
+    });
+    return logs;
+}
+
+function getVaccineLogsToModel(profileId, vaccineId, a_model) {
+    var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
+    a_model.clear();
+    db.transaction(function (tx) {
+        var rs = tx.executeSql('SELECT * FROM Injections WHERE profileId=? AND vaccineId=? ORDER BY date DESC', [profileId, vaccineId]);
+        for (var i = 0; i < rs.rows.length; i++) {
+            a_model.append(rs.rows.item(i));
         }
     });
     return logs;

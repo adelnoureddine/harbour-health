@@ -6,14 +6,11 @@ Page {
     id: root
     allowedOrientations: Orientation.All
 
+    property int profileId: -1
+
     function refresh() {
-        listModel.clear();
-        var profiles = DataManager.getProfiles();
-        if (profiles.length > 0) {
-            var vaccines = DataManager.getVaccines(profiles[0].id);
-            vaccines.forEach(function(v) {
-                listModel.append(v);
-            });
+        if (root.profileId >= 0) {
+            DataManager.getVaccinesToModel(root.profileId, vaccineModel);
         }
     }
 
@@ -31,12 +28,13 @@ Page {
             }
         }
 
-        model: listModel
+        model: vaccineModel
 
         delegate: ListItem {
             contentHeight: Theme.itemSizeSmall
             onClicked: {
                 pageStack.animatorPush(Qt.resolvedUrl("VaccineDetails.qml"), {
+                    profileId: root.profileId,
                     vaccineId: model.id,
                     vaccineName: model.name,
                     isMandatory: model.isMandatory
@@ -60,7 +58,7 @@ Page {
         }
 
         ViewPlaceholder {
-            enabled: listModel.count === 0
+            enabled: vaccineModel.count === 0
             text: qsTr("No vaccine records")
             hintText: qsTr("Pull down to add a vaccine")
         }
@@ -69,7 +67,7 @@ Page {
     }
 
     ListModel {
-        id: listModel
+        id: vaccineModel
     }
 
     onStatusChanged: {
@@ -80,3 +78,4 @@ Page {
 
     Component.onCompleted: refresh()
 }
+// vim:et:ts=4:sw=4
