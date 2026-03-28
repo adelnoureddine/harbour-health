@@ -138,6 +138,7 @@ Page {
                     width: (dashboardGrid.width - dashboardGrid.spacing) / 2
                     title: qsTr("Water")
                     icon: "image://theme/icon-m-levels"
+                    grouped: true
                     profileId: mainPage.profileId
                     metricName: DataManager.METRIC_WATER
                     invalidateSignal: mainPage.invalidateMetric
@@ -148,6 +149,7 @@ Page {
                     width: (dashboardGrid.width - dashboardGrid.spacing) / 2
                     title: qsTr("Calories")
                     icon: "image://theme/icon-m-levels"
+                    grouped: true
                     profileId: mainPage.profileId
                     metricName: DataManager.METRIC_CALORIES
                     invalidateSignal: mainPage.invalidateMetric
