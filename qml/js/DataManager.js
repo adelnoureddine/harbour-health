@@ -321,6 +321,7 @@ function addLog(profileId, metricName, value, timestamp, note) {
 function deleteLog(id) {
     var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
     db.transaction(function (tx) {
+        print("deleting from logs: " + id);
         tx.executeSql('DELETE FROM HealthLogs WHERE id=?', [id]);
     });
 }
@@ -367,7 +368,7 @@ function getLatestLogText(profileId, metricName) {
 function addLogsToModel(profileId, metricName, a_model) {
     var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
     db.transaction(function (tx) {
-        var rs = tx.executeSql('SELECT timestamp,value FROM HealthLogs LEFT JOIN Metrics ON HealthLogs.MetricId=Metrics.id WHERE profileId=? AND Metrics.name=? ORDER BY timestamp DESC', [profileId, metricName]);
+        var rs = tx.executeSql('SELECT HealthLogs.id,timestamp,value FROM HealthLogs LEFT JOIN Metrics ON HealthLogs.MetricId=Metrics.id WHERE profileId=? AND Metrics.name=? ORDER BY timestamp DESC', [profileId, metricName]);
         print("found logs for " + metricName + ": " + rs.rows.length);
         for (var i = 0; i < rs.rows.length; i++) {
             a_model.append(rs.rows.item(i));

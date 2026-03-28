@@ -13,7 +13,7 @@ Page {
 
     function refresh() {
         listModel.clear();
-	DataManager.addLogsToModel(profileId, metricName, listModel);
+	    DataManager.addLogsToModel(profileId, metricName, listModel);
     }
 
     SilicaListView {
@@ -45,9 +45,11 @@ Page {
                 MenuItem {
                     text: qsTr("Delete")
                     onClicked: {
+                        print("name: " + model.value + ", id = " + model.id);
                         listItem.remorseDelete(function() {
                             DataManager.deleteLog(model.id);
-                            refresh();
+                            listModel.remove(index);
+                            page.invalidateSignal(page.metricName);
                         })
                     }
                 }

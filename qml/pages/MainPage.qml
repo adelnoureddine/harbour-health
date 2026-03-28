@@ -130,23 +130,23 @@ Page {
                 }
 
                 // Water Card
-                SummaryCard {
+                MetricCard {
                     width: (dashboardGrid.width - dashboardGrid.spacing) / 2
                     title: qsTr("Water")
-                    value: waterLog ? waterLog.value : "0"
-                    unit: "L"
                     icon: "image://theme/icon-m-levels"
-                    onClicked: pageStack.animatorPush(Qt.resolvedUrl("Nutrition.qml"), {profileId: profile ? profile.id : 1})
+                    profileId: mainPage.profileId
+                    metricName: DataManager.METRIC_WATER
+                    invalidateSignal: mainPage.invalidateMetric
                 }
 
                 // Calories Card
-                SummaryCard {
+                MetricCard {
                     width: (dashboardGrid.width - dashboardGrid.spacing) / 2
                     title: qsTr("Calories")
-                    value: calorieLog ? calorieLog.value : "0"
-                    unit: "kcal"
                     icon: "image://theme/icon-m-levels"
-                    onClicked: pageStack.animatorPush(Qt.resolvedUrl("Nutrition.qml"), {profileId: profile ? profile.id : 1})
+                    profileId: mainPage.profileId
+                    metricName: DataManager.METRIC_CALORIES
+                    invalidateSignal: mainPage.invalidateMetric
                 }
 
                 // Vaccines Card

@@ -12,11 +12,11 @@ Dialog {
     property date selectedDate: new Date()
     property var invalidateSignal
 
-    canAccept: profileId >= 0 && metricValue.text !== "" && metricField.value !== ""
+    canAccept: profileId >= 0 && metricValue.text !== "" && dialog.metricName !== ""
 
     onAccepted: {
         DataManager.addLog(profileId, metricField.value, parseFloat(metricValue.text.replace(',', '.')), selectedDate, noteField.text);
-        dialog.invalidateSignal(dialog.metricField.value)
+        dialog.invalidateSignal(dialog.metricName)
     }
 
     SilicaFlickable {
