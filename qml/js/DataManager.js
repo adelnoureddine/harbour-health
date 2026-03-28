@@ -13,6 +13,8 @@ var METRIC_HEIGHT = "height";
 var METRIC_WATER = "water";
 var METRIC_CALORIES = "calories";
 
+// local time day border -> 04:00:00
+var DAY_START_TIME = "04:00:00";
 
 function allFields(data) {
     var fields = [];
@@ -290,6 +292,17 @@ function getMetrics() {
     return metrics;
 }
 
+function getMetricsToModel(a_model) {
+    var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
+    db.transaction(function (tx) {
+        var rs = tx.executeSql('SELECT id,name,unit FROM Metrics');
+        a_model.clear();
+        for (var i = 0; i < rs.rows.length; i++) {
+            a_model.append(rs.rows.item(i));
+        }
+    });
+}
+
 // Log Operations
 function addLog(profileId, metricName, value, timestamp, note) {
     var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
@@ -310,6 +323,7 @@ function addLog(profileId, metricName, value, timestamp, note) {
 function deleteLog(id) {
     var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
     db.transaction(function (tx) {
+        print("deleting from logs: " + id);
         tx.executeSql('DELETE FROM HealthLogs WHERE id=?', [id]);
     });
 }
@@ -318,7 +332,7 @@ function getLatestLog(profileId, metricName) {
     var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
     var log = null;
     db.transaction(function (tx) {
-        var rs = tx.executeSql('SELECT l.*, m.unit FROM HealthLogs l JOIN Metrics m ON l.metricId = m.id ' +
+        var rs = tx.executeSql('SELECT l.*, m.unit FROM HealthLogs l LEFT JOIN Metrics m ON l.metricId = m.id ' +
             'WHERE l.profileId=? AND m.name=? ORDER BY l.timestamp DESC LIMIT 1', [profileId, metricName]);
         if (rs.rows.length > 0) {
             log = rs.rows.item(0);
@@ -331,10 +345,24 @@ function getLatestLogValue(profileId, metricName) {
     var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
     var value = null;
     db.transaction(function (tx) {
-        var rs = tx.executeSql('SELECT l.value FROM HealthLogs l JOIN Metrics m ON l.metricId = m.id ' +
+        var rs = tx.executeSql('SELECT l.value FROM HealthLogs l LEFT JOIN Metrics m ON l.metricId = m.id ' +
             'WHERE l.profileId=? AND m.name=? ORDER BY l.timestamp DESC LIMIT 1', [profileId, metricName]);
         if (rs.rows.length > 0) {
             value = rs.rows.item(0).value;
+        }
+    });
+    return value;
+}
+
+function getLatestDayLogValue(profileId, metricName) {
+    var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
+    var value = null;
+    db.transaction(function (tx) {
+        var rs = tx.executeSql('SELECT SUM(l.value) AS total, date(l.timestamp, ?) AS day FROM HealthLogs l LEFT JOIN Metrics m ON l.metricId = m.id ' +
+            'WHERE l.profileId=? AND m.name=? GROUP BY day ORDER BY day DESC LIMIT 1', ["-" + DAY_START_TIME, profileId, metricName]);
+        if (rs.rows.length > 0) {
+            print("day " + rs.rows.item(0).day + " has " + rs.rows.item(0).total);
+            value = rs.rows.item(0).total;
         }
     });
     return value;
@@ -344,7 +372,7 @@ function getLatestLogText(profileId, metricName) {
     var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
     var text = "";
     db.transaction(function (tx) {
-        var rs = tx.executeSql('SELECT CONCAT(l.value,m.unit) AS text FROM HealthLogs l JOIN Metrics m ON l.metricId = m.id ' +
+        var rs = tx.executeSql('SELECT CONCAT(l.value,m.unit) AS text FROM HealthLogs l LEFT JOIN Metrics m ON l.metricId = m.id ' +
             'WHERE l.profileId=? AND m.name=? ORDER BY l.timestamp DESC LIMIT 1', [profileId, metricName]);
         if (rs.rows.length > 0) {
             text = rs.rows.item(0).text;
@@ -356,7 +384,18 @@ function getLatestLogText(profileId, metricName) {
 function addLogsToModel(profileId, metricName, a_model) {
     var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
     db.transaction(function (tx) {
-        var rs = tx.executeSql('SELECT timestamp,value FROM HealthLogs LEFT JOIN Metrics ON HealthLogs.MetricId=Metrics.id WHERE profileId=? AND Metrics.name=? ORDER BY timestamp DESC', [profileId, metricName]);
+        var rs = tx.executeSql('SELECT HealthLogs.id,timestamp,value FROM HealthLogs LEFT JOIN Metrics ON HealthLogs.MetricId=Metrics.id WHERE profileId=? AND Metrics.name=? ORDER BY timestamp DESC', [profileId, metricName]);
+        print("found logs for " + metricName + ": " + rs.rows.length);
+        for (var i = 0; i < rs.rows.length; i++) {
+            a_model.append(rs.rows.item(i));
+        }
+    });
+}
+
+function addDayLogsToModel(profileId, metricName, a_model) {
+    var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
+    db.transaction(function (tx) {
+        var rs = tx.executeSql('SELECT DATE(timestamp, -?) AS day, SUM(value) AS total FROM HealthLogs LEFT JOIN Metrics ON HealthLogs.MetricId=Metrics.id GROUP BY day WHERE profileId=? AND Metrics.name=? ORDER BY timestamp DESC', [DAY_START_TIME, profileId, metricName]);
         print("found logs for " + metricName + ": " + rs.rows.length);
         for (var i = 0; i < rs.rows.length; i++) {
             a_model.append(rs.rows.item(i));
@@ -402,6 +441,19 @@ function getVaccines(profileId) {
     return vaccines;
 }
 
+function getVaccinesToModel(profileId, a_model) {
+    var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
+    a_model.clear();
+    db.transaction(function (tx) {
+        var rs = tx.executeSql('SELECT DISTINCT v.* FROM Vaccines v ' +
+            'LEFT JOIN Injections i ON v.id = i.vaccineId AND i.profileId = ? ' +
+            'WHERE v.isMandatory = 1 OR i.id IS NOT NULL', [profileId]);
+        for (var i = 0; i < rs.rows.length; i++) {
+            a_model.append(rs.rows.item(i));
+        }
+    });
+}
+
 function getVaccineCount(profileId) {
     var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
     var count = 0;
@@ -442,6 +494,18 @@ function getVaccineLogs(profileId, vaccineId) {
         var rs = tx.executeSql('SELECT * FROM Injections WHERE profileId=? AND vaccineId=? ORDER BY date DESC', [profileId, vaccineId]);
         for (var i = 0; i < rs.rows.length; i++) {
             logs.push(rs.rows.item(i));
+        }
+    });
+    return logs;
+}
+
+function getVaccineLogsToModel(profileId, vaccineId, a_model) {
+    var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
+    a_model.clear();
+    db.transaction(function (tx) {
+        var rs = tx.executeSql('SELECT * FROM Injections WHERE profileId=? AND vaccineId=? ORDER BY date DESC', [profileId, vaccineId]);
+        for (var i = 0; i < rs.rows.length; i++) {
+            a_model.append(rs.rows.item(i));
         }
     });
     return logs;

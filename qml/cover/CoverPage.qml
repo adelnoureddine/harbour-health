@@ -12,7 +12,18 @@ CoverBackground {
         id: coverAction
 
         CoverAction {
+		    //visible: mainPage.profileId >= 0
+            onTriggered: {
+                if (appWindow.initialPage.profileId >= 0) {
+                    pageStack.animatorPush(Qt.resolvedUrl("addEntryMetric.qml"), {
+                        profileId: appWindow.initialPage.profileId
+                    });
+                }
+                appWindow.activate();
+            }
             iconSource: "image://theme/icon-cover-new"
         }
     }
 }
+
+// vim:et:ts=4:sw=4

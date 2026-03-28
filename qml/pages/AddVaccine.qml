@@ -6,18 +6,16 @@ Dialog {
     id: dialog
     allowedOrientations: Orientation.All
 
+    property int profileId: -1
     property date injectionDate: new Date()
-    canAccept: vaccineName.text !== ""
+
+    canAccept: profileId >= 0 && vaccineName.text !== ""
 
     onAccepted: {
-        var profiles = DataManager.getProfiles();
-        if (profiles.length > 0) {
-            var profileId = profiles[0].id;
         // First add the vaccine record (if it doesn't exist)
         var vaccineId = DataManager.getOrCreateVaccine(vaccineName.text, false);
-            var dateStr = injectionDate.toISOString().split('T')[0];
-            DataManager.addVaccineLog(profileId, vaccineId, dateStr, notesField.text);
-        }
+        var dateStr = injectionDate.toISOString().split('T')[0];
+        DataManager.addVaccineLog(profileId, vaccineId, dateStr, notesField.text);
     }
 
     SilicaFlickable {
@@ -67,3 +65,4 @@ Dialog {
         }
     }
 }
+// vim:et:ts=4:sw=4

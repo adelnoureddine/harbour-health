@@ -6,11 +6,12 @@ Page {
     id: root
     allowedOrientations: Orientation.All
 
+    property int profileId: -1
+
     function refresh() {
         listModel.clear();
-        var profiles = DataManager.getProfiles();
-        if (profiles.length > 0) {
-            var conditions = DataManager.getConditions(profiles[0].id);
+        if (profileId >= 0) {
+            var conditions = DataManager.getConditions(profileId);
             conditions.forEach(function(c) {
                 listModel.append(c);
             });

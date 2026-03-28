@@ -6,6 +6,7 @@ Page {
     id: page
     allowedOrientations: Orientation.All
 
+    property int profileId: -1
     property string startDate
     property string endDate
     property string note
@@ -82,9 +83,7 @@ Page {
     }
 
     function refresh() {
-        var profiles = DataManager.getProfiles();
-        if (profiles.length > 0) {
-            var profileId = profiles[0].id;
+        if (profileId >= 0) {
             // For now, just show all logs. In a more advanced version, we'd filter by cycle date range.
             var logs = DataManager.getMenstrualLogs(profileId);
             logsModel.clear();

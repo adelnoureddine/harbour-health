@@ -6,21 +6,18 @@ Dialog {
     id: dialog
     allowedOrientations: Orientation.All
 
+    property int profileId: -1
     property date logDate: new Date()
     property string flow: "None"
     property string pain: "None"
     property string energy: "Normal"
     property real sleepHours: 8.0
 
-    canAccept: true
+    canAccept: profileId >= 0
 
     onAccepted: {
-        var profiles = DataManager.getProfiles();
-        if (profiles.length > 0) {
-            var profileId = profiles[0].id;
             var dateStr = logDate.toISOString().split('T')[0];
             DataManager.addMenstrualLog(profileId, dateStr, flow, pain, energy, sleepHours, notesField.text);
-        }
     }
 
     SilicaFlickable {

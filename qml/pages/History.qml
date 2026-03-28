@@ -6,10 +6,11 @@ Page {
     id: page
     allowedOrientations: Orientation.All
 
+    property int profileId: -1
+
     function refresh() {
-        var profiles = DataManager.getProfiles();
-        if (profiles.length > 0) {
-            var sessions = DataManager.getMeditationSessions(profiles[0].id);
+        if (profileId >= 0) {
+            var sessions = DataManager.getMeditationSessions(profileId);
             listModel.clear();
             for (var i = 0; i < sessions.length; i++) {
                 listModel.append(sessions[i]);

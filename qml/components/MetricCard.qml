@@ -9,6 +9,7 @@ BackgroundItem {
     property string metricName
     property string title
     property string icon
+    property bool grouped: false
     property var value
     property var unit
     property var invalidateSignal
@@ -19,8 +20,14 @@ BackgroundItem {
     function refreshValue() {
         print("MetricCard " + root.metricName + ": refreshValue is called for profile " + root.profileId);
         if (root.profileId >= 0) {
-            root.value = DataManager.getLatestLogValue(root.profileId, root.metricName);
-            print("MetricCard " + root.metricName + ": value is now " + root.value + " for profile " + root.profileId);
+            if (root.grouped) {
+                root.value = DataManager.getLatestDayLogValue(root.profileId, root.metricName);
+                print("MetricCard " + root.metricName + ": value is now " + root.value + " for profile " + root.profileId);
+            }
+            else {
+                root.value = DataManager.getLatestLogValue(root.profileId, root.metricName);
+                print("MetricCard " + root.metricName + ": value is now " + root.value + " for profile " + root.profileId);
+            }
         }
     }
 

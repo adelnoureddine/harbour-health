@@ -6,18 +6,15 @@ Dialog {
     id: dialog
     allowedOrientations: Orientation.All
 
+    property int profileId: -1
     property date startDate: new Date()
     property string note
 
-    canAccept: true
+    canAccept: profileId >= 0
 
     onAccepted: {
-        var profiles = DataManager.getProfiles();
-        if (profiles.length > 0) {
-            var profileId = profiles[0].id;
             var startStr = startDate.toISOString().split('T')[0];
             DataManager.addMenstrualCycle(profileId, startStr, null, notesField.text);
-        }
     }
 
     SilicaFlickable {

@@ -6,6 +6,7 @@ Dialog {
     id: dialog
     allowedOrientations: Orientation.All
 
+    property int profileId: -1
     property int conditionId: -1
     property string conditionName
     property string status: "Active"
@@ -30,7 +31,7 @@ Dialog {
         }
     }
 
-    canAccept: nameField.text !== ""
+    canAccept: profileId >=0 && nameField.text !== ""
 
     onAccepted: {
         var startStr = startDate.toISOString().split('T')[0];
