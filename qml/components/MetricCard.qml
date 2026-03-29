@@ -85,6 +85,7 @@ BackgroundItem {
         if (root.profileId >= 0) {
             pageStack.animatorPush(Qt.resolvedUrl("../pages/MetricDetails.qml"), {
                 profileId: root.profileId,
+                grouped: root.grouped,
                 metricName: root.metricName,
                 metricUnit: root.unit,
                 invalidateSignal: root.invalidateSignal
