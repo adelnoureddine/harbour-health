@@ -7,13 +7,19 @@ Page {
     allowedOrientations: Orientation.All
 
     property int profileId: -1
+    property bool grouped: false
     property string metricName
     property string metricUnit
     property var invalidateSignal
 
     function refresh() {
         listModel.clear();
-	    DataManager.addLogsToModel(profileId, metricName, listModel);
+        if (page.grouped) {
+            DataManager.addDayLogsToModel(profileId, metricName, listModel);
+        }
+        else {
+            DataManager.addLogsToModel(profileId, metricName, listModel);
+        }
     }
 
     SilicaListView {
@@ -36,6 +42,14 @@ Page {
         }
 
         model: listModel
+
+        section {
+            property: "day"
+            criteria: ViewSection.FullString
+            delegate: SectionHeader {
+                text: DataManager.filteredSumFromModel(ListView.view.model, {day: section}, "value") + page.metricUnit + " - " + section
+            }
+        }
 
         delegate: ListItem {
             id: listItem
@@ -66,8 +80,7 @@ Page {
                 anchors.right: parent.right
                 anchors.rightMargin: Theme.horizontalPageMargin
                 anchors.verticalCenter: parent.verticalCenter
-                text: model.timestamp
-                font.pixelSize: Theme.fontSizeExtraSmall
+                text: grouped ? model.timestamp.split('T')[1].split(':').slice(0, 2).join(':') : model.timestamp.replace('T', ' ')
                 color: highlighted ? Theme.secondaryHighlightColor : Theme.secondaryColor
             }
         }

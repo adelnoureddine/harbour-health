@@ -74,6 +74,27 @@ function debugDBToModel(q, a_model) {
     });
 }
 
+function modelItemMatchFilter(item, a_filter) {
+    for (var k in a_filter) {
+        if (item[k] != a_filter[k]) {
+            return false;
+        }
+    }
+    return true;
+}
+
+function filteredSumFromModel(a_model, a_filter, a_field) {
+    var total = 0;
+    // loop through model, filter on the dict fields, and summate
+    for (var i = 0; i < a_model.count; i++) {
+        var item = a_model.get(i);
+        if (modelItemMatchFilter(item, a_filter)) {
+            total += item[a_field];
+        }
+    }
+    return total;
+}
+
 // Initialize the database and tables
 function init() {
     var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
@@ -395,8 +416,8 @@ function addLogsToModel(profileId, metricName, a_model) {
 function addDayLogsToModel(profileId, metricName, a_model) {
     var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
     db.transaction(function (tx) {
-        var rs = tx.executeSql('SELECT DATE(timestamp, -?) AS day, SUM(value) AS total FROM HealthLogs LEFT JOIN Metrics ON HealthLogs.MetricId=Metrics.id GROUP BY day WHERE profileId=? AND Metrics.name=? ORDER BY timestamp DESC', [DAY_START_TIME, profileId, metricName]);
-        print("found logs for " + metricName + ": " + rs.rows.length);
+        var rs = tx.executeSql('SELECT DATE(l.timestamp, ?) AS day,l.id,timestamp,l.value FROM HealthLogs AS l LEFT JOIN Metrics ON l.MetricId=Metrics.id WHERE l.profileId=? AND Metrics.name=? ORDER BY timestamp DESC', ["-" + DAY_START_TIME, profileId, metricName]);
+        print("found day logs for " + metricName + ": " + rs.rows.length);
         for (var i = 0; i < rs.rows.length; i++) {
             a_model.append(rs.rows.item(i));
         }
