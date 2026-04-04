@@ -6,6 +6,7 @@ Page {
     id: page
     allowedOrientations: Orientation.All
 
+    property int profileId: -1
     property int conditionId
     property string conditionName
     property var conditionData: ({})
@@ -13,9 +14,8 @@ Page {
     function refresh() {
         conditionData = DataManager.getCondition(conditionId) || {};
         listModel.clear();
-        var profiles = DataManager.getProfiles();
-        if (profiles.length > 0) {
-            var treatments = DataManager.getTreatments(profiles[0].id, -1, conditionId);
+        if (profileId >= 0) {
+            var treatments = DataManager.getTreatments(profileId, -1, conditionId);
             treatments.forEach(function(t) {
                 listModel.append(t);
             });
@@ -64,12 +64,14 @@ Page {
             MenuItem {
                 text: qsTr("Add Treatment")
                 onClicked: pageStack.animatorPush(Qt.resolvedUrl("AddAndEditMedication.qml"), {
+                    profileId: profileId,
                     conditionId: conditionId
                 })
             }
             MenuItem {
                 text: qsTr("Edit Condition")
                 onClicked: pageStack.animatorPush(Qt.resolvedUrl("AddAndEditIllness.qml"), {
+                    profileId: profileId,
                     conditionId: conditionId
                 })
             }
@@ -97,6 +99,7 @@ Page {
             }
 
             onClicked: pageStack.animatorPush(Qt.resolvedUrl("ConsultMedication.qml"), {
+                profileId: profileId,
                 medicationId: model.medicationId,
                 medicationName: model.medicationName
             })

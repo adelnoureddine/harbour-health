@@ -38,6 +38,7 @@ Page {
             contentHeight: Theme.itemSizeMedium
             onClicked: {
                 pageStack.animatorPush(Qt.resolvedUrl("ConsultIllness.qml"), {
+                    profileId: root.profileId,
                     conditionId: model.id,
                     conditionName: model.name
                 })
@@ -70,6 +71,7 @@ Page {
                     MenuItem {
                         text: qsTr("Edit")
                         onClicked: pageStack.animatorPush(Qt.resolvedUrl("AddAndEditIllness.qml"), {
+                            profileId: root.profileId,
                             conditionId: model.id
                         })
                     }

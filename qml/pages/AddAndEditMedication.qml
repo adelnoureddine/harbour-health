@@ -6,7 +6,7 @@ Dialog {
     id: dialog
     allowedOrientations: Orientation.All
 
-    property int profileId: 1
+    property int profileId: -1
     property int medicationId: -1
     property int conditionId: -1
     property string medicationName

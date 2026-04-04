@@ -6,7 +6,7 @@ Page {
     id: page
     allowedOrientations: Orientation.All
 
-    property int profileId: 1
+    property int profileId: -1
     property int medicationId
     property string medicationName
 

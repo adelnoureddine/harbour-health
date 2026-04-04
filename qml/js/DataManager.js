@@ -42,7 +42,7 @@ function debugDB(q, headers) {
     db.transaction(function (tx) {
         var rs = tx.executeSql(q);
         for (var i = 0; i < rs.rows.length; i++) {
-            data.append(rs.rows.item(i));
+            data.push(rs.rows.item(i));
         }
     });
     if (headers) {
@@ -393,7 +393,7 @@ function getLatestLogText(profileId, metricName) {
     var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
     var text = "";
     db.transaction(function (tx) {
-        var rs = tx.executeSql('SELECT CONCAT(l.value,m.unit) AS text FROM HealthLogs l LEFT JOIN Metrics m ON l.metricId = m.id ' +
+        var rs = tx.executeSql('SELECT (l.value || m.unit) AS text FROM HealthLogs l LEFT JOIN Metrics m ON l.metricId = m.id ' +
             'WHERE l.profileId=? AND m.name=? ORDER BY l.timestamp DESC LIMIT 1', [profileId, metricName]);
         if (rs.rows.length > 0) {
             text = rs.rows.item(0).text;
@@ -529,7 +529,6 @@ function getVaccineLogsToModel(profileId, vaccineId, a_model) {
             a_model.append(rs.rows.item(i));
         }
     });
-    return logs;
 }
 
 // Medication & Treatment Operations

@@ -84,11 +84,13 @@ Page {
 
     function refresh() {
         if (profileId >= 0) {
-            // For now, just show all logs. In a more advanced version, we'd filter by cycle date range.
             var logs = DataManager.getMenstrualLogs(profileId);
             logsModel.clear();
             for (var i = 0; i < logs.length; i++) {
-                logsModel.append(logs[i]);
+                var log = logs[i];
+                if (log.date >= startDate && (!endDate || log.date <= endDate)) {
+                    logsModel.append(log);
+                }
             }
         }
     }

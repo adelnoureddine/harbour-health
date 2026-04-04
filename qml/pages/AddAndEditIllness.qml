@@ -9,7 +9,7 @@ Dialog {
     property int profileId: -1
     property int conditionId: -1
     property string conditionName
-    property string status: "Active"
+    property string conditionStatus: "Active"
     property date startDate: new Date()
     property date endDate: new Date()
     property bool hasEndDate: false
@@ -20,7 +20,7 @@ Dialog {
             var c = DataManager.getCondition(conditionId);
             if (c) {
                 conditionName = c.name;
-                status = c.status;
+                conditionStatus = c.status;
                 startDate = new Date(c.startDate);
                 if (c.endDate) {
                     endDate = new Date(c.endDate);
@@ -72,7 +72,7 @@ Dialog {
                 id: statusField
                 width: parent.width
                 label: qsTr("Status")
-                text: status
+                text: conditionStatus
                 placeholderText: qsTr("e.g. Active, Recovered")
                 EnterKey.onClicked: notesField.focus = true
             }

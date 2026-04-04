@@ -13,7 +13,7 @@ Page {
 
     function refresh() {
         if (profileId >= 0) {
-            DataManager.getVaccineLogsToModel(profiles[0].id, vaccineId, vaccinesDetailModel);
+            DataManager.getVaccineLogsToModel(profileId, vaccineId, vaccinesDetailModel);
         }
     }
 

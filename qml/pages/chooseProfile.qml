@@ -33,7 +33,7 @@ Page {
         delegate: ListItem {
             contentHeight: Theme.itemSizeMedium
             onClicked: {
-                activeProfile = model; // Set property in ApplicationWindow
+                DataManager.useProfile(model.id);
                 pageStack.pop();
             }
 

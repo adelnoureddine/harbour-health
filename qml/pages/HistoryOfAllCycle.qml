@@ -54,6 +54,7 @@ Page {
             }
 
             onClicked: pageStack.animatorPush(Qt.resolvedUrl("HistoryOfOneCycle.qml"), {
+                "profileId": page.profileId,
                 "startDate": model.startDate,
                 "endDate": model.endDate,
                 "note": model.note

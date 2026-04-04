@@ -31,9 +31,8 @@ Page {
             MenuItem {
                 text: qsTr("Clear History")
                 onClicked: {
-                    var profiles = DataManager.getProfiles();
-                    if (profiles.length > 0) {
-                        DataManager.deleteMeditationHistory(profiles[0].id);
+                    if (profileId >= 0) {
+                        DataManager.deleteMeditationHistory(profileId);
                         refresh();
                     }
                 }
