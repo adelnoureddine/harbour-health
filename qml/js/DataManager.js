@@ -21,7 +21,7 @@ var METRIC_CALORIES = "calories";
 var METRIC_HEARTRATE = "heartrate";
 var METRIC_BP_SYS = "systolic blood pressure";
 var METRIC_BP_DIA = "diastolic blood pressure";
-var METRIC_GLOCUSE = "glucose";
+var METRIC_GLUCOSE = "glucose";
 
 // Modules
 var MODULE_WEIGHT = "Weight";
@@ -140,7 +140,7 @@ function init() {
             'id INTEGER PRIMARY KEY AUTOINCREMENT, ' +
             'name TEXT NOT NULL, ' +
             'unit TEXT NOT NULL, ' +
-            'default BOOLEAN DEFAULT TRUE, ' +
+            'bydefault BOOLEAN DEFAULT TRUE, ' +
             'category TEXT)');
 
         // PROFILE METRICS
@@ -191,7 +191,7 @@ function init() {
             'name TEXT NOT NULL, ' +
             'type TEXT NOT NULL, ' +
             'uses TEXT NOT NULL, ' +
-            'default BOOLEAN DEFAULT TRUE, ' +
+            'bydefault BOOLEAN DEFAULT TRUE, ' +
             'category TEXT)');
 
         // PROFILE MODULES
@@ -211,28 +211,28 @@ function init() {
         // Seed default metrics if empty
         var rs = tx.executeSql('SELECT count(*) as count FROM Metrics');
         if (rs.rows.item(0).count === 0) {
-            tx.executeSql('INSERT INTO Metrics (name, unit, default, category) VALUES (?,?,?,?)', [METRIC_WEIGHT, "kg", true, CATEGORY_BODY]);
-            tx.executeSql('INSERT INTO Metrics (name, unit, default, category) VALUES (?,?,?,?)', [METRIC_HEIGHT, "cm", false, CATEGORY_BODY]);
-            tx.executeSql('INSERT INTO Metrics (name, unit, default, category) VALUES (?,?,?,?)', [METRIC_CALORIES, "kcal", true, CATEGORY_NUTRITION]);
-            tx.executeSql('INSERT INTO Metrics (name, unit, default, category) VALUES (?,?,?,?)', [METRIC_WATER, "L", false, CATEGORY_NUTRITION]);
-            tx.executeSql('INSERT INTO Metrics (name, unit, default, category) VALUES (?,?,?,?)', [METRIC_HEARTRATE, "bpm", true, CATEGORY_BLOOD]);
-            tx.executeSql('INSERT INTO Metrics (name, unit, default, category) VALUES (?,?,?,?)', [METRIC_BP_SYS, "mmHg", true, CATEGORY_BLOOD]);
-            tx.executeSql('INSERT INTO Metrics (name, unit, default, category) VALUES (?,?,?,?)', [METRIC_BP_DIA, "mmHg", true, CATEGORY_BLOOD]);
-            tx.executeSql('INSERT INTO Metrics (name, unit, default, category) VALUES (?,?,?,?)', [METRIC_GLUCOSE, "mg/dL", false, CATEGORY_BLOOD]);
+            tx.executeSql('INSERT INTO Metrics (name, unit, bydefault, category) VALUES (?,?,?,?)', [METRIC_WEIGHT, "kg", true, CATEGORY_BODY]);
+            tx.executeSql('INSERT INTO Metrics (name, unit, bydefault, category) VALUES (?,?,?,?)', [METRIC_HEIGHT, "cm", false, CATEGORY_BODY]);
+            tx.executeSql('INSERT INTO Metrics (name, unit, bydefault, category) VALUES (?,?,?,?)', [METRIC_CALORIES, "kcal", true, CATEGORY_NUTRITION]);
+            tx.executeSql('INSERT INTO Metrics (name, unit, bydefault, category) VALUES (?,?,?,?)', [METRIC_WATER, "L", false, CATEGORY_NUTRITION]);
+            tx.executeSql('INSERT INTO Metrics (name, unit, bydefault, category) VALUES (?,?,?,?)', [METRIC_HEARTRATE, "bpm", true, CATEGORY_BLOOD]);
+            tx.executeSql('INSERT INTO Metrics (name, unit, bydefault, category) VALUES (?,?,?,?)', [METRIC_BP_SYS, "mmHg", true, CATEGORY_BLOOD]);
+            tx.executeSql('INSERT INTO Metrics (name, unit, bydefault, category) VALUES (?,?,?,?)', [METRIC_BP_DIA, "mmHg", true, CATEGORY_BLOOD]);
+            tx.executeSql('INSERT INTO Metrics (name, unit, bydefault, category) VALUES (?,?,?,?)', [METRIC_GLUCOSE, "mg/dL", false, CATEGORY_BLOOD]);
         }
 
         // Seed default modules if empty
         var rs = tx.executeSql('SELECT count(*) as count FROM Modules');
         if (rs.rows.item(0).count === 0) {
-            tx.executeSql('INSERT INTO Modules (name, type, uses, default, category) VALUES (?,?,?,?,?)', [MODULE_WEIGHT, MODULE_TYPE_METRIC, METRIC_WEIGHT, true, CATEGORY_BODY]);
-            tx.executeSql('INSERT INTO Modules (name, type, uses, default, category) VALUES (?,?,?,?,?)', [MODULE_HEIGHT, MODULE_TYPE_METRIC, METRIC_WEIGHT, true, CATEGORY_BODY]);
-            tx.executeSql('INSERT INTO Modules (name, type, uses, default, category) VALUES (?,?,?,?,?)', [MODULE_BMI, MODULE_TYPE_CALC, METRIC_WEIGHT + "*10000/(" + METRIC_HEIGHT + "*" + METRIC_HEIGHT + ")", true, CATEGORY_BODY]);
-            tx.executeSql('INSERT INTO Modules (name, type, uses, default, category) VALUES (?,?,?,?,?)', [MODULE_CALORIES, MODULE_TYPE_METRIC, METRIC_CALORIES, true, CATEGORY_NUTRITION]);
-            tx.executeSql('INSERT INTO Modules (name, type, uses, default, category) VALUES (?,?,?,?,?)', [MODULE_WATER, MODULE_TYPE_METRIC, METRIC_WATER, false, CATEGORY_NUTRITION]);
-            tx.executeSql('INSERT INTO Modules (name, type, uses, default, category) VALUES (?,?,?,?,?)', [MODULE_HEARTRATE, MODULE_TYPE_METRIC, METRIC_HEARTRATE, true, CATEGORY_BLOOD]);
-            tx.executeSql('INSERT INTO Modules (name, type, uses, default, category) VALUES (?,?,?,?,?)', [MODULE_BP, MODULE_TYPE_CALC, "'" + METRIC_BP_SYS + "'+'/'+'" + METRIC_BP_DIA + "'", true, CATEGORY_BODY]);
-            tx.executeSql('INSERT INTO Modules (name, type, uses, default, category) VALUES (?,?,?,?,?)', [MODULE_GLUCOSE, MODULE_TYPE_METRIC, METRIC_GLUCOSE, true, CATEGORY_BLOOD]);
-            tx.executeSql('INSERT INTO Modules (name, type, uses, default, category) VALUES (?,?,?,?,?)', [MODULE_VACCINATION, MODULE_TYPE_SUMMARY, "", true, CATEGORY_OTHER]);
+            tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category) VALUES (?,?,?,?,?)', [MODULE_WEIGHT, MODULE_TYPE_METRIC, METRIC_WEIGHT, true, CATEGORY_BODY]);
+            tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category) VALUES (?,?,?,?,?)', [MODULE_HEIGHT, MODULE_TYPE_METRIC, METRIC_WEIGHT, true, CATEGORY_BODY]);
+            tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category) VALUES (?,?,?,?,?)', [MODULE_BMI, MODULE_TYPE_CALC, METRIC_WEIGHT + "*10000/(" + METRIC_HEIGHT + "*" + METRIC_HEIGHT + ")", true, CATEGORY_BODY]);
+            tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category) VALUES (?,?,?,?,?)', [MODULE_CALORIES, MODULE_TYPE_METRIC, METRIC_CALORIES, true, CATEGORY_NUTRITION]);
+            tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category) VALUES (?,?,?,?,?)', [MODULE_WATER, MODULE_TYPE_METRIC, METRIC_WATER, false, CATEGORY_NUTRITION]);
+            tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category) VALUES (?,?,?,?,?)', [MODULE_HEARTRATE, MODULE_TYPE_METRIC, METRIC_HEARTRATE, true, CATEGORY_BLOOD]);
+            tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category) VALUES (?,?,?,?,?)', [MODULE_BP, MODULE_TYPE_CALC, "'" + METRIC_BP_SYS + "'+'/'+'" + METRIC_BP_DIA + "'", true, CATEGORY_BODY]);
+            tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category) VALUES (?,?,?,?,?)', [MODULE_GLUCOSE, MODULE_TYPE_METRIC, METRIC_GLUCOSE, true, CATEGORY_BLOOD]);
+            tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category) VALUES (?,?,?,?,?)', [MODULE_VACCINATION, MODULE_TYPE_SUMMARY, "", true, CATEGORY_OTHER]);
         }
     });
 }
@@ -308,8 +308,8 @@ function addProfile(firstName, lastName, gender, birthDate) {
         var rs = tx.executeSql('INSERT INTO Profiles (firstName, lastName, gender, birthDate) VALUES (?,?,?,?)',
             [firstName, lastName, gender, birthDate]);
         id = rs.insertId;
-        var rs = tx.executeSql('INSERT INTO ProfileMetrics (profileId,metricId) SELECT ?,id FROM Metrics WHERE default', [id]);
-        var rs = tx.executeSql('INSERT INTO ProfileModules (profileId,moduleId) SELECT ?,id FROM Modules WHERE default', [id]);
+        var rs = tx.executeSql('INSERT INTO ProfileMetrics (profileId,metricId) SELECT ?,id FROM Metrics WHERE bydefault', [id]);
+        var rs = tx.executeSql('INSERT INTO ProfileModules (profileId,moduleId) SELECT ?,id FROM Modules WHERE bydefault', [id]);
     });
     return id;
 }
@@ -770,6 +770,60 @@ function deleteMeditationHistory(profileId) {
     var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
     db.transaction(function (tx) {
         tx.executeSql('DELETE FROM MeditationSessions WHERE profileId=?', [profileId]);
+    });
+}
+
+// Module Settings
+function addModulesToModel(profileId, a_model) {
+    var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
+    db.transaction(function (tx) {
+        var rs = tx.executeSql('SELECT id,name,( SELECT ProfileModules.profileId FROM ProfileModules WHERE Modules.id=ProfileModules.moduleId AND ProfileModules.profileId=? ) IS NOT NULL AS is_on FROM Modules ORDER BY name', [profileId]);
+        for (var i = 0; i < rs.rows.length; i++) {
+            a_model.append(rs.rows.item(i));
+        }
+        print("modules: " + rs.rows.length);
+    });
+}
+
+function addProfileModule(profileId, moduleId) {
+    var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
+    db.transaction(function (tx) {
+        tx.executeSql('INSERT OR IGNORE INTO ProfileModules (profileId, moduleId) VALUES (?, ?)', [profileId, moduleId]);
+    });
+}
+
+function removeProfileModule(profileId, moduleId) {
+    var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
+    db.transaction(function (tx) {
+        tx.executeSql('DELETE FROM ProfileModules WHERE profileId=? AND moduleId=?', [profileId, moduleId]);
+    });
+}
+
+// Metric Settings
+function addMetricsToModel(profileId, a_model) {
+    var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
+    db.transaction(function (tx) {
+        var rs = tx.executeSql('SELECT id,category,metrics.name AS metricName,metrics.unit AS metricUnit,(SELECT value FROM HealthLogs WHERE metricId=Metrics.id AND profileId=? ORDER BY timestamp LIMIT 1) AS lastValue,( SELECT ProfileMetrics.profileId FROM ProfileMetrics WHERE Metrics.id=ProfileMetrics.metricId AND ProfileMetrics.profileId=? ) IS NOT NULL AS is_on FROM Metrics ORDER BY category,metricName', [profileId, profileId]);
+        for (var i = 0; i < rs.rows.length; i++) {
+            a_model.append(rs.rows.item(i));
+        }
+        print("metrics: " + rs.rows.length);
+    });
+}
+
+function addProfileMetric(profileId, metricId) {
+    print("add metric: " + metricId);
+    var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
+    db.transaction(function (tx) {
+        tx.executeSql('INSERT OR IGNORE INTO ProfileMetrics (profileId, metricId) VALUES (?, ?)', [profileId, metricId]);
+    });
+}
+
+function removeProfileMetric(profileId, metricId) {
+    print("remove metric: " + metricId);
+    var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
+    db.transaction(function (tx) {
+        tx.executeSql('DELETE FROM ProfileMetrics WHERE profileId=? AND metricId=?', [profileId, metricId]);
     });
 }
 

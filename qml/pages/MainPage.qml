@@ -47,7 +47,7 @@ Page {
         PullDownMenu {
             MenuItem {
                 text: qsTr("Debug DB")
-		        visible: debug
+                visible: debug
                 onClicked: pageStack.animatorPush(Qt.resolvedUrl("DebugDB.qml"))
             }
             MenuItem {
@@ -55,21 +55,28 @@ Page {
                 onClicked: pageStack.animatorPush(Qt.resolvedUrl("AboutPage.qml"))
             }
             MenuItem {
-                text: qsTr("Add entry")
-		        visible: mainPage.profileId >= 0
-                onClicked: pageStack.animatorPush(Qt.resolvedUrl("addEntryMetric.qml"), {
-                    profileId: mainPage.profileId
-                })
-            }
-            MenuItem {
                 text: qsTr("Profiles")
-		        visible: profileCount > 0
+                visible: profileCount > 0
                 onClicked: pageStack.animatorPush(Qt.resolvedUrl("chooseProfile.qml"))
             }
             MenuItem {
                 text: qsTr("Create a new profile")
-		        visible: profileCount == 0
+                visible: profileCount == 0
                 onClicked: pageStack.animatorPush(Qt.resolvedUrl("createProfile.qml"))
+            }
+            MenuItem {
+                text: qsTr("Settings")
+                visible: mainPage.profileId >= 0
+                onClicked: pageStack.animatorPush(Qt.resolvedUrl("moduleSettings.qml"), {
+                    profileId: mainPage.profileId
+                })
+            }
+            MenuItem {
+                text: qsTr("Add entry")
+                visible: mainPage.profileId >= 0
+                onClicked: pageStack.animatorPush(Qt.resolvedUrl("addEntryMetric.qml"), {
+                    profileId: mainPage.profileId
+                })
             }
         }
 
