@@ -10,7 +10,7 @@ Page {
 
     function refreshModules() {
         modelModules.clear();
-        DataManager.addModulesToModel(root.profileId, modelModules);
+        DataManager.addModulesToModel(root.profileId, modelModules, false);
     }
 
     SilicaListView {
