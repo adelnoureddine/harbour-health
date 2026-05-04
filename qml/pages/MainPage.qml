@@ -28,9 +28,15 @@ Page {
         }
 	    if (mainPage.profileId >= 0) {
 	        mainPage.profile = DataManager.getProfile(mainPage.profileId);
+            refreshModules();
             bmiCard.calculate();
             mainPage.countVaccines = DataManager.getVaccineCount(mainPage.profileId);
         }
+    }
+
+    function refreshModules() {
+        modelModules.clear();
+        DataManager.addModulesToModel(mainPage.profileId, modelModules, true);
     }
 
     onStatusChanged: {
@@ -42,12 +48,11 @@ Page {
 
     SilicaFlickable {
         anchors.fill: parent
-        contentHeight: column.height
 
         PullDownMenu {
             MenuItem {
                 text: qsTr("Debug DB")
-		        visible: debug
+                visible: debug
                 onClicked: pageStack.animatorPush(Qt.resolvedUrl("DebugDB.qml"))
             }
             MenuItem {
@@ -55,21 +60,28 @@ Page {
                 onClicked: pageStack.animatorPush(Qt.resolvedUrl("AboutPage.qml"))
             }
             MenuItem {
-                text: qsTr("Add entry")
-		        visible: mainPage.profileId >= 0
-                onClicked: pageStack.animatorPush(Qt.resolvedUrl("addEntryMetric.qml"), {
-                    profileId: mainPage.profileId
-                })
-            }
-            MenuItem {
                 text: qsTr("Profiles")
-		        visible: profileCount > 0
+                visible: profileCount > 0
                 onClicked: pageStack.animatorPush(Qt.resolvedUrl("chooseProfile.qml"))
             }
             MenuItem {
                 text: qsTr("Create a new profile")
-		        visible: profileCount == 0
+                visible: profileCount == 0
                 onClicked: pageStack.animatorPush(Qt.resolvedUrl("createProfile.qml"))
+            }
+            MenuItem {
+                text: qsTr("Settings")
+                visible: mainPage.profileId >= 0
+                onClicked: pageStack.animatorPush(Qt.resolvedUrl("moduleSettings.qml"), {
+                    profileId: mainPage.profileId
+                })
+            }
+            MenuItem {
+                text: qsTr("Add entry")
+                visible: mainPage.profileId >= 0
+                onClicked: pageStack.animatorPush(Qt.resolvedUrl("addEntryMetric.qml"), {
+                    profileId: mainPage.profileId
+                })
             }
         }
 
@@ -88,121 +100,40 @@ Page {
                 font.pixelSize: Theme.fontSizeExtraLarge
                 color: Theme.highlightColor
             }
+        }
 
-            // Dashboard Grid
-            Grid {
-                id: dashboardGrid
-                width: parent.width - 2 * Theme.horizontalPageMargin
-                anchors.horizontalCenter: parent.horizontalCenter
-                columns: 2
-                spacing: Theme.paddingMedium
-		        visible: profile
+        SilicaGridView {
+            id: dashboardGrid
 
-                // height Card
-                MetricCard {
-                    width: (dashboardGrid.width - dashboardGrid.spacing) / 2
-                    icon: "image://theme/icon-m-health"
-                    title: qsTr("Height")
-                    profileId: mainPage.profileId
-                    metricName: DataManager.METRIC_HEIGHT
-                    invalidateSignal: mainPage.invalidateMetric
-                }
+            width: parent.width
 
-                // Weight Card
-                MetricCard {
-                    width: (dashboardGrid.width - dashboardGrid.spacing) / 2
-                    icon: "image://theme/icon-m-health"
-                    title: qsTr("Weight")
-                    profileId: mainPage.profileId
-                    metricName: DataManager.METRIC_WEIGHT
-                    invalidateSignal: mainPage.invalidateMetric
-                }
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.top: column.bottom
+            anchors.bottom: parent.bottom
+            anchors.topMargin: Theme.paddingLarge
 
-                // BMI Card
-                SummaryCard {
-                    id: bmiCard
+            cellWidth: dashboardGrid.width / 2
+            cellHeight: Theme.itemSizeHuge
 
-                    width: (dashboardGrid.width - dashboardGrid.spacing) / 2
-                    icon: "image://theme/icon-m-health"
-                    title: qsTr("BMI")
-                    value: '?'
+            visible: profile
 
-                    function calculate() {
-                        var bmi = DataManager.calcBMI(mainPage.profileId)
-                        bmiCard.value = bmi ? bmi.toFixed(1) : '?';
-                    }
-                }
+            model: modelModules
 
-                // Water Card
-                MetricCard {
-                    width: (dashboardGrid.width - dashboardGrid.spacing) / 2
-                    title: qsTr("Water")
-                    icon: "image://theme/icon-m-levels"
-                    grouped: true
-                    profileId: mainPage.profileId
-                    metricName: DataManager.METRIC_WATER
-                    invalidateSignal: mainPage.invalidateMetric
-                }
-
-                // Calories Card
-                MetricCard {
-                    width: (dashboardGrid.width - dashboardGrid.spacing) / 2
-                    title: qsTr("Calories")
-                    icon: "image://theme/icon-m-levels"
-                    grouped: true
-                    profileId: mainPage.profileId
-                    metricName: DataManager.METRIC_CALORIES
-                    invalidateSignal: mainPage.invalidateMetric
-                }
-
-                // Vaccines Card
-                SummaryCard {
-                    width: (dashboardGrid.width - dashboardGrid.spacing) / 2
-                    title: qsTr("Vaccines")
-                    value: countVaccines
-		            visible: mainPage.profileId >= 0
-                    unit: qsTr("records")
-                    icon: "image://theme/icon-m-certificates"
-                    onClicked: pageStack.animatorPush(Qt.resolvedUrl("VaccinesList.qml"), {
-                        profileId: mainPage.profileId
-                    })
-                }
-            }
-
-            SectionHeader {
-                text: qsTr("Other Modules")
-            }
-
-            ButtonLayout {
-                Button {
-                    text: qsTr("Meditation")
-		            visible: mainPage.profileId >= 0
-                    onClicked: pageStack.animatorPush(Qt.resolvedUrl("MeditationMenu.qml"), {
-                        profileId: mainPage.profileId
-                    })
-                }
-                Button {
-                    text: qsTr("Health Condition")
-		            visible: mainPage.profileId >= 0
-                    onClicked: pageStack.animatorPush(Qt.resolvedUrl("MainHealthCondition.qml"), {
-                        profileId: mainPage.profileId
-                    })
-                }
-                Button {
-                    text: qsTr("Menstruation")
-		            visible: mainPage.profileId >= 0
-                    onClicked: pageStack.animatorPush(Qt.resolvedUrl("Menstruation.qml"), {
-                        profileId: mainPage.profileId
-                    })
-                }
+            delegate: HealthCard {
+                icon: "image://theme/icon-m-health"
+                title: model.name
+                visible: model.is_on
+                profileId: mainPage.profileId
+                metricName: model.type == DataManager.MODULE_TYPE_METRIC ? model.uses : ''
+                clickThrough: model.type == DataManager.MODULE_TYPE_SUMMARY ? model.uses : undefined
+                calculate: model.type == DataManager.MODULE_TYPE_CALC ? model.uses : undefined
+                invalidateSignal: mainPage.invalidateMetric
             }
         }
     }
 
-    onInvalidateMetric: {
-        if (metricName == DataManager.METRIC_HEIGHT || metricName == DataManager.METRIC_WEIGHT) {
-            bmiCard.calculate();
-        }
+    ListModel {
+        id: modelModules
     }
 
     Component.onCompleted: updateData()

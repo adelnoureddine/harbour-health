@@ -7,11 +7,40 @@ var DB_VERSION = "2.0";
 var DB_DESCRIPTION = "Harbour Health Application Database";
 var DB_SIZE = 1000000;
 
+// Category
+var CATEGORY_BODY = "Body";
+var CATEGORY_NUTRITION = "Nutrition";
+var CATEGORY_BLOOD = "Blood";
+var CATEGORY_OTHER = "Other";
+
 // Metrics
 var METRIC_WEIGHT = "weight";
 var METRIC_HEIGHT = "height";
 var METRIC_WATER = "water";
 var METRIC_CALORIES = "calories";
+var METRIC_HEARTRATE = "heartrate";
+var METRIC_BP_SYS = "systolic blood pressure";
+var METRIC_BP_DIA = "diastolic blood pressure";
+var METRIC_GLUCOSE = "glucose";
+
+// Modules
+var MODULE_WEIGHT = "Weight";
+var MODULE_HEIGHT = "Height";
+var MODULE_BMI = "BMI";
+var MODULE_CALORIES = "Calories";
+var MODULE_WATER = "Water";
+var MODULE_HEARTRATE = "Heartrate";
+var MODULE_BP = "Blood Pressure";
+var MODULE_GLUCOSE = "Glucose";
+var MODULE_CONDITION = "Health Condition";
+var MODULE_VACCINATION = "Vaccination";
+var MODULE_MEDITATION = "Meditation";
+var MODULE_MENSTRUATION = "Menstruation";
+
+// Module Types
+var MODULE_TYPE_METRIC = "Metric";
+var MODULE_TYPE_CALC = "Calc";
+var MODULE_TYPE_SUMMARY = "Summary";
 
 // local time day border -> 04:00:00
 var DAY_START_TIME = "04:00:00";
@@ -114,7 +143,17 @@ function init() {
             'id INTEGER PRIMARY KEY AUTOINCREMENT, ' +
             'name TEXT NOT NULL, ' +
             'unit TEXT NOT NULL, ' +
+            'grouped BOOLEAN DEFAULT FALSE, ' +
+            'bydefault BOOLEAN DEFAULT TRUE, ' +
             'category TEXT)');
+
+        // PROFILE METRICS
+        tx.executeSql('CREATE TABLE IF NOT EXISTS ProfileMetrics (' +
+            'profileId INTEGER NOT NULL, ' +
+            'metricId INTEGER NOT NULL, ' +
+            'PRIMARY KEY(profileId,metricId) ' +
+            'FOREIGN KEY(profileId) REFERENCES Profiles(id), ' +
+            'FOREIGN KEY(metricId) REFERENCES Metrics(id))');
 
         // HEALTH LOGS (Universal table for measurements)
         tx.executeSql('CREATE TABLE IF NOT EXISTS HealthLogs (' +
@@ -150,6 +189,23 @@ function init() {
         // TREATMENT
         tx.executeSql('CREATE TABLE IF NOT EXISTS Treatments (id INTEGER PRIMARY KEY AUTOINCREMENT, profileId INTEGER, medicationId INTEGER, conditionId INTEGER, dosage TEXT, frequency TEXT, startDate TEXT, endDate TEXT, note TEXT)');
 
+        // MODULES
+        tx.executeSql('CREATE TABLE IF NOT EXISTS Modules (' +
+            'id INTEGER PRIMARY KEY AUTOINCREMENT, ' +
+            'name TEXT NOT NULL, ' +
+            'type TEXT NOT NULL, ' +
+            'uses TEXT NOT NULL, ' +
+            'bydefault BOOLEAN DEFAULT TRUE, ' +
+            'category TEXT)');
+
+        // PROFILE MODULES
+        tx.executeSql('CREATE TABLE IF NOT EXISTS ProfileModules (' +
+            'profileId INTEGER NOT NULL, ' +
+            'moduleId INTEGER NOT NULL, ' +
+            'PRIMARY KEY(profileId,moduleId) ' +
+            'FOREIGN KEY(profileId) REFERENCES Profiles(id), ' +
+            'FOREIGN KEY(moduleId) REFERENCES Modules(id))');
+
         // HEALTH CONDITIONS
         tx.executeSql('CREATE TABLE IF NOT EXISTS HealthConditions (id INTEGER PRIMARY KEY AUTOINCREMENT, profileId INTEGER, name TEXT, status TEXT, startDate TEXT, endDate TEXT, note TEXT)');
         tx.executeSql('CREATE TABLE IF NOT EXISTS MenstrualCycles (id INTEGER PRIMARY KEY AUTOINCREMENT, profileId INTEGER, startDate TEXT, endDate TEXT, note TEXT)');
@@ -159,10 +215,31 @@ function init() {
         // Seed default metrics if empty
         var rs = tx.executeSql('SELECT count(*) as count FROM Metrics');
         if (rs.rows.item(0).count === 0) {
-            tx.executeSql('INSERT INTO Metrics (name, unit, category) VALUES (?,?,?)', [METRIC_WEIGHT, "kg", "Body"]);
-            tx.executeSql('INSERT INTO Metrics (name, unit, category) VALUES (?,?,?)', [METRIC_HEIGHT, "cm", "Body"]);
-            tx.executeSql('INSERT INTO Metrics (name, unit, category) VALUES (?,?,?)', [METRIC_CALORIES, "kcal", "Nutrition"]);
-            tx.executeSql('INSERT INTO Metrics (name, unit, category) VALUES (?,?,?)', [METRIC_WATER, "l", "Nutrition"]);
+            tx.executeSql('INSERT INTO Metrics (name, unit, grouped, bydefault, category) VALUES (?,?,?,?,?)', [METRIC_WEIGHT, "kg", false, true, CATEGORY_BODY]);
+            tx.executeSql('INSERT INTO Metrics (name, unit, grouped, bydefault, category) VALUES (?,?,?,?,?)', [METRIC_HEIGHT, "cm", false, false, CATEGORY_BODY]);
+            tx.executeSql('INSERT INTO Metrics (name, unit, grouped, bydefault, category) VALUES (?,?,?,?,?)', [METRIC_CALORIES, "kcal", true, true, CATEGORY_NUTRITION]);
+            tx.executeSql('INSERT INTO Metrics (name, unit, grouped, bydefault, category) VALUES (?,?,?,?,?)', [METRIC_WATER, "L", true, false, CATEGORY_NUTRITION]);
+            tx.executeSql('INSERT INTO Metrics (name, unit, grouped, bydefault, category) VALUES (?,?,?,?,?)', [METRIC_HEARTRATE, "bpm", false, true, CATEGORY_BLOOD]);
+            tx.executeSql('INSERT INTO Metrics (name, unit, grouped, bydefault, category) VALUES (?,?,?,?,?)', [METRIC_BP_SYS, "mmHg", false, true, CATEGORY_BLOOD]);
+            tx.executeSql('INSERT INTO Metrics (name, unit, grouped, bydefault, category) VALUES (?,?,?,?,?)', [METRIC_BP_DIA, "mmHg", false, true, CATEGORY_BLOOD]);
+            tx.executeSql('INSERT INTO Metrics (name, unit, grouped, bydefault, category) VALUES (?,?,?,?,?)', [METRIC_GLUCOSE, "mg/dL", false, false, CATEGORY_BLOOD]);
+        }
+
+        // Seed default modules if empty
+        var rs = tx.executeSql('SELECT count(*) as count FROM Modules');
+        if (rs.rows.item(0).count === 0) {
+            tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category) VALUES (?,?,?,?,?)', [MODULE_WEIGHT, MODULE_TYPE_METRIC, METRIC_WEIGHT, true, CATEGORY_BODY]);
+            tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category) VALUES (?,?,?,?,?)', [MODULE_HEIGHT, MODULE_TYPE_METRIC, METRIC_HEIGHT, true, CATEGORY_BODY]);
+            tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category) VALUES (?,?,?,?,?)', [MODULE_BMI, MODULE_TYPE_CALC, "(" + METRIC_WEIGHT + "*10000/(" + METRIC_HEIGHT + "*" + METRIC_HEIGHT + ")).toFixed(1)", true, CATEGORY_BODY]);
+            tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category) VALUES (?,?,?,?,?)', [MODULE_CALORIES, MODULE_TYPE_METRIC, METRIC_CALORIES, true, CATEGORY_NUTRITION]);
+            tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category) VALUES (?,?,?,?,?)', [MODULE_WATER, MODULE_TYPE_METRIC, METRIC_WATER, false, CATEGORY_NUTRITION]);
+            tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category) VALUES (?,?,?,?,?)', [MODULE_HEARTRATE, MODULE_TYPE_METRIC, METRIC_HEARTRATE, true, CATEGORY_BLOOD]);
+            tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category) VALUES (?,?,?,?,?)', [MODULE_BP, MODULE_TYPE_CALC, "(" + METRIC_BP_SYS + ").toFixed(1)+'/'+(" + METRIC_BP_DIA + ").toFixed(1)", true, CATEGORY_BLOOD]);
+            tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category) VALUES (?,?,?,?,?)', [MODULE_GLUCOSE, MODULE_TYPE_METRIC, METRIC_GLUCOSE, true, CATEGORY_BLOOD]);
+            tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category) VALUES (?,?,?,?,?)', [MODULE_CONDITION, MODULE_TYPE_SUMMARY, "MainHealthCondition", true, CATEGORY_OTHER]);
+            tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category) VALUES (?,?,?,?,?)', [MODULE_VACCINATION, MODULE_TYPE_SUMMARY, "VaccinesList", true, CATEGORY_OTHER]);
+            tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category) VALUES (?,?,?,?,?)', [MODULE_MEDITATION, MODULE_TYPE_SUMMARY, "MeditationMenu", true, CATEGORY_OTHER]);
+            tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category) VALUES (?,?,?,?,?)', [MODULE_MENSTRUATION, MODULE_TYPE_SUMMARY, "Menstruation", true, CATEGORY_OTHER]);
         }
     });
 }
@@ -238,6 +315,8 @@ function addProfile(firstName, lastName, gender, birthDate) {
         var rs = tx.executeSql('INSERT INTO Profiles (firstName, lastName, gender, birthDate) VALUES (?,?,?,?)',
             [firstName, lastName, gender, birthDate]);
         id = rs.insertId;
+        var rs = tx.executeSql('INSERT INTO ProfileMetrics (profileId,metricId) SELECT ?,id FROM Metrics WHERE bydefault', [id]);
+        var rs = tx.executeSql('INSERT INTO ProfileModules (profileId,moduleId) SELECT ?,id FROM Modules WHERE bydefault', [id]);
     });
     return id;
 }
@@ -301,11 +380,23 @@ function getMetricUnit(metricName) {
     return unit;
 }
 
+function getMetricGrouped(metricName) {
+    var grouped = false;
+    var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
+    db.transaction(function (tx) {
+        var rs = tx.executeSql('SELECT grouped FROM Metrics WHERE name=?', [metricName]);
+        if (rs.rows.length > 0) {
+            grouped = rs.rows.item(0).grouped;
+        }
+    });
+    return grouped;
+}
+
 function getMetrics() {
     var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
     var metrics = [];
     db.transaction(function (tx) {
-        var rs = tx.executeSql('SELECT * FROM Metrics');
+        var rs = tx.executeSql('SELECT * FROM Metrics ORDER BY category,name');
         for (var i = 0; i < rs.rows.length; i++) {
             metrics.push(rs.rows.item(i));
         }
@@ -316,12 +407,27 @@ function getMetrics() {
 function getMetricsToModel(a_model) {
     var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
     db.transaction(function (tx) {
-        var rs = tx.executeSql('SELECT id,name,unit FROM Metrics');
+        var rs = tx.executeSql('SELECT * FROM Metrics ORDER BY category,name');
         a_model.clear();
         for (var i = 0; i < rs.rows.length; i++) {
             a_model.append(rs.rows.item(i));
         }
     });
+}
+
+function calculateMetrics(profileId, calculate) {
+    var s = calculate;
+    // get all metrics and last value in a object
+    var metrics = getLatestLogValues(profileId);
+    print("check metrics in " + s);
+    for (var k in metrics) {
+        print(k);
+        print(metrics[k]);
+        s = s.replace(RegExp(k, 'g'), metrics[k]);
+    }
+    print("after metrics in " + s);
+    // do a replace_all
+    return eval(s);
 }
 
 // Log Operations
@@ -373,6 +479,19 @@ function getLatestLogValue(profileId, metricName) {
         }
     });
     return value;
+}
+
+function getLatestLogValues(profileId) {
+    var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
+    var values = {};
+    db.transaction(function (tx) {
+        var rs = tx.executeSql('SELECT m.name, l.value FROM HealthLogs l LEFT JOIN Metrics m ON l.metricId = m.id ' +
+            'WHERE l.profileId=? ORDER BY l.timestamp', [profileId]);
+        for (var i = 0; i < rs.rows.length; i++) {
+            values[rs.rows.item(i).name] = rs.rows.item(i).value;
+        }
+    });
+    return values;
 }
 
 function getLatestDayLogValue(profileId, metricName) {
@@ -698,6 +817,60 @@ function deleteMeditationHistory(profileId) {
     var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
     db.transaction(function (tx) {
         tx.executeSql('DELETE FROM MeditationSessions WHERE profileId=?', [profileId]);
+    });
+}
+
+// Module Settings
+function addModulesToModel(profileId, a_model, on_only) {
+    var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
+    db.transaction(function (tx) {
+        var rs = tx.executeSql('SELECT id,name,type,category,uses,( SELECT ProfileModules.profileId FROM ProfileModules WHERE Modules.id=ProfileModules.moduleId AND ProfileModules.profileId=? ) IS NOT NULL AS is_on FROM Modules ' + (on_only ? 'WHERE is_on' : '') + ' ORDER BY category,name', [profileId]);
+        for (var i = 0; i < rs.rows.length; i++) {
+            a_model.append(rs.rows.item(i));
+        }
+        print("modules: " + rs.rows.length);
+    });
+}
+
+function addProfileModule(profileId, moduleId) {
+    var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
+    db.transaction(function (tx) {
+        tx.executeSql('INSERT OR IGNORE INTO ProfileModules (profileId, moduleId) VALUES (?, ?)', [profileId, moduleId]);
+    });
+}
+
+function removeProfileModule(profileId, moduleId) {
+    var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
+    db.transaction(function (tx) {
+        tx.executeSql('DELETE FROM ProfileModules WHERE profileId=? AND moduleId=?', [profileId, moduleId]);
+    });
+}
+
+// Metric Settings
+function addMetricsToModel(profileId, a_model) {
+    var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
+    db.transaction(function (tx) {
+        var rs = tx.executeSql('SELECT id,category,metrics.name AS metricName,metrics.unit AS metricUnit,(SELECT value FROM HealthLogs WHERE metricId=Metrics.id AND profileId=? ORDER BY timestamp LIMIT 1) AS lastValue,( SELECT ProfileMetrics.profileId FROM ProfileMetrics WHERE Metrics.id=ProfileMetrics.metricId AND ProfileMetrics.profileId=? ) IS NOT NULL AS is_on FROM Metrics ORDER BY category,metricName', [profileId, profileId]);
+        for (var i = 0; i < rs.rows.length; i++) {
+            a_model.append(rs.rows.item(i));
+        }
+        print("metrics: " + rs.rows.length);
+    });
+}
+
+function addProfileMetric(profileId, metricId) {
+    print("add metric: " + metricId);
+    var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
+    db.transaction(function (tx) {
+        tx.executeSql('INSERT OR IGNORE INTO ProfileMetrics (profileId, metricId) VALUES (?, ?)', [profileId, metricId]);
+    });
+}
+
+function removeProfileMetric(profileId, metricId) {
+    print("remove metric: " + metricId);
+    var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
+    db.transaction(function (tx) {
+        tx.executeSql('DELETE FROM ProfileMetrics WHERE profileId=? AND metricId=?', [profileId, metricId]);
     });
 }
 

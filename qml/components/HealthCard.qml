@@ -2,7 +2,7 @@ import QtQuick 2.0
 import Sailfish.Silica 1.0
 import "../js/DataManager.js" as DataManager
 
-BackgroundItem {
+GridItem {
     id: root
     
     property int profileId: -1
@@ -12,21 +12,29 @@ BackgroundItem {
     property bool grouped: false
     property var value
     property var unit
+    property var clickThrough
+    property var calculate
     property var invalidateSignal
-
-    width: parent.width
-    height: Theme.itemSizeHuge
 
     function refreshValue() {
         print("MetricCard " + root.metricName + ": refreshValue is called for profile " + root.profileId);
+        if (root.clickThrough) {
+            root.value = '';
+        }
         if (root.profileId >= 0) {
-            if (root.grouped) {
-                root.value = DataManager.getLatestDayLogValue(root.profileId, root.metricName);
-                print("MetricCard " + root.metricName + ": value is now " + root.value + " for profile " + root.profileId);
+            if (root.calculate) {
+                root.value = DataManager.calculateMetrics(root.profileId, root.calculate);
             }
-            else {
-                root.value = DataManager.getLatestLogValue(root.profileId, root.metricName);
-                print("MetricCard " + root.metricName + ": value is now " + root.value + " for profile " + root.profileId);
+            else if (root.metricName) {
+                root.grouped = DataManager.getMetricGrouped(root.metricName);
+                if (DataManager.getMetricGrouped(root.metricName)) {
+                    root.value = DataManager.getLatestDayLogValue(root.profileId, root.metricName);
+                    print("MetricCard " + root.metricName + ": value is now " + root.value + " for profile " + root.profileId);
+                }
+                else {
+                    root.value = DataManager.getLatestLogValue(root.profileId, root.metricName);
+                    print("MetricCard " + root.metricName + ": value is now " + root.value + " for profile " + root.profileId);
+                }
             }
         }
     }
@@ -65,13 +73,13 @@ BackgroundItem {
                 spacing: Theme.paddingSmall
                 
                 Label {
-                    text: root.value ? root.value : '?'
+                    text: root.value != undefined ? root.value : '?'
                     font.pixelSize: Theme.fontSizeLarge
                     color: Theme.primaryColor
                 }
                 
                 Label {
-                    text: root.unit
+                    text: root.unit ? root.unit : ''
                     font.pixelSize: Theme.fontSizeSmall
                     color: Theme.secondaryColor
                     anchors.bottom: parent.bottom
@@ -82,7 +90,7 @@ BackgroundItem {
     }
 
     onClicked: {
-        if (root.profileId >= 0) {
+        if (root.profileId >= 0 && root.metricName) {
             pageStack.animatorPush(Qt.resolvedUrl("../pages/MetricDetails.qml"), {
                 profileId: root.profileId,
                 grouped: root.grouped,
@@ -91,16 +99,25 @@ BackgroundItem {
                 invalidateSignal: root.invalidateSignal
             });
         }
+        else if (root.profileId >= 0 && root.clickThrough) {
+            pageStack.animatorPush(Qt.resolvedUrl('../pages/' + root.clickThrough + ".qml"), {
+                profileId: mainPage.profileId
+            });
+        }
     }
 
-    onMetricNameChanged: root.unit = DataManager.getMetricUnit(root.metricName);
+    onMetricNameChanged: {
+        if (root.metricName) {
+            root.unit = DataManager.getMetricUnit(root.metricName);
+        }
+    }
 
     onProfileIdChanged: refreshValue();
 
     Component.onCompleted: {
-        root.invalidateSignal.connect(root.invalidateMetric);
-        //root.unit = DataManager.getMetricUnit(root.metricName);
-        //refreshValue();
+        if (root.invalidateSignal) {
+            root.invalidateSignal.connect(root.invalidateMetric);
+        }
     }
 }
 
