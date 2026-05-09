@@ -29,7 +29,6 @@ Page {
 	    if (mainPage.profileId >= 0) {
 	        mainPage.profile = DataManager.getProfile(mainPage.profileId);
             refreshModules();
-            bmiCard.calculate();
             mainPage.countVaccines = DataManager.getVaccineCount(mainPage.profileId);
         }
     }
@@ -80,7 +79,8 @@ Page {
                 text: qsTr("Add entry")
                 visible: mainPage.profileId >= 0
                 onClicked: pageStack.animatorPush(Qt.resolvedUrl("addEntryMetric.qml"), {
-                    profileId: mainPage.profileId
+                    profileId: mainPage.profileId,
+                    invalidateSignal: mainPage.invalidateMetric
                 })
             }
         }
