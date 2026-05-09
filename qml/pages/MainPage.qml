@@ -29,7 +29,6 @@ Page {
 	    if (mainPage.profileId >= 0) {
 	        mainPage.profile = DataManager.getProfile(mainPage.profileId);
             refreshModules();
-            bmiCard.calculate();
             mainPage.countVaccines = DataManager.getVaccineCount(mainPage.profileId);
         }
     }
@@ -125,6 +124,7 @@ Page {
                 visible: model.is_on
                 profileId: mainPage.profileId
                 metricName: model.type == DataManager.MODULE_TYPE_METRIC ? model.uses : ''
+                unit: model.unit ? model.unit: undefined
                 clickThrough: model.type == DataManager.MODULE_TYPE_SUMMARY ? model.uses : undefined
                 calculate: model.type == DataManager.MODULE_TYPE_CALC ? model.uses : undefined
                 invalidateSignal: mainPage.invalidateMetric
