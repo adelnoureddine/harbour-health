@@ -6,6 +6,7 @@ var DB_NAME = "HarbourHealth";
 var DB_VERSION = "2.0";
 var DB_DESCRIPTION = "Harbour Health Application Database";
 var DB_SIZE = 1000000;
+var DB_MIGRATE_VERSION = '1';
 
 // Category
 var CATEGORY_BODY = "Body";
@@ -124,10 +125,49 @@ function filteredSumFromModel(a_model, a_filter, a_field) {
     return total;
 }
 
+function dbmigrate(oldversion) {
+    if (oldversion == DB_MIGRATE_VERSION) {
+        return true;
+    }
+    var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
+
+    /**
+     * this is example code on how to alter the tables and insert stuff and update values for later
+     *
+    if (oldversion < 1) {
+        db.transaction(function (tx) {
+            // add transaction things
+            tx.executeSql('UPDATE DBVersion SET version=(?)', [1]);
+        });
+        oldversion = 1;
+    }
+
+    if (oldversion < 2) {
+        db.transaction(function (tx) {
+            // add transaction things
+            tx.executeSql('UPDATE DBVersion SET version=(?)', [2]);
+        });
+        oldversion = 2;
+    }
+    */
+
+    return false;
+}
+
 // Initialize the database and tables
 function init() {
     var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
     db.transaction(function (tx) {
+        // DBVersion
+        tx.executeSql('CREATE TABLE IF NOT EXISTS DBVersion (' +
+            'version INTEGER PRIMARY KEY)');
+        var rs = tx.executeSql('SELECT version FROM DBVersion ORDER BY version DESC LIMIT 1');
+        if (rs.rows.length > 0) {
+            // if we find a version, let's migrate it to the latest one
+            return dbmigrate(rs.rows.item(0).version);
+        }
+        // else, we create all new
+
         // PROFILES
         tx.executeSql('CREATE TABLE IF NOT EXISTS Profiles (' +
             'id INTEGER PRIMARY KEY AUTOINCREMENT, ' +
@@ -147,6 +187,34 @@ function init() {
             'bydefault BOOLEAN DEFAULT TRUE, ' +
             'category TEXT)');
 
+        // Food Definitions
+        tx.executeSql('CREATE TABLE IF NOT EXISTS Food (' +
+            'id INTEGER PRIMARY KEY AUTOINCREMENT, ' +
+            'name TEXT NOT NULL, ' +
+            'description TEXT NOT NULL, ' +
+            'defaultamount REAL NOT NULL, ' +
+            'category TEXT)');
+
+        // Food Metrics
+        tx.executeSql('CREATE TABLE IF NOT EXISTS FoodMetrics (' +
+            'foodId INTEGER NOT NULL, ' +
+            'metricId INTEGER NOT NULL, ' +
+            'referencevalue REAL NOT NULL, ' +
+            'PRIMARY KEY(foodId,metricId) ' +
+            'FOREIGN KEY(foodId) REFERENCES Food(id), ' +
+            'FOREIGN KEY(metricId) REFERENCES Metrics(id))');
+
+        // Consumption LOGS
+        tx.executeSql('CREATE TABLE IF NOT EXISTS FoodLogs (' +
+            'id INTEGER PRIMARY KEY AUTOINCREMENT, ' +
+            'profileId INTEGER NOT NULL, ' +
+            'foodId INTEGER NOT NULL, ' +
+            'timestamp DATETIME DEFAULT CURRENT_TIMESTAMP, ' +
+            'value REAL NOT NULL, ' +
+            'note TEXT, ' +
+            'FOREIGN KEY(profileId) REFERENCES Profiles(id), ' +
+            'FOREIGN KEY(foodId) REFERENCES Food(id))');
+
         // PROFILE METRICS
         tx.executeSql('CREATE TABLE IF NOT EXISTS ProfileMetrics (' +
             'profileId INTEGER NOT NULL, ' +
@@ -160,11 +228,13 @@ function init() {
             'id INTEGER PRIMARY KEY AUTOINCREMENT, ' +
             'profileId INTEGER NOT NULL, ' +
             'metricId INTEGER NOT NULL, ' +
+            'foodId INTEGER NULL, ' +
             'timestamp DATETIME DEFAULT CURRENT_TIMESTAMP, ' +
             'value REAL NOT NULL, ' +
             'note TEXT, ' +
             'FOREIGN KEY(profileId) REFERENCES Profiles(id), ' +
-            'FOREIGN KEY(metricId) REFERENCES Metrics(id))');
+            'FOREIGN KEY(metricId) REFERENCES Metrics(id),' +
+            'FOREIGN KEY(foodId) REFERENCES Food(id))');
 
         // VACCINES
         tx.executeSql('CREATE TABLE IF NOT EXISTS Vaccines (' +
@@ -241,6 +311,9 @@ function init() {
             tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category) VALUES (?,?,?,?,?)', [MODULE_MEDITATION, MODULE_TYPE_SUMMARY, "MeditationMenu", true, CATEGORY_OTHER]);
             tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category) VALUES (?,?,?,?,?)', [MODULE_MENSTRUATION, MODULE_TYPE_SUMMARY, "Menstruation", true, CATEGORY_OTHER]);
         }
+
+        // insert db version
+        tx.executeSql('INSERT INTO DBVersion (version) VALUES (?)', [DB_MIGRATE_VERSION]);
     });
 }
 
