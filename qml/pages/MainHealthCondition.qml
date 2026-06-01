@@ -30,6 +30,10 @@ Page {
                 text: qsTr("Add Condition")
                 onClicked: pageStack.animatorPush(Qt.resolvedUrl("AddAndEditIllness.qml"), {profileId: root.profileId})
             }
+            MenuItem {
+                    text: qsTr("All Medications")
+                    onClicked: pageStack.animatorPush(Qt.resolvedUrl("AllMedications.qml"), {profileId: root.profileId})
+            }
         }
 
         model: listModel

@@ -22,8 +22,10 @@ DISTFILES += \
     qml/pages/AboutPage.qml \
     qml/pages/AddNewCycle.qml \
     qml/pages/AddTodayInfo.qml \
+    qml/pages/AllMedications.qml \
     qml/pages/HistoryOfAllCycle.qml \
     qml/pages/HistoryOfOneCycle.qml \
+    qml/pages/LogMedicationIntake.qml \
     qml/pages/Menstruation.qml \
     qml/pages/AddVaccine.qml \
     qml/pages/VaccineDetails.qml \
@@ -51,6 +53,7 @@ DISTFILES += \
     rpm/harbour-health.yaml \
     translations/*.ts \
     harbour-health.desktop
+
 
 SAILFISHAPP_ICONS = 86x86 108x108 128x128 172x172
 
