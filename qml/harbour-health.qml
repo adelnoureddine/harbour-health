@@ -13,6 +13,9 @@ ApplicationWindow {
     Component.onCompleted: {
         DataManager.init();
         loadActiveProfile();
+        if (DataManager.countProfiles() === 0) {
+            pageStack.push(Qt.resolvedUrl("pages/createProfile.qml"));
+        }
     }
 
     function loadActiveProfile() {

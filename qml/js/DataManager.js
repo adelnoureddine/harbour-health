@@ -232,7 +232,7 @@ function init() {
             tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category) VALUES (?,?,?,?,?)', [MODULE_HEIGHT, MODULE_TYPE_METRIC, METRIC_HEIGHT, true, CATEGORY_BODY]);
             tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category) VALUES (?,?,?,?,?)', [MODULE_BMI, MODULE_TYPE_CALC, "(" + METRIC_WEIGHT + "*10000/(" + METRIC_HEIGHT + "*" + METRIC_HEIGHT + ")).toFixed(1)", true, CATEGORY_BODY]);
             tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category) VALUES (?,?,?,?,?)', [MODULE_CALORIES, MODULE_TYPE_METRIC, METRIC_CALORIES, true, CATEGORY_NUTRITION]);
-            tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category) VALUES (?,?,?,?,?)', [MODULE_WATER, MODULE_TYPE_METRIC, METRIC_WATER, false, CATEGORY_NUTRITION]);
+            tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category) VALUES (?,?,?,?,?)', [MODULE_WATER, MODULE_TYPE_METRIC, METRIC_WATER, true, CATEGORY_NUTRITION]);
             tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category) VALUES (?,?,?,?,?)', [MODULE_HEARTRATE, MODULE_TYPE_METRIC, METRIC_HEARTRATE, true, CATEGORY_BLOOD]);
             tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category) VALUES (?,?,?,?,?)', [MODULE_BP, MODULE_TYPE_CALC, "(" + METRIC_BP_SYS + ").toFixed(1)+'/'+(" + METRIC_BP_DIA + ").toFixed(1)", true, CATEGORY_BLOOD]);
             tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category) VALUES (?,?,?,?,?)', [MODULE_GLUCOSE, MODULE_TYPE_METRIC, METRIC_GLUCOSE, true, CATEGORY_BLOOD]);
