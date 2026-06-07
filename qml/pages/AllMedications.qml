@@ -43,12 +43,6 @@ Page {
                     text: model.name
                     color: Theme.primaryColor
                 }
-
-                Label {
-                    text: qsTr("%1 — %2").arg(model.type).arg(model.unit)
-                    font.pixelSize: Theme.fontSizeExtraSmall
-                    color: Theme.secondaryColor
-                }
             }
         }
 
