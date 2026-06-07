@@ -27,7 +27,7 @@ GridItem {
             }
             else if (root.metricName) {
                 root.grouped = DataManager.getMetricGrouped(root.metricName);
-                if (DataManager.getMetricGrouped(root.metricName)) {
+                if (root.grouped) {
                     root.value = DataManager.getLatestDayLogValue(root.profileId, root.metricName);
                     print("MetricCard " + root.metricName + ": value is now " + root.value + " for profile " + root.profileId);
                 }
@@ -122,7 +122,7 @@ GridItem {
     }
 
     onMetricNameChanged: {
-        if (root.metricName) {
+        if (root.metricName && root.unit == undefined) {
             root.unit = DataManager.getMetricUnit(root.metricName);
         }
     }
