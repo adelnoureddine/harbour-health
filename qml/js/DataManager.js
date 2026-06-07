@@ -282,6 +282,7 @@ function init() {
         tx.executeSql('CREATE TABLE IF NOT EXISTS MenstrualCycles (id INTEGER PRIMARY KEY AUTOINCREMENT, profileId INTEGER, startDate TEXT, endDate TEXT, note TEXT)');
         tx.executeSql('CREATE TABLE IF NOT EXISTS MenstrualLogs (id INTEGER PRIMARY KEY AUTOINCREMENT, profileId INTEGER, date TEXT, flow TEXT, pain TEXT, energy TEXT, sleepTime REAL, note TEXT)');
         tx.executeSql('CREATE TABLE IF NOT EXISTS MeditationSessions (id INTEGER PRIMARY KEY AUTOINCREMENT, profileId INTEGER, date DATETIME DEFAULT CURRENT_TIMESTAMP, duration INTEGER, name TEXT)');
+        tx.executeSql('CREATE TABLE IF NOT EXISTS MedicationLogs (id INTEGER PRIMARY KEY AUTOINCREMENT, profileId INTEGER NOT NULL, medicationId INTEGER NOT NULL, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP, note TEXT, FOREIGN KEY(profileId) REFERENCES Profiles(id), FOREIGN KEY(medicationId) REFERENCES Medications(id))');
 
         // Seed default metrics if empty
         var rs = tx.executeSql('SELECT count(*) as count FROM Metrics');
@@ -897,6 +898,43 @@ function deleteMeditationHistory(profileId) {
     db.transaction(function (tx) {
         tx.executeSql('DELETE FROM MeditationSessions WHERE profileId=?', [profileId]);
     });
+}
+
+// Medication Log Operations
+function addMedicationLog(profileId, medicationId, timestamp, note) {
+    var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
+    db.transaction(function (tx) {
+        tx.executeSql('INSERT INTO MedicationLogs (profileId, medicationId, timestamp, note) VALUES (?, ?, ?, ?)',
+            [profileId, medicationId, timestamp, note || ""]);
+    });
+}
+
+function getMedicationLogsToday(profileId, medicationId) {
+    var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
+    var logs = [];
+    db.transaction(function (tx) {
+        var rs = tx.executeSql(
+            'SELECT * FROM MedicationLogs WHERE profileId=? AND medicationId=? AND date(timestamp)=date("now") ORDER BY timestamp DESC',
+            [profileId, medicationId]);
+        for (var i = 0; i < rs.rows.length; i++) {
+            logs.push(rs.rows.item(i));
+        }
+    });
+    return logs;
+}
+
+function getMedicationLogsHistory(profileId, medicationId) {
+    var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
+    var logs = [];
+    db.transaction(function (tx) {
+        var rs = tx.executeSql(
+            'SELECT * FROM MedicationLogs WHERE profileId=? AND medicationId=? ORDER BY timestamp DESC',
+            [profileId, medicationId]);
+        for (var i = 0; i < rs.rows.length; i++) {
+            logs.push(rs.rows.item(i));
+        }
+    });
+    return logs;
 }
 
 // Module Settings
