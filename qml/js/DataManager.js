@@ -267,7 +267,8 @@ function init() {
             'uses TEXT NOT NULL, ' +
             'unit TEXT NULL, ' +
             'bydefault BOOLEAN DEFAULT TRUE, ' +
-            'category TEXT)');
+            'category TEXT, ' +
+            'icon TEXT)');
 
         // PROFILE MODULES
         tx.executeSql('CREATE TABLE IF NOT EXISTS ProfileModules (' +
@@ -300,18 +301,18 @@ function init() {
         // Seed default modules if empty
         var rs = tx.executeSql('SELECT count(*) as count FROM Modules');
         if (rs.rows.item(0).count === 0) {
-            tx.executeSql('INSERT INTO Modules (name, type, uses, unit, bydefault, category) VALUES (?,?,?,?,?,?)', [MODULE_WEIGHT, MODULE_TYPE_METRIC, METRIC_WEIGHT, null, true, CATEGORY_BODY]);
-            tx.executeSql('INSERT INTO Modules (name, type, uses, unit, bydefault, category) VALUES (?,?,?,?,?,?)', [MODULE_HEIGHT, MODULE_TYPE_METRIC, METRIC_HEIGHT, null, true, CATEGORY_BODY]);
-            tx.executeSql('INSERT INTO Modules (name, type, uses, unit, bydefault, category) VALUES (?,?,?,?,?,?)', [MODULE_BMI, MODULE_TYPE_CALC, "(" + METRIC_WEIGHT + "*10000/(" + METRIC_HEIGHT + "*" + METRIC_HEIGHT + ")).toFixed(1)", null, true, CATEGORY_BODY]);
-            tx.executeSql('INSERT INTO Modules (name, type, uses, unit, bydefault, category) VALUES (?,?,?,?,?,?)', [MODULE_CALORIES, MODULE_TYPE_METRIC, METRIC_CALORIES, null, true, CATEGORY_NUTRITION]);
-            tx.executeSql('INSERT INTO Modules (name, type, uses, unit, bydefault, category) VALUES (?,?,?,?,?,?)', [MODULE_WATER, MODULE_TYPE_METRIC, METRIC_WATER, null, false, CATEGORY_NUTRITION]);
-            tx.executeSql('INSERT INTO Modules (name, type, uses, unit, bydefault, category) VALUES (?,?,?,?,?,?)', [MODULE_HEARTRATE, MODULE_TYPE_METRIC, METRIC_HEARTRATE, null, true, CATEGORY_BLOOD]);
-            tx.executeSql('INSERT INTO Modules (name, type, uses, unit, bydefault, category) VALUES (?,?,?,?,?,?)', [MODULE_BP, MODULE_TYPE_CALC, "(" + METRIC_BP_SYS + ").toFixed(1)+'/'+(" + METRIC_BP_DIA + ").toFixed(1)+'@'+" + METRIC_HEARTRATE, 'mmHg', true, CATEGORY_BLOOD]);
-            tx.executeSql('INSERT INTO Modules (name, type, uses, unit, bydefault, category) VALUES (?,?,?,?,?,?)', [MODULE_GLUCOSE, MODULE_TYPE_METRIC, METRIC_GLUCOSE, null, true, CATEGORY_BLOOD]);
-            tx.executeSql('INSERT INTO Modules (name, type, uses, unit, bydefault, category) VALUES (?,?,?,?,?,?)', [MODULE_CONDITION, MODULE_TYPE_SUMMARY, "MainHealthCondition", null, true, CATEGORY_OTHER]);
-            tx.executeSql('INSERT INTO Modules (name, type, uses, unit, bydefault, category) VALUES (?,?,?,?,?,?)', [MODULE_VACCINATION, MODULE_TYPE_SUMMARY, "VaccinesList", null, true, CATEGORY_OTHER]);
-            tx.executeSql('INSERT INTO Modules (name, type, uses, unit, bydefault, category) VALUES (?,?,?,?,?,?)', [MODULE_MEDITATION, MODULE_TYPE_SUMMARY, "MeditationMenu", null, true, CATEGORY_OTHER]);
-            tx.executeSql('INSERT INTO Modules (name, type, uses, unit, bydefault, category) VALUES (?,?,?,?,?,?)', [MODULE_MENSTRUATION, MODULE_TYPE_SUMMARY, "Menstruation", null, true, CATEGORY_OTHER]);
+            tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category, icon) VALUES (?,?,?,?,?,?)', [MODULE_WEIGHT, MODULE_TYPE_METRIC, METRIC_WEIGHT, true, CATEGORY_BODY, "scale.png"]);
+            tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category, icon) VALUES (?,?,?,?,?,?)', [MODULE_HEIGHT, MODULE_TYPE_METRIC, METRIC_HEIGHT, true, CATEGORY_BODY, "height.png"]);
+            tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category, icon) VALUES (?,?,?,?,?,?)', [MODULE_BMI, MODULE_TYPE_CALC, "(" + METRIC_WEIGHT + "*10000/(" + METRIC_HEIGHT + "*" + METRIC_HEIGHT + ")).toFixed(1)", true, CATEGORY_BODY, "gauge.png"]);
+            tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category, icon) VALUES (?,?,?,?,?,?)', [MODULE_CALORIES, MODULE_TYPE_METRIC, METRIC_CALORIES, true, CATEGORY_NUTRITION, "fire.png"]);
+            tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category, icon) VALUES (?,?,?,?,?,?)', [MODULE_WATER, MODULE_TYPE_METRIC, METRIC_WATER, false, CATEGORY_NUTRITION, "water.png"]);
+            tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category, icon) VALUES (?,?,?,?,?,?)', [MODULE_HEARTRATE, MODULE_TYPE_METRIC, METRIC_HEARTRATE, true, CATEGORY_BLOOD, "heart-pulse.png"]);
+            tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category, icon) VALUES (?,?,?,?,?,?)', [MODULE_BP, MODULE_TYPE_CALC, "(" + METRIC_BP_SYS + ").toFixed(1)+'/'+(" + METRIC_BP_DIA + ").toFixed(1)", true, CATEGORY_BLOOD, "blood-pressure.svg"]);
+            tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category, icon) VALUES (?,?,?,?,?,?)', [MODULE_GLUCOSE, MODULE_TYPE_METRIC, METRIC_GLUCOSE, true, CATEGORY_BLOOD, "diabetes.png"]);
+            tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category, icon) VALUES (?,?,?,?,?,?)', [MODULE_CONDITION, MODULE_TYPE_SUMMARY, "MainHealthCondition", true, CATEGORY_OTHER, "medical-bag.png"]);
+            tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category, icon) VALUES (?,?,?,?,?,?)', [MODULE_VACCINATION, MODULE_TYPE_SUMMARY, "VaccinesList", true, CATEGORY_OTHER, "needle.png"]);
+            tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category, icon) VALUES (?,?,?,?,?,?)', [MODULE_MEDITATION, MODULE_TYPE_SUMMARY, "MeditationMenu", true, CATEGORY_OTHER, "meditation.png"]);
+            tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category, icon) VALUES (?,?,?,?,?,?)', [MODULE_MENSTRUATION, MODULE_TYPE_SUMMARY, "Menstruation", true, CATEGORY_OTHER, "calendar-heart.png"]);
         }
 
         // insert db version
@@ -941,7 +942,7 @@ function getMedicationLogsHistory(profileId, medicationId) {
 function addModulesToModel(profileId, a_model, on_only) {
     var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
     db.transaction(function (tx) {
-        var rs = tx.executeSql('SELECT id,name,type,category,uses,unit,( SELECT ProfileModules.profileId FROM ProfileModules WHERE Modules.id=ProfileModules.moduleId AND ProfileModules.profileId=? ) IS NOT NULL AS is_on FROM Modules ' + (on_only ? 'WHERE is_on' : '') + ' ORDER BY category,name', [profileId]);
+        var rs = tx.executeSql('SELECT id,name,type,category,uses,icon,( SELECT ProfileModules.profileId FROM ProfileModules WHERE Modules.id=ProfileModules.moduleId AND ProfileModules.profileId=? ) IS NOT NULL AS is_on FROM Modules ' + (on_only ? 'WHERE is_on' : '') + ' ORDER BY category,name', [profileId]);
         for (var i = 0; i < rs.rows.length; i++) {
             a_model.append(rs.rows.item(i));
         }

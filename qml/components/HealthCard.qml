@@ -55,10 +55,25 @@ GridItem {
             anchors.centerIn: parent
             spacing: Theme.paddingSmall
 
-            Icon {
+            Image {
                 source: root.icon
                 anchors.horizontalCenter: parent.horizontalCenter
-                color: highlighted ? Theme.highlightColor : Theme.primaryColor
+                width: Theme.iconSizeMedium
+                height: Theme.iconSizeMedium
+                fillMode: Image.PreserveAspectFit
+                smooth: true
+                opacity: highlighted ? 1.0 : 0.8
+                layer.enabled: true
+                layer.effect: ShaderEffect {
+                    fragmentShader: "
+                        uniform lowp sampler2D source;
+                        uniform lowp float qt_Opacity;
+                        varying highp vec2 qt_TexCoord0;
+                        void main() {
+                            lowp vec4 tex = texture2D(source, qt_TexCoord0);
+                            gl_FragColor = vec4(tex.a, tex.a, tex.a, tex.a) * qt_Opacity;
+                        }"
+                }
             }
 
             Label {

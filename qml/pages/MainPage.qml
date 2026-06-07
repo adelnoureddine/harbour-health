@@ -120,7 +120,7 @@ Page {
             model: modelModules
 
             delegate: HealthCard {
-                icon: "image://theme/icon-m-health"
+                icon: model.icon ? Qt.resolvedUrl("../icons/" + model.icon) : "image://theme/icon-m-health"
                 title: model.name
                 visible: model.is_on
                 profileId: mainPage.profileId
