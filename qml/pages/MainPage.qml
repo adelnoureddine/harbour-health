@@ -79,7 +79,8 @@ Page {
                 text: qsTr("Add entry")
                 visible: mainPage.profileId >= 0
                 onClicked: pageStack.animatorPush(Qt.resolvedUrl("addEntryMetric.qml"), {
-                    profileId: mainPage.profileId
+                    profileId: mainPage.profileId,
+                    invalidateSignal: mainPage.invalidateMetric
                 })
             }
         }
