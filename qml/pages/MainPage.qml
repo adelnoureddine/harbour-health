@@ -29,7 +29,6 @@ Page {
 	    if (mainPage.profileId >= 0) {
 	        mainPage.profile = DataManager.getProfile(mainPage.profileId);
             refreshModules();
-            bmiCard.calculate();
             mainPage.countVaccines = DataManager.getVaccineCount(mainPage.profileId);
         }
     }
@@ -80,7 +79,8 @@ Page {
                 text: qsTr("Add entry")
                 visible: mainPage.profileId >= 0
                 onClicked: pageStack.animatorPush(Qt.resolvedUrl("addEntryMetric.qml"), {
-                    profileId: mainPage.profileId
+                    profileId: mainPage.profileId,
+                    invalidateSignal: mainPage.invalidateMetric
                 })
             }
         }
@@ -120,11 +120,12 @@ Page {
             model: modelModules
 
             delegate: HealthCard {
-                icon: "image://theme/icon-m-health"
+                icon: model.icon ? Qt.resolvedUrl("../icons/" + model.icon) : "image://theme/icon-m-health"
                 title: model.name
                 visible: model.is_on
                 profileId: mainPage.profileId
                 metricName: model.type == DataManager.MODULE_TYPE_METRIC ? model.uses : ''
+                unit: model.unit ? model.unit: undefined
                 clickThrough: model.type == DataManager.MODULE_TYPE_SUMMARY ? model.uses : undefined
                 calculate: model.type == DataManager.MODULE_TYPE_CALC ? model.uses : undefined
                 invalidateSignal: mainPage.invalidateMetric

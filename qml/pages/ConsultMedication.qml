@@ -11,77 +11,112 @@ Page {
     property string medicationName
 
     function refresh() {
-        listModel.clear();
-        var treatments = DataManager.getTreatments(profileId, medicationId);
-        treatments.forEach(function(t) {
-            listModel.append(t);
-        });
+        todayModel.clear();
+        historyModel.clear();
+        var today = DataManager.getMedicationLogsToday(profileId, medicationId);
+        today.forEach(function(l) { todayModel.append(l); });
+        var history = DataManager.getMedicationLogsHistory(profileId, medicationId);
+        history.forEach(function(l) { historyModel.append(l); });
     }
 
-    SilicaListView {
+    SilicaFlickable {
         anchors.fill: parent
-
-        header: PageHeader {
-            title: qsTr("Medication: %1").arg(medicationName)
-        }
+        contentHeight: column.height
 
         PullDownMenu {
             MenuItem {
-                text: qsTr("Add Treatment")
-                onClicked: pageStack.animatorPush(Qt.resolvedUrl("AddAndEditMedication.qml"), {
+                text: qsTr("Log intake")
+                onClicked: pageStack.animatorPush(Qt.resolvedUrl("LogMedicationIntake.qml"), {
                     profileId: page.profileId,
-                    medicationId: page.medicationId
+                    medicationId: page.medicationId,
+                    medicationName: page.medicationName
                 })
             }
         }
 
-        model: listModel
+        Column {
+            id: column
+            width: parent.width
+            spacing: Theme.paddingLarge
 
-        delegate: ListItem {
-            contentHeight: Theme.itemSizeLarge
-            
-            Column {
-                anchors.verticalCenter: parent.verticalCenter
-                x: Theme.horizontalPageMargin
-                width: parent.width - 2 * Theme.horizontalPageMargin
+            PageHeader {
+                title: medicationName
+            }
 
-                Label {
-                    text: qsTr("Dosage: %1").arg(model.dosage)
-                    color: Theme.primaryColor
-                }
-                Label {
-                    text: qsTr("Frequency: %1").arg(model.frequency)
-                    font.pixelSize: Theme.fontSizeExtraSmall
-                    color: Theme.secondaryColor
-                }
-                Label {
-                    text: qsTr("%1 to %2").arg(model.startDate).arg(model.endDate || qsTr("ongoing"))
-                    font.pixelSize: Theme.fontSizeExtraSmall
-                    color: Theme.secondaryColor
+            SectionHeader {
+                text: qsTr("Today's intakes")
+            }
+
+            Repeater {
+                model: todayModel
+                delegate: ListItem {
+                    contentHeight: Theme.itemSizeSmall
+                    Column {
+                        anchors.verticalCenter: parent.verticalCenter
+                        x: Theme.horizontalPageMargin
+                        Label {
+                            text: new Date(model.timestamp).toLocaleTimeString()
+                            color: Theme.highlightColor
+                            font.pixelSize: Theme.fontSizeMedium
+                        }
+                        Label {
+                            text: model.note || qsTr("No note")
+                            font.pixelSize: Theme.fontSizeExtraSmall
+                            color: Theme.secondaryColor
+                            visible: true
+                        }
+                    }
                 }
             }
-        }
 
-        ViewPlaceholder {
-            enabled: listModel.count === 0
-            text: qsTr("No treatments found")
-            hintText: qsTr("Pull down to add a treatment")
-        }
+            Label {
+                x: Theme.horizontalPageMargin
+                text: qsTr("No intakes today")
+                color: Theme.secondaryColor
+                font.pixelSize: Theme.fontSizeSmall
+                visible: todayModel.count === 0
+            }
 
-        VerticalScrollDecorator {}
+            SectionHeader {
+                text: qsTr("History")
+            }
+
+            Repeater {
+                model: historyModel
+                delegate: ListItem {
+                    contentHeight: Theme.itemSizeSmall
+                    Column {
+                        anchors.verticalCenter: parent.verticalCenter
+                        x: Theme.horizontalPageMargin
+                        Label {
+                            text: new Date(model.timestamp).toLocaleString()
+                            color: Theme.primaryColor
+                            font.pixelSize: Theme.fontSizeSmall
+                        }
+                        Label {
+                            text: model.note || qsTr("No note")
+                            font.pixelSize: Theme.fontSizeExtraSmall
+                            color: Theme.secondaryColor
+                            visible: model.note !== ""
+                        }
+                    }
+                }
+            }
+
+            ViewPlaceholder {
+                enabled: historyModel.count === 0
+                text: qsTr("No intake history")
+                hintText: qsTr("Pull down to log an intake")
+            }
+        }
     }
 
-    ListModel {
-        id: listModel
-    }
+    ListModel { id: todayModel }
+    ListModel { id: historyModel }
 
     onStatusChanged: {
-        if (status === PageStatus.Active) {
-            refresh();
-        }
+        if (status === PageStatus.Active) refresh();
     }
 
     Component.onCompleted: refresh()
 }
-
-

@@ -22,8 +22,10 @@ DISTFILES += \
     qml/pages/AboutPage.qml \
     qml/pages/AddNewCycle.qml \
     qml/pages/AddTodayInfo.qml \
+    qml/pages/AllMedications.qml \
     qml/pages/HistoryOfAllCycle.qml \
     qml/pages/HistoryOfOneCycle.qml \
+    qml/pages/LogMedicationIntake.qml \
     qml/pages/Menstruation.qml \
     qml/pages/AddVaccine.qml \
     qml/pages/VaccineDetails.qml \
@@ -50,7 +52,20 @@ DISTFILES += \
     rpm/harbour-health.spec \
     rpm/harbour-health.yaml \
     translations/*.ts \
-    harbour-health.desktop
+    harbour-health.desktop \
+    qml/icons/calendar-heart.png \
+    qml/icons/diabetes.png \
+    qml/icons/fire.png \
+    qml/icons/gauge.png \
+    qml/icons/heart-pulse.png \
+    qml/icons/height.png \
+    qml/icons/medical-bag.png \
+    qml/icons/meditation.png \
+    qml/icons/needle.png \
+    qml/icons/scale.png \
+    qml/icons/water.png \
+    qml/icons/blood-pressure.svg
+
 
 SAILFISHAPP_ICONS = 86x86 108x108 128x128 172x172
 

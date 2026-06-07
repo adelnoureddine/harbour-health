@@ -14,12 +14,7 @@ Page {
 
     function refresh() {
         listModel.clear();
-        if (page.grouped) {
-            DataManager.addDayLogsToModel(profileId, metricName, listModel);
-        }
-        else {
-            DataManager.addLogsToModel(profileId, metricName, listModel);
-        }
+        DataManager.addLogsToModel(profileId, metricName, listModel, page.grouped);
     }
 
     SilicaListView {
