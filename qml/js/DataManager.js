@@ -787,6 +787,14 @@ function addTreatment(profileId, medicationId, conditionId, dosage, frequency, s
     });
 }
 
+function updateTreatment(id, dosage, frequency, startDate, endDate, note) {
+    var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
+    db.transaction(function (tx) {
+        tx.executeSql('UPDATE Treatments SET dosage=?, frequency=?, startDate=?, endDate=?, note=? WHERE id=?',
+            [dosage, frequency, startDate, endDate, note, id]);
+    });
+}
+
 // Condition Operations
 function getConditions(profileId) {
     var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);

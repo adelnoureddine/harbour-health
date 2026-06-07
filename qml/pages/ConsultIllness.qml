@@ -81,12 +81,10 @@ Page {
 
         delegate: ListItem {
             contentHeight: Theme.itemSizeMedium
-            
             Column {
                 anchors.verticalCenter: parent.verticalCenter
                 x: Theme.horizontalPageMargin
                 width: parent.width - 2 * Theme.horizontalPageMargin
-
                 Label {
                     text: model.medicationName
                     color: Theme.primaryColor
@@ -97,12 +95,27 @@ Page {
                     color: Theme.secondaryColor
                 }
             }
-
             onClicked: pageStack.animatorPush(Qt.resolvedUrl("ConsultMedication.qml"), {
                 profileId: profileId,
                 medicationId: model.medicationId,
                 medicationName: model.medicationName
             })
+            menu: ContextMenu {
+                MenuItem {
+                    text: qsTr("Edit")
+                    onClicked: pageStack.animatorPush(Qt.resolvedUrl("AddAndEditMedication.qml"), {
+                        profileId: profileId,
+                        conditionId: conditionId,
+                        medicationId: model.medicationId,
+                        treatmentId: model.id,
+                        medicationName: model.medicationName,
+                        dosage: model.dosage,
+                        frequency: model.frequency,
+                        note: model.note
+                    })
+                }
+            }
+
         }
 
         ViewPlaceholder {

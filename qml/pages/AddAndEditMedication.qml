@@ -9,6 +9,7 @@ Dialog {
     property int profileId: -1
     property int medicationId: -1
     property int conditionId: -1
+    property int treatmentId: -1
     property string medicationName
     property string dosage
     property string frequency
@@ -24,11 +25,13 @@ Dialog {
         if (medId === -1) {
             medId = DataManager.addMedication(nameField.text, "pill", "mg");
         }
-        
         var startStr = startDate.toISOString().split('T')[0];
         var endStr = hasEndDate ? endDate.toISOString().split('T')[0] : null;
-        
-        DataManager.addTreatment(profileId, medId, conditionId, dosageField.text, frequencyField.text, startStr, endStr, notesField.text);
+        if (treatmentId === -1) {
+            DataManager.addTreatment(profileId, medId, conditionId, dosageField.text, frequencyField.text, startStr, endStr, notesField.text);
+        } else {
+            DataManager.updateTreatment(treatmentId, dosageField.text, frequencyField.text, startStr, endStr, notesField.text);
+        }
     }
 
     SilicaFlickable {
