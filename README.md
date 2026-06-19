@@ -18,6 +18,7 @@ This project was built during software engineering course at the Université de 
 - Ashraf Ajouka (student) © 2022
 - Jose Buepoyo Sopale (student) © 2022
 - Charlotte Ortali (student) © 2022
+- Ilies Hamadene (student) © 2026
 
 # License
 
