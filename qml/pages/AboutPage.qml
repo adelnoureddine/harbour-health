@@ -111,6 +111,12 @@ Page {
                     anchors.horizontalCenter: parent.horizontalCenter
                 }
 
+                Label {
+                    text: "Ilies Hamadene (student) © 2026"
+                    font.pixelSize: Theme.fontSizeSmall
+                    anchors.horizontalCenter: parent.horizontalCenter
+                }
+
             }
 
             SectionHeader {

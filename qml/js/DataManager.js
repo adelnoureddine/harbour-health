@@ -176,7 +176,9 @@ function init() {
             'gender TEXT NOT NULL, ' +
             'birthDate DATE NOT NULL, ' +
             'created DATETIME DEFAULT CURRENT_TIMESTAMP, ' +
-            'lastUsed DATETIME)');
+            'lastUsed DATETIME, ' +
+            'coverMetric1 TEXT DEFAULT "weight", ' +
+            'coverMetric2 TEXT DEFAULT "water")');
 
         // METRICS Definitions
         tx.executeSql('CREATE TABLE IF NOT EXISTS Metrics (' +
@@ -401,6 +403,27 @@ function updateProfile(id, firstName, lastName, gender, birthDate) {
     var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
     db.transaction(function (tx) {
         tx.executeSql('UPDATE Profiles SET firstName=?, lastName=?, gender=?, birthDate=? WHERE id=?', [firstName, lastName, gender, birthDate, id]);
+    });
+}
+
+function getCoverMetrics(profileId) {
+    var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
+    var metrics = { metric1: "weight", metric2: "water" };
+    db.transaction(function (tx) {
+        var rs = tx.executeSql('SELECT coverMetric1, coverMetric2 FROM Profiles WHERE id=?', [profileId]);
+        if (rs.rows.length > 0) {
+            metrics.metric1 = rs.rows.item(0).coverMetric1 || "weight";
+            metrics.metric2 = rs.rows.item(0).coverMetric2 || "water";
+        }
+    });
+    return metrics;
+}
+
+function updateCoverMetrics(profileId, metric1, metric2) {
+    var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
+    db.transaction(function (tx) {
+        tx.executeSql('UPDATE Profiles SET coverMetric1=?, coverMetric2=? WHERE id=?',
+            [metric1, metric2, profileId]);
     });
 }
 
