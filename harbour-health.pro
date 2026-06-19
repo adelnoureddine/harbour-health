@@ -30,6 +30,7 @@ DISTFILES += \
     qml/pages/AddVaccine.qml \
     qml/pages/VaccineDetails.qml \
     qml/pages/VaccinesList.qml \
+    qml/pages/coverSettings.qml \
     qml/pages/updateRecall.qml \
     qml/pages/AddAndEditIllness.qml \
     qml/pages/AddAndEditMedication.qml \
@@ -47,6 +48,7 @@ DISTFILES += \
     qml/pages/MetricDetails.qml \
     qml/pages/metricList.qml \
     qml/pages/addEntryMetric.qml \
+    qml/pages/coverSettings.qml \
     rpm/harbour-health.changes.in \
     rpm/harbour-health.changes.run.in \
     rpm/harbour-health.spec \

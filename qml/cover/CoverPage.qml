@@ -6,15 +6,39 @@ CoverBackground {
 
     property int profileId: -1
     property var profile: null
-    property var weightValue: null
-    property var waterValue: null
+    property string metric1: "weight"
+    property string metric2: "water"
+    property var value1: null
+    property var value2: null
+
+    function getMetricValue(metricName) {
+        var grouped = DataManager.getMetricGrouped(metricName);
+        if (grouped) {
+            return DataManager.getLatestDayLogValue(profileId, metricName);
+        } else {
+            return DataManager.getLatestLogValue(profileId, metricName);
+        }
+    }
+
+    function getMetricUnit(metricName) {
+        return DataManager.getMetricUnit(metricName) || "";
+    }
 
     function refresh() {
         profileId = DataManager.lastUsedProfileId();
         if (profileId >= 0) {
             profile = DataManager.getProfile(profileId);
-            weightValue = DataManager.getLatestDayLogValue(profileId, DataManager.METRIC_CALORIES);
-            waterValue = DataManager.getLatestDayLogValue(profileId, DataManager.METRIC_WATER);
+            var metrics = DataManager.getCoverMetrics(profileId);
+            metric1 = metrics.metric1;
+            metric2 = metrics.metric2;
+            value1 = getMetricValue(metric1);
+            value2 = getMetricValue(metric2);
+        }
+    }
+
+    onStatusChanged: {
+        if (status === Cover.Active) {
+            refresh();
         }
     }
 
@@ -64,13 +88,13 @@ CoverBackground {
             Column {
                 spacing: 2
                 Label {
-                    text: qsTr("Calories")
+                    text: metric1
                     font.pixelSize: Theme.fontSizeExtraSmall
                     color: Theme.secondaryColor
                     anchors.horizontalCenter: parent.horizontalCenter
                 }
                 Label {
-                    text: weightValue ? weightValue + " kcal" : "?"
+                    text: value1 ? value1 + " " + getMetricUnit(metric1) : "?"
                     font.pixelSize: Theme.fontSizeSmall
                     font.bold: true
                     color: Theme.primaryColor
@@ -88,13 +112,13 @@ CoverBackground {
             Column {
                 spacing: 2
                 Label {
-                    text: qsTr("Water")
+                    text: metric2
                     font.pixelSize: Theme.fontSizeExtraSmall
                     color: Theme.secondaryColor
                     anchors.horizontalCenter: parent.horizontalCenter
                 }
                 Label {
-                    text: waterValue ? waterValue + " L" : "?"
+                    text: value2 ? value2 + " " + getMetricUnit(metric2) : "?"
                     font.pixelSize: Theme.fontSizeSmall
                     font.bold: true
                     color: Theme.primaryColor

@@ -29,6 +29,13 @@ Page {
                     profileId: root.profileId
                 })
             }
+
+            MenuItem {
+                    text: qsTr("Cover page settings")
+                    onClicked: pageStack.animatorPush(Qt.resolvedUrl("coverSettings.qml"), {
+                        profileId: root.profileId
+                    })
+                }
         }
 
         delegate: ListItem {
