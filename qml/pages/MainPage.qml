@@ -124,7 +124,8 @@ Page {
                 title: model.name
                 visible: model.is_on
                 profileId: mainPage.profileId
-                metricName: model.type == DataManager.MODULE_TYPE_METRIC ? model.uses : ''
+                metricName: model.type == DataManager.MODULE_TYPE_METRIC ? model.uses : (model.name == DataManager.MODULE_BP ? DataManager.METRIC_BP_SYS : '')
+                metricName2: model.name == DataManager.MODULE_BP ? DataManager.METRIC_BP_DIA : ''
                 unit: model.unit ? model.unit: undefined
                 clickThrough: model.type == DataManager.MODULE_TYPE_SUMMARY ? model.uses : undefined
                 calculate: model.type == DataManager.MODULE_TYPE_CALC ? model.uses : undefined

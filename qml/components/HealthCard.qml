@@ -7,6 +7,7 @@ GridItem {
     
     property int profileId: -1
     property string metricName
+    property string metricName2: ""
     property string title
     property string icon
     property bool grouped: false
@@ -105,7 +106,15 @@ GridItem {
     }
 
     onClicked: {
-        if (root.profileId >= 0 && root.metricName) {
+        if (root.profileId >= 0 && root.metricName2 !== "") {
+            pageStack.animatorPush(Qt.resolvedUrl("../pages/MultiMetricDetails.qml"), {
+                profileId: root.profileId,
+                metricName1: root.metricName,
+                metricName2: root.metricName2,
+                invalidateSignal: root.invalidateSignal
+            });
+        }
+        else if (root.profileId >= 0 && root.metricName) {
             pageStack.animatorPush(Qt.resolvedUrl("../pages/MetricDetails.qml"), {
                 profileId: root.profileId,
                 grouped: root.grouped,

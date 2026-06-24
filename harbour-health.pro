@@ -28,8 +28,10 @@ DISTFILES += \
     qml/pages/LogMedicationIntake.qml \
     qml/pages/Menstruation.qml \
     qml/pages/AddVaccine.qml \
+    qml/pages/MultiMetricDetails.qml \
     qml/pages/VaccineDetails.qml \
     qml/pages/VaccinesList.qml \
+    qml/pages/addEntryMultiMetric.qml \
     qml/pages/coverSettings.qml \
     qml/pages/updateRecall.qml \
     qml/pages/AddAndEditIllness.qml \
