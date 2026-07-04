@@ -28,10 +28,17 @@ Page {
             MenuItem {
                 text: qsTr("Add Entry")
                 onClicked: pageStack.animatorPush(Qt.resolvedUrl("addEntryMetric.qml"), {
-		            profileId: profileId,
+                    profileId: profileId,
                     metricName: page.metricName,
                     metricUnit: page.metricUnit,
                     invalidateSignal: invalidateSignal
+                })
+            }
+            MenuItem {
+                text: qsTr("Constraints")
+                onClicked: pageStack.animatorPush(Qt.resolvedUrl("metricConstraints.qml"), {
+                    profileId: profileId,
+                    metricName: page.metricName
                 })
             }
         }

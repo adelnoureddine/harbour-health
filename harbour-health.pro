@@ -31,8 +31,10 @@ DISTFILES += \
     qml/pages/MultiMetricDetails.qml \
     qml/pages/VaccineDetails.qml \
     qml/pages/VaccinesList.qml \
+    qml/pages/addConstraint.qml \
     qml/pages/addEntryMultiMetric.qml \
     qml/pages/coverSettings.qml \
+    qml/pages/metricConstraints.qml \
     qml/pages/updateRecall.qml \
     qml/pages/AddAndEditIllness.qml \
     qml/pages/AddAndEditMedication.qml \
