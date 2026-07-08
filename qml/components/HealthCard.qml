@@ -16,6 +16,32 @@ GridItem {
     property var clickThrough
     property var calculate
     property var invalidateSignal
+    property string constraintColor: ""
+    property string constraintLabel: ""
+
+    function updateConstraintColor() {
+        if (root.value !== undefined && root.value !== null && root.value !== '?') {
+            var name = root.metricName !== "" ? root.metricName : root.title;
+            var constraints = DataManager.getConstraintsForMetric(name);
+            var val = parseFloat(root.value);
+            constraintColor = "";
+            constraintLabel = "";
+            for (var i = 0; i < constraints.length; i++) {
+                var c = constraints[i];
+                var min = c.minValue;
+                var max = c.maxValue;
+                if ((min === null || val >= min) && (max === null || val < max)) {
+                    constraintLabel = c.label || "";
+                    var col = c.color;
+                    if (col === "green") constraintColor = "#2ecc71";
+                    else if (col === "orange") constraintColor = "#e67e22";
+                    else if (col === "red") constraintColor = "#e74c3c";
+                    else if (col === "blue") constraintColor = "#3498db";
+                    break;
+                }
+            }
+        }
+    }
 
     function refreshValue() {
         print("MetricCard " + root.metricName + ": refreshValue is called for profile " + root.profileId);
@@ -38,6 +64,7 @@ GridItem {
                 }
             }
         }
+        updateConstraintColor();
     }
 
     function invalidateMetric(metricName) {
@@ -54,7 +81,7 @@ GridItem {
 
         Column {
             anchors.centerIn: parent
-            spacing: Theme.paddingSmall
+            spacing: 2
 
             Image {
                 source: root.icon
@@ -84,22 +111,33 @@ GridItem {
                 anchors.horizontalCenter: parent.horizontalCenter
             }
 
-            Row {
+            Column {
                 anchors.horizontalCenter: parent.horizontalCenter
-                spacing: Theme.paddingSmall
-                
-                Label {
-                    text: root.value != undefined ? root.value : '?'
-                    font.pixelSize: Theme.fontSizeLarge
-                    color: Theme.primaryColor
+                spacing: 0
+
+                Row {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    spacing: Theme.paddingSmall
+                    Label {
+                        text: root.value != undefined ? root.value : '?'
+                        font.pixelSize: Theme.fontSizeLarge
+                        color: root.constraintColor !== "" ? root.constraintColor : Theme.primaryColor
+                    }
+                    Label {
+                        text: root.unit ? root.unit : ''
+                        font.pixelSize: Theme.fontSizeSmall
+                        color: Theme.secondaryColor
+                        anchors.bottom: parent.bottom
+                        anchors.bottomMargin: Theme.paddingSmall
+                    }
                 }
-                
+
                 Label {
-                    text: root.unit ? root.unit : ''
-                    font.pixelSize: Theme.fontSizeSmall
-                    color: Theme.secondaryColor
-                    anchors.bottom: parent.bottom
-                    anchors.bottomMargin: Theme.paddingSmall
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    text: root.constraintLabel
+                    font.pixelSize: Theme.fontSizeExtraSmall
+                    color: root.constraintColor !== "" ? root.constraintColor : Theme.secondaryColor
+                    visible: root.constraintLabel !== ""
                 }
             }
         }

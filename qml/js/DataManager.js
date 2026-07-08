@@ -286,6 +286,13 @@ function init() {
         tx.executeSql('CREATE TABLE IF NOT EXISTS MenstrualLogs (id INTEGER PRIMARY KEY AUTOINCREMENT, profileId INTEGER, date TEXT, flow TEXT, pain TEXT, energy TEXT, sleepTime REAL, note TEXT)');
         tx.executeSql('CREATE TABLE IF NOT EXISTS MeditationSessions (id INTEGER PRIMARY KEY AUTOINCREMENT, profileId INTEGER, date DATETIME DEFAULT CURRENT_TIMESTAMP, duration INTEGER, name TEXT)');
         tx.executeSql('CREATE TABLE IF NOT EXISTS MedicationLogs (id INTEGER PRIMARY KEY AUTOINCREMENT, profileId INTEGER NOT NULL, medicationId INTEGER NOT NULL, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP, note TEXT, FOREIGN KEY(profileId) REFERENCES Profiles(id), FOREIGN KEY(medicationId) REFERENCES Medications(id))');
+        tx.executeSql('CREATE TABLE IF NOT EXISTS MetricConstraints (' +
+            'id INTEGER PRIMARY KEY AUTOINCREMENT, ' +
+            'metricName TEXT NOT NULL, ' +
+            'label TEXT, ' +
+            'minValue REAL, ' +
+            'maxValue REAL, ' +
+            'color TEXT NOT NULL)');
 
         // Seed default metrics if empty
         var rs = tx.executeSql('SELECT count(*) as count FROM Metrics');
@@ -315,8 +322,11 @@ function init() {
             tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category, icon) VALUES (?,?,?,?,?,?)', [MODULE_VACCINATION, MODULE_TYPE_SUMMARY, "VaccinesList", true, CATEGORY_OTHER, "needle.png"]);
             tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category, icon) VALUES (?,?,?,?,?,?)', [MODULE_MEDITATION, MODULE_TYPE_SUMMARY, "MeditationMenu", true, CATEGORY_OTHER, "meditation.png"]);
             tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category, icon) VALUES (?,?,?,?,?,?)', [MODULE_MENSTRUATION, MODULE_TYPE_SUMMARY, "Menstruation", true, CATEGORY_OTHER, "calendar-heart.png"]);
+            tx.executeSql('INSERT INTO MetricConstraints (metricName, label, minValue, maxValue, color) VALUES (?,?,?,?,?)', ["BMI", "Sous-poids", null, 18.5, "blue"]);
+            tx.executeSql('INSERT INTO MetricConstraints (metricName, label, minValue, maxValue, color) VALUES (?,?,?,?,?)', ["BMI", "Normal", 18.5, 25.0, "green"]);
+            tx.executeSql('INSERT INTO MetricConstraints (metricName, label, minValue, maxValue, color) VALUES (?,?,?,?,?)', ["BMI", "Surpoids", 25.0, 30.0, "orange"]);
+            tx.executeSql('INSERT INTO MetricConstraints (metricName, label, minValue, maxValue, color) VALUES (?,?,?,?,?)', ["BMI", "Obèse", 30.0, null, "red"]);
         }
-
         // insert db version
         tx.executeSql('INSERT INTO DBVersion (version) VALUES (?)', [DB_MIGRATE_VERSION]);
     });
@@ -1020,6 +1030,51 @@ function removeProfileMetric(profileId, metricId) {
     var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
     db.transaction(function (tx) {
         tx.executeSql('DELETE FROM ProfileMetrics WHERE profileId=? AND metricId=?', [profileId, metricId]);
+    });
+}
+
+function getConstraintsForMetric(metricName) {
+    var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
+    var constraints = [];
+    db.transaction(function (tx) {
+        var rs = tx.executeSql('SELECT * FROM MetricConstraints WHERE metricName=? ORDER BY minValue ASC', [metricName]);
+        for (var i = 0; i < rs.rows.length; i++) {
+            constraints.push(rs.rows.item(i));
+        }
+    });
+    return constraints;
+}
+
+function getConstraintColor(metricName, value) {
+    var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
+    var color = "";
+    db.transaction(function (tx) {
+        var rs = tx.executeSql('SELECT * FROM MetricConstraints WHERE metricName=?', [metricName]);
+        for (var i = 0; i < rs.rows.length; i++) {
+            var c = rs.rows.item(i);
+            var min = c.minValue;
+            var max = c.maxValue;
+            if ((min === null || value >= min) && (max === null || value < max)) {
+                color = c.color;
+                break;
+            }
+        }
+    });
+    return color;
+}
+
+function addConstraint(metricName, label, minValue, maxValue, color) {
+    var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
+    db.transaction(function (tx) {
+        tx.executeSql('INSERT INTO MetricConstraints (metricName, label, minValue, maxValue, color) VALUES (?,?,?,?,?)',
+            [metricName, label, minValue, maxValue, color]);
+    });
+}
+
+function deleteConstraint(id) {
+    var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
+    db.transaction(function (tx) {
+        tx.executeSql('DELETE FROM MetricConstraints WHERE id=?', [id]);
     });
 }
 
