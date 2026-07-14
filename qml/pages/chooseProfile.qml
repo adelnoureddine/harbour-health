@@ -36,7 +36,6 @@ Page {
                 DataManager.useProfile(model.id);
                 pageStack.pop();
             }
-
             Column {
                 anchors.verticalCenter: parent.verticalCenter
                 x: Theme.horizontalPageMargin
@@ -48,6 +47,20 @@ Page {
                     text: qsTr("Gender: %1 | Birthday: %2").arg(model.gender).arg(model.birthDate)
                     font.pixelSize: Theme.fontSizeExtraSmall
                     color: Theme.secondaryColor
+                }
+            }
+            menu: ContextMenu {
+                MenuItem {
+                    text: qsTr("Edit")
+                    onClicked: pageStack.animatorPush(Qt.resolvedUrl("modifyProfile.qml"), {
+                        profileId: model.id
+                    })
+                }
+                MenuItem {
+                    text: qsTr("Delete")
+                    onClicked: pageStack.animatorPush(Qt.resolvedUrl("deleteProfile.qml"), {
+                        profileId: model.id
+                    })
                 }
             }
         }
