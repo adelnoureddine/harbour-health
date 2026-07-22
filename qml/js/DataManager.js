@@ -322,10 +322,10 @@ function init() {
             tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category, icon) VALUES (?,?,?,?,?,?)', [MODULE_VACCINATION, MODULE_TYPE_SUMMARY, "VaccinesList", true, CATEGORY_OTHER, "needle.png"]);
             tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category, icon) VALUES (?,?,?,?,?,?)', [MODULE_MEDITATION, MODULE_TYPE_SUMMARY, "MeditationMenu", true, CATEGORY_OTHER, "meditation.png"]);
             tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category, icon) VALUES (?,?,?,?,?,?)', [MODULE_MENSTRUATION, MODULE_TYPE_SUMMARY, "Menstruation", true, CATEGORY_OTHER, "calendar-heart.png"]);
-            tx.executeSql('INSERT INTO MetricConstraints (metricName, label, minValue, maxValue, color) VALUES (?,?,?,?,?)', ["BMI", "Sous-poids", null, 18.5, "blue"]);
+            tx.executeSql('INSERT INTO MetricConstraints (metricName, label, minValue, maxValue, color) VALUES (?,?,?,?,?)', ["BMI", "Underweight", null, 18.5, "blue"]);
             tx.executeSql('INSERT INTO MetricConstraints (metricName, label, minValue, maxValue, color) VALUES (?,?,?,?,?)', ["BMI", "Normal", 18.5, 25.0, "green"]);
-            tx.executeSql('INSERT INTO MetricConstraints (metricName, label, minValue, maxValue, color) VALUES (?,?,?,?,?)', ["BMI", "Surpoids", 25.0, 30.0, "orange"]);
-            tx.executeSql('INSERT INTO MetricConstraints (metricName, label, minValue, maxValue, color) VALUES (?,?,?,?,?)', ["BMI", "Obèse", 30.0, null, "red"]);
+            tx.executeSql('INSERT INTO MetricConstraints (metricName, label, minValue, maxValue, color) VALUES (?,?,?,?,?)', ["BMI", "Overweight", 25.0, 30.0, "orange"]);
+            tx.executeSql('INSERT INTO MetricConstraints (metricName, label, minValue, maxValue, color) VALUES (?,?,?,?,?)', ["BMI", "Obese", 30.0, null, "red"]);
         }
         // insert db version
         tx.executeSql('INSERT INTO DBVersion (version) VALUES (?)', [DB_MIGRATE_VERSION]);

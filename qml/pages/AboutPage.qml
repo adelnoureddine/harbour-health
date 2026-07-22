@@ -34,7 +34,7 @@ Page {
             }
 
             SectionHeader {
-                text: qsTr("Maintainer and Current Developer")
+                text: qsTr("Maintainer and Current Developers")
             }
 
             Label {
@@ -42,7 +42,7 @@ Page {
                 x: Theme.horizontalPageMargin
                 width: parent.width - ( 2 * Theme.horizontalPageMargin )
                 horizontalAlignment: Text.AlignHCenter
-                text: qsTr("Adel Noureddine (project lead and maintainer) © 2022")
+                text: qsTr("Adel Noureddine (project lead and maintainer) © 2022-2026")
                 font.pixelSize: Theme.fontSizeSmall
                 anchors {
                     horizontalCenter: parent.horizontalCenter
@@ -58,61 +58,67 @@ Page {
                 width: parent.width
 
                 Label {
-                    text: "Dylan Mignot-Bousseau (student) © 2022"
+                    text: "Dylan Mignot-Bousseau © 2022"
                     font.pixelSize: Theme.fontSizeSmall
                     anchors.horizontalCenter: parent.horizontalCenter
                 }
 
                 Label {
-                    text: "Lucille Rey (student) © 2022"
+                    text: "Lucille Rey © 2022"
                     font.pixelSize: Theme.fontSizeSmall
                     anchors.horizontalCenter: parent.horizontalCenter
                 }
 
                 Label {
-                    text: "Mathieu Vazquez (student) © 2022"
+                    text: "Mathieu Vazquez © 2022"
                     font.pixelSize: Theme.fontSizeSmall
                     anchors.horizontalCenter: parent.horizontalCenter
                 }
 
                 Label {
-                    text: "Angel Gezat (student) © 2022"
+                    text: "Angel Gezat © 2022"
                     font.pixelSize: Theme.fontSizeSmall
                     anchors.horizontalCenter: parent.horizontalCenter
                 }
 
                 Label {
-                    text: "Bienvenu Akoun (student) © 2022"
+                    text: "Bienvenu Akoun © 2022"
                     font.pixelSize: Theme.fontSizeSmall
                     anchors.horizontalCenter: parent.horizontalCenter
                 }
 
                 Label {
-                    text: "Thomas Abadie (student) © 2022"
+                    text: "Thomas Abadie © 2022"
                     font.pixelSize: Theme.fontSizeSmall
                     anchors.horizontalCenter: parent.horizontalCenter
                 }
 
                 Label {
-                    text: "Ashraf Ajouka (student) © 2022"
+                    text: "Ashraf Ajouka © 2022"
                     font.pixelSize: Theme.fontSizeSmall
                     anchors.horizontalCenter: parent.horizontalCenter
                 }
 
                 Label {
-                    text: "Jose Buepoyo Sopale (student) © 2022"
+                    text: "Jose Buepoyo Sopale © 2022"
                     font.pixelSize: Theme.fontSizeSmall
                     anchors.horizontalCenter: parent.horizontalCenter
                 }
 
                 Label {
-                    text: "Charlotte Ortali (student) © 2022"
+                    text: "Charlotte Ortali © 2022"
                     font.pixelSize: Theme.fontSizeSmall
                     anchors.horizontalCenter: parent.horizontalCenter
                 }
 
                 Label {
-                    text: "Ilies Hamadene (student) © 2026"
+                    text: "Maarten Vanraes © 2026"
+                    font.pixelSize: Theme.fontSizeSmall
+                    anchors.horizontalCenter: parent.horizontalCenter
+                }
+
+                Label {
+                    text: "Ilies Hamadene © 2026"
                     font.pixelSize: Theme.fontSizeSmall
                     anchors.horizontalCenter: parent.horizontalCenter
                 }

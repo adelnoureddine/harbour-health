@@ -10,7 +10,7 @@ Page {
 
     allowedOrientations: Orientation.All
 
-    property bool debug: true
+    property bool debug: false
     property int profileCount: 0
     property int profileId: -1
     property var profile
@@ -49,11 +49,11 @@ Page {
         anchors.fill: parent
 
         PullDownMenu {
-            MenuItem {
+            /*MenuItem {
                 text: qsTr("Debug DB")
                 visible: debug
                 onClicked: pageStack.animatorPush(Qt.resolvedUrl("DebugDB.qml"))
-            }
+            }*/
             MenuItem {
                 text: qsTr("About")
                 onClicked: pageStack.animatorPush(Qt.resolvedUrl("AboutPage.qml"))
@@ -75,14 +75,14 @@ Page {
                     profileId: mainPage.profileId
                 })
             }
-            MenuItem {
+            /*MenuItem {
                 text: qsTr("Add entry")
                 visible: mainPage.profileId >= 0
                 onClicked: pageStack.animatorPush(Qt.resolvedUrl("addEntryMetric.qml"), {
                     profileId: mainPage.profileId,
                     invalidateSignal: mainPage.invalidateMetric
                 })
-            }
+            }*/
         }
 
         Column {
