@@ -1,10 +1,12 @@
 # Health for SailfishOS
 
-Health is a health and fitness tracker for SailfishOS.
+Health is a private health and fitness tracker for SailfishOS. All health data is stored locally on the device, the application has no network permissions.
+
+Health is not medical advice and must not be used for diagnosis or treatment decisions.
 
 # Authors
 
-This project was built during software engineering course at the Université de Pau et des Pays de l'Adour (France), by students and under the supervision of Dr Adel Noureddine.
+This project was initially built during software engineering course in 2022 at the Université de Pau et des Pays de l'Adour (France), by students and under the supervision of Prof. Adel Noureddine.
 
 # Contributors
 

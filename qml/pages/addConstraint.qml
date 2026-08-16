@@ -9,7 +9,8 @@ Dialog {
     property string metricName: ""
     property var invalidate
 
-    canAccept: labelField.text !== "" && (minField.text !== "" || maxField.text !== "")
+    canAccept: labelField.text !== "" && (minField.text !== "" || maxField.text !== "") &&
+               (minField.text === "" || maxField.text === "" || parseFloat(minField.text.replace(',', '.')) < parseFloat(maxField.text.replace(',', '.')))
 
     onAccepted: {
         var min = (minField.text !== "" && minField.text !== null) ? parseFloat(minField.text.replace(',', '.')) : null;

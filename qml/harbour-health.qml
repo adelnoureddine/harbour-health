@@ -21,7 +21,7 @@ ApplicationWindow {
     function loadActiveProfile() {
         var profiles = DataManager.getProfiles();
         if (profiles.length > 0) {
-            profileId = profiles[0];
+            profileId = profiles[0].id;
         }
     }
 }

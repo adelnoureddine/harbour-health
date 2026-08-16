@@ -24,26 +24,15 @@ Page {
 
         PullDownMenu {
             MenuItem {
-                text: qsTr("Metric settings")
-                onClicked: pageStack.animatorPush(Qt.resolvedUrl("metricSettings.qml"), {
+                text: qsTr("Cover page settings")
+                onClicked: pageStack.animatorPush(Qt.resolvedUrl("coverSettings.qml"), {
                     profileId: root.profileId
                 })
             }
-
-            MenuItem {
-                    text: qsTr("Cover page settings")
-                    onClicked: pageStack.animatorPush(Qt.resolvedUrl("coverSettings.qml"), {
-                        profileId: root.profileId
-                    })
-                }
         }
 
         delegate: ListItem {
             contentHeight: Theme.itemSizeMedium
-            onClicked: {
-                DataManager.useProfile(model.id);
-                pageStack.pop();
-            }
             TextSwitch {
                 anchors.verticalCenter: parent.verticalCenter
                 x: Theme.horizontalPageMargin

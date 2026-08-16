@@ -24,7 +24,6 @@ Page {
 	    mainPage.profileCount = DataManager.countProfiles();
 	    if (mainPage.profileCount > 0) {
 	        mainPage.profileId = DataManager.lastUsedProfileId();
-            print("setting profile to id " + mainPage.profileId);
         }
 	    if (mainPage.profileId >= 0) {
 	        mainPage.profile = DataManager.getProfile(mainPage.profileId);
@@ -40,7 +39,6 @@ Page {
 
     onStatusChanged: {
         if (status === PageStatus.Active) {
-            print("page status changed");
             updateData();
         }
     }

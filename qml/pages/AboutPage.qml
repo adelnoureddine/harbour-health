@@ -34,6 +34,19 @@ Page {
             }
 
             SectionHeader {
+                text: qsTr("Privacy and medical use")
+            }
+
+            Label {
+                wrapMode: Text.Wrap
+                x: Theme.horizontalPageMargin
+                width: parent.width - (2 * Theme.horizontalPageMargin)
+                horizontalAlignment: Text.AlignHCenter
+                text: qsTr("Your health data is stored only on this device. Health is not medical advice and must not be used for diagnosis or treatment decisions.")
+                font.pixelSize: Theme.fontSizeSmall
+            }
+
+            SectionHeader {
                 text: qsTr("Maintainer and Current Developers")
             }
 

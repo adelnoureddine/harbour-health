@@ -56,7 +56,7 @@ CoverBackground {
         }
 
         Label {
-            text: "Health"
+            text: qsTr("Health")
             font.pixelSize: Theme.fontSizeMedium
             font.bold: true
             color: Theme.primaryColor
@@ -94,7 +94,7 @@ CoverBackground {
                     anchors.horizontalCenter: parent.horizontalCenter
                 }
                 Label {
-                    text: value1 ? value1 + " " + getMetricUnit(metric1) : "?"
+                    text: value1 !== null && value1 !== undefined ? value1 + " " + getMetricUnit(metric1) : "?"
                     font.pixelSize: Theme.fontSizeSmall
                     font.bold: true
                     color: Theme.primaryColor
@@ -118,7 +118,7 @@ CoverBackground {
                     anchors.horizontalCenter: parent.horizontalCenter
                 }
                 Label {
-                    text: value2 ? value2 + " " + getMetricUnit(metric2) : "?"
+                    text: value2 !== null && value2 !== undefined ? value2 + " " + getMetricUnit(metric2) : "?"
                     font.pixelSize: Theme.fontSizeSmall
                     font.bold: true
                     color: Theme.primaryColor

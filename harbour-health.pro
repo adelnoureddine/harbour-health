@@ -17,47 +17,54 @@ CONFIG += sailfishapp
 SOURCES += src/harbour-health.cpp \
 
 DISTFILES += \
+    qml/harbour-health.qml \
     qml/cover/CoverPage.qml \
+    qml/components/HealthCard.qml \
+    qml/js/DataManager.js \
     qml/js/utils.js \
     qml/pages/AboutPage.qml \
+    qml/pages/AddAndEditIllness.qml \
+    qml/pages/AddAndEditMedication.qml \
     qml/pages/AddNewCycle.qml \
+    qml/pages/AddNewData.qml \
     qml/pages/AddTodayInfo.qml \
     qml/pages/AllMedications.qml \
+    qml/pages/ConsultHistory.qml \
+    qml/pages/ConsultIllness.qml \
+    qml/pages/ConsultMedication.qml \
+    qml/pages/History.qml \
     qml/pages/HistoryOfAllCycle.qml \
     qml/pages/HistoryOfOneCycle.qml \
     qml/pages/LogMedicationIntake.qml \
     qml/pages/Menstruation.qml \
     qml/pages/AddVaccine.qml \
+    qml/pages/MainHealthCondition.qml \
+    qml/pages/MainPage.qml \
+    qml/pages/MeditationMenu.qml \
+    qml/pages/MetricDetails.qml \
+    qml/pages/MetricList.qml \
     qml/pages/MultiMetricDetails.qml \
+    qml/pages/NewSession.qml \
+    qml/pages/Nutrition.qml \
+    qml/pages/SummaryCard.qml \
     qml/pages/VaccineDetails.qml \
     qml/pages/VaccinesList.qml \
     qml/pages/addConstraint.qml \
+    qml/pages/addEntryMetric.qml \
     qml/pages/addEntryMultiMetric.qml \
     qml/pages/coverSettings.qml \
     qml/pages/metricConstraints.qml \
-    qml/pages/updateRecall.qml \
-    qml/pages/AddAndEditIllness.qml \
-    qml/pages/AddAndEditMedication.qml \
-    qml/pages/ConsultIllness.qml \
-    qml/pages/ConsultMedication.qml \
-    qml/pages/MainHealthCondition.qml \
-    qml/pages/ConsultHistory.qml \
-    qml/pages/MainPage.qml \
-    qml/pages/Nutrition.qml \
     qml/pages/chooseProfile.qml \
     qml/pages/createProfile.qml \
     qml/pages/deleteProfile.qml \
     qml/pages/infosProfile.qml \
+    qml/pages/moduleSettings.qml \
     qml/pages/modifyProfile.qml \
-    qml/pages/MetricDetails.qml \
-    qml/pages/metricList.qml \
-    qml/pages/addEntryMetric.qml \
-    qml/pages/coverSettings.qml \
+    qml/pages/updateRecall.qml \
     rpm/harbour-health.changes.in \
     rpm/harbour-health.changes.run.in \
     rpm/harbour-health.spec \
     rpm/harbour-health.yaml \
-    translations/*.ts \
     harbour-health.desktop \
     qml/icons/calendar-heart.png \
     qml/icons/diabetes.png \
@@ -74,15 +81,5 @@ DISTFILES += \
 
 
 SAILFISHAPP_ICONS = 86x86 108x108 128x128 172x172
-
-# to disable building translations every time, comment out the
-# following CONFIG line
-CONFIG += sailfishapp_i18n
-
-# German translation is enabled as an example. If you aren't
-# planning to localize your app, remember to comment out the
-# following TRANSLATIONS line. And also do not forget to
-# modify the localized app name in the the .desktop file.
-TRANSLATIONS += translations/harbour-health-de.ts
 
 HEADERS +=

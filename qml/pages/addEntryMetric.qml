@@ -16,7 +16,9 @@ Dialog {
 
     onAccepted: {
         DataManager.addLog(profileId, metricField.value, parseFloat(metricValue.text.replace(',', '.')), selectedDate, noteField.text);
-        dialog.invalidateSignal(dialog.metricName)
+        if (dialog.invalidateSignal) {
+            dialog.invalidateSignal(dialog.metricName);
+        }
     }
 
     SilicaFlickable {
@@ -72,9 +74,7 @@ Dialog {
                         date: selectedDate
                     })
                     dateDialog.accepted.connect(function() {
-			            var dateStr = dateDialog.date.toISOString().split('T')[0];
-			            var timeStr = selectedDate.toISOString().split('T')[1];
-                        selectedDate = new Date(dateStr + ' ' + timeStr);
+                        selectedDate = new Date(dateDialog.date.getFullYear(), dateDialog.date.getMonth(), dateDialog.date.getDate(), selectedDate.getHours(), selectedDate.getMinutes(), selectedDate.getSeconds());
                     })
                 }
             }
@@ -89,9 +89,8 @@ Dialog {
                         minute: selectedDate.getMinutes()
                     })
                     timeDialog.accepted.connect(function() {
-			            var dateStr = selectedDate.toISOString().split('T')[0];
-			            var timeStr = timeDialog.timeText + ":00";
-                        selectedDate = new Date(dateStr + ' ' + timeStr);
+                        var time = timeDialog.timeText.split(":");
+                        selectedDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), parseInt(time[0]), parseInt(time[1]), 0);
                     })
                 }
             }

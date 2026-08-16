@@ -9,10 +9,10 @@ Name:       harbour-health
 # << macros
 
 Summary:    Health
-Version:    0.1
+Version:    1.0
 Release:    1
 Group:      Qt/Qt
-License:    LICENSE
+License:    GPL-3.0-only
 URL:        https://gitlab.com/adelnoureddine/harbour-health
 Source0:    %{name}-%{version}.tar.bz2
 Source100:  harbour-health.yaml
@@ -24,7 +24,8 @@ BuildRequires:  pkgconfig(Qt5Quick)
 BuildRequires:  desktop-file-utils
 
 %description
-Health is a health and fitness tracker for SailfishOS
+Health is a private, on-device health and fitness tracker for SailfishOS.
+It is not medical advice and must not be used for diagnosis or treatment decisions.
 
 
 %prep

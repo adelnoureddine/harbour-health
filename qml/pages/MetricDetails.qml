@@ -61,11 +61,12 @@ Page {
                 MenuItem {
                     text: qsTr("Delete")
                     onClicked: {
-                        print("name: " + model.value + ", id = " + model.id);
                         listItem.remorseDelete(function() {
                             DataManager.deleteLog(model.id);
                             listModel.remove(index);
-                            page.invalidateSignal(page.metricName);
+                            if (page.invalidateSignal) {
+                                page.invalidateSignal(page.metricName);
+                            }
                         })
                     }
                 }

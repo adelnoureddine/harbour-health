@@ -44,7 +44,6 @@ GridItem {
     }
 
     function refreshValue() {
-        print("MetricCard " + root.metricName + ": refreshValue is called for profile " + root.profileId);
         if (root.clickThrough) {
             root.value = '';
         }
@@ -56,11 +55,9 @@ GridItem {
                 root.grouped = DataManager.getMetricGrouped(root.metricName);
                 if (root.grouped) {
                     root.value = DataManager.getLatestDayLogValue(root.profileId, root.metricName);
-                    print("MetricCard " + root.metricName + ": value is now " + root.value + " for profile " + root.profileId);
                 }
                 else {
                     root.value = DataManager.getLatestLogValue(root.profileId, root.metricName);
-                    print("MetricCard " + root.metricName + ": value is now " + root.value + " for profile " + root.profileId);
                 }
             }
         }
@@ -68,7 +65,9 @@ GridItem {
     }
 
     function invalidateMetric(metricName) {
-        if (metricName == root.metricName) {
+        // A dashboard card can be destroyed while a dialog is closing. Ignore a
+        // late invalidation instead of dereferencing the destroyed QML object.
+        if (root && metricName !== null && metricName === root.metricName) {
             refreshValue();
         }
     }
@@ -163,7 +162,7 @@ GridItem {
         }
         else if (root.profileId >= 0 && root.clickThrough) {
             pageStack.animatorPush(Qt.resolvedUrl('../pages/' + root.clickThrough + ".qml"), {
-                profileId: mainPage.profileId
+                profileId: root.profileId
             });
         }
     }
@@ -177,8 +176,14 @@ GridItem {
     onProfileIdChanged: refreshValue();
 
     Component.onCompleted: {
-        if (root.invalidateSignal) {
+        if (root.invalidateSignal && root.invalidateSignal.connect) {
             root.invalidateSignal.connect(root.invalidateMetric);
+        }
+    }
+
+    Component.onDestruction: {
+        if (invalidateSignal && invalidateSignal.disconnect) {
+            invalidateSignal.disconnect(invalidateMetric);
         }
     }
 }

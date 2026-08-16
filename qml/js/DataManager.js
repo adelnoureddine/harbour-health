@@ -2,11 +2,12 @@
 .import QtQuick.LocalStorage 2.0 as Sql
 
 // Database constants
-var DB_NAME = "HarbourHealth";
-var DB_VERSION = "2.0";
+// A new name deliberately separates the public v1 database from pre-release data.
+var DB_NAME = "HarbourHealthV1";
+var DB_VERSION = "1.0";
 var DB_DESCRIPTION = "Harbour Health Application Database";
 var DB_SIZE = 1000000;
-var DB_MIGRATE_VERSION = '1';
+var DB_SCHEMA_VERSION = 1;
 
 // Category
 var CATEGORY_BODY = "Body";
@@ -125,48 +126,33 @@ function filteredSumFromModel(a_model, a_filter, a_field) {
     return total;
 }
 
-function dbmigrate(oldversion) {
-    if (oldversion == DB_MIGRATE_VERSION) {
-        return true;
+function migrateDatabase(tx, fromVersion) {
+    var version = fromVersion;
+    while (version < DB_SCHEMA_VERSION) {
+        // Add one explicit case for each future schema version. Keeping migrations
+        // in this transaction ensures either the entire upgrade succeeds or none does.
+        throw new Error("No migration defined from schema version " + version);
     }
-    var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
-
-    /**
-     * this is example code on how to alter the tables and insert stuff and update values for later
-     *
-    if (oldversion < 1) {
-        db.transaction(function (tx) {
-            // add transaction things
-            tx.executeSql('UPDATE DBVersion SET version=(?)', [1]);
-        });
-        oldversion = 1;
-    }
-
-    if (oldversion < 2) {
-        db.transaction(function (tx) {
-            // add transaction things
-            tx.executeSql('UPDATE DBVersion SET version=(?)', [2]);
-        });
-        oldversion = 2;
-    }
-    */
-
-    return false;
 }
 
 // Initialize the database and tables
 function init() {
     var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
     db.transaction(function (tx) {
-        // DBVersion
-        tx.executeSql('CREATE TABLE IF NOT EXISTS DBVersion (' +
+        tx.executeSql('CREATE TABLE IF NOT EXISTS SchemaInfo (' +
             'version INTEGER PRIMARY KEY)');
-        var rs = tx.executeSql('SELECT version FROM DBVersion ORDER BY version DESC LIMIT 1');
-        if (rs.rows.length > 0) {
-            // if we find a version, let's migrate it to the latest one
-            return dbmigrate(rs.rows.item(0).version);
+        var rs = tx.executeSql('SELECT version FROM SchemaInfo ORDER BY version DESC LIMIT 1');
+        var hasSchemaVersion = rs.rows.length > 0;
+        if (hasSchemaVersion) {
+            var currentVersion = rs.rows.item(0).version;
+            if (currentVersion > DB_SCHEMA_VERSION) {
+                throw new Error("Database schema is newer than this app version");
+            }
+            if (currentVersion < DB_SCHEMA_VERSION) {
+                migrateDatabase(tx, currentVersion);
+                tx.executeSql('UPDATE SchemaInfo SET version=?', [DB_SCHEMA_VERSION]);
+            }
         }
-        // else, we create all new
 
         // PROFILES
         tx.executeSql('CREATE TABLE IF NOT EXISTS Profiles (' +
@@ -186,7 +172,6 @@ function init() {
             'name TEXT NOT NULL, ' +
             'unit TEXT NOT NULL, ' +
             'grouped BOOLEAN DEFAULT FALSE, ' +
-            'bydefault BOOLEAN DEFAULT TRUE, ' +
             'category TEXT)');
 
         // Food Definitions
@@ -216,14 +201,6 @@ function init() {
             'note TEXT, ' +
             'FOREIGN KEY(profileId) REFERENCES Profiles(id), ' +
             'FOREIGN KEY(foodId) REFERENCES Food(id))');
-
-        // PROFILE METRICS
-        tx.executeSql('CREATE TABLE IF NOT EXISTS ProfileMetrics (' +
-            'profileId INTEGER NOT NULL, ' +
-            'metricId INTEGER NOT NULL, ' +
-            'PRIMARY KEY(profileId,metricId) ' +
-            'FOREIGN KEY(profileId) REFERENCES Profiles(id), ' +
-            'FOREIGN KEY(metricId) REFERENCES Metrics(id))');
 
         // HEALTH LOGS (Universal table for measurements)
         tx.executeSql('CREATE TABLE IF NOT EXISTS HealthLogs (' +
@@ -297,14 +274,14 @@ function init() {
         // Seed default metrics if empty
         var rs = tx.executeSql('SELECT count(*) as count FROM Metrics');
         if (rs.rows.item(0).count === 0) {
-            tx.executeSql('INSERT INTO Metrics (name, unit, grouped, bydefault, category) VALUES (?,?,?,?,?)', [METRIC_WEIGHT, "kg", false, true, CATEGORY_BODY]);
-            tx.executeSql('INSERT INTO Metrics (name, unit, grouped, bydefault, category) VALUES (?,?,?,?,?)', [METRIC_HEIGHT, "cm", false, false, CATEGORY_BODY]);
-            tx.executeSql('INSERT INTO Metrics (name, unit, grouped, bydefault, category) VALUES (?,?,?,?,?)', [METRIC_CALORIES, "kcal", true, true, CATEGORY_NUTRITION]);
-            tx.executeSql('INSERT INTO Metrics (name, unit, grouped, bydefault, category) VALUES (?,?,?,?,?)', [METRIC_WATER, "L", true, false, CATEGORY_NUTRITION]);
-            tx.executeSql('INSERT INTO Metrics (name, unit, grouped, bydefault, category) VALUES (?,?,?,?,?)', [METRIC_HEARTRATE, "bpm", false, true, CATEGORY_BLOOD]);
-            tx.executeSql('INSERT INTO Metrics (name, unit, grouped, bydefault, category) VALUES (?,?,?,?,?)', [METRIC_BP_SYS, "mmHg", false, true, CATEGORY_BLOOD]);
-            tx.executeSql('INSERT INTO Metrics (name, unit, grouped, bydefault, category) VALUES (?,?,?,?,?)', [METRIC_BP_DIA, "mmHg", false, true, CATEGORY_BLOOD]);
-            tx.executeSql('INSERT INTO Metrics (name, unit, grouped, bydefault, category) VALUES (?,?,?,?,?)', [METRIC_GLUCOSE, "mg/dL", false, false, CATEGORY_BLOOD]);
+            tx.executeSql('INSERT INTO Metrics (name, unit, grouped, category) VALUES (?,?,?,?)', [METRIC_WEIGHT, "kg", false, CATEGORY_BODY]);
+            tx.executeSql('INSERT INTO Metrics (name, unit, grouped, category) VALUES (?,?,?,?)', [METRIC_HEIGHT, "cm", false, CATEGORY_BODY]);
+            tx.executeSql('INSERT INTO Metrics (name, unit, grouped, category) VALUES (?,?,?,?)', [METRIC_CALORIES, "kcal", true, CATEGORY_NUTRITION]);
+            tx.executeSql('INSERT INTO Metrics (name, unit, grouped, category) VALUES (?,?,?,?)', [METRIC_WATER, "L", true, CATEGORY_NUTRITION]);
+            tx.executeSql('INSERT INTO Metrics (name, unit, grouped, category) VALUES (?,?,?,?)', [METRIC_HEARTRATE, "bpm", false, CATEGORY_BLOOD]);
+            tx.executeSql('INSERT INTO Metrics (name, unit, grouped, category) VALUES (?,?,?,?)', [METRIC_BP_SYS, "mmHg", false, CATEGORY_BLOOD]);
+            tx.executeSql('INSERT INTO Metrics (name, unit, grouped, category) VALUES (?,?,?,?)', [METRIC_BP_DIA, "mmHg", false, CATEGORY_BLOOD]);
+            tx.executeSql('INSERT INTO Metrics (name, unit, grouped, category) VALUES (?,?,?,?)', [METRIC_GLUCOSE, "mg/dL", false, CATEGORY_BLOOD]);
         }
 
         // Seed default modules if empty
@@ -312,11 +289,11 @@ function init() {
         if (rs.rows.item(0).count === 0) {
             tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category, icon) VALUES (?,?,?,?,?,?)', [MODULE_WEIGHT, MODULE_TYPE_METRIC, METRIC_WEIGHT, true, CATEGORY_BODY, "scale.png"]);
             tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category, icon) VALUES (?,?,?,?,?,?)', [MODULE_HEIGHT, MODULE_TYPE_METRIC, METRIC_HEIGHT, true, CATEGORY_BODY, "height.png"]);
-            tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category, icon) VALUES (?,?,?,?,?,?)', [MODULE_BMI, MODULE_TYPE_CALC, "(" + METRIC_WEIGHT + "*10000/(" + METRIC_HEIGHT + "*" + METRIC_HEIGHT + ")).toFixed(1)", true, CATEGORY_BODY, "gauge.png"]);
+            tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category, icon) VALUES (?,?,?,?,?,?)', [MODULE_BMI, MODULE_TYPE_CALC, "bmi", true, CATEGORY_BODY, "gauge.png"]);
             tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category, icon) VALUES (?,?,?,?,?,?)', [MODULE_CALORIES, MODULE_TYPE_METRIC, METRIC_CALORIES, true, CATEGORY_NUTRITION, "fire.png"]);
             tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category, icon) VALUES (?,?,?,?,?,?)', [MODULE_WATER, MODULE_TYPE_METRIC, METRIC_WATER, true, CATEGORY_NUTRITION, "water.png"]);
             tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category, icon) VALUES (?,?,?,?,?,?)', [MODULE_HEARTRATE, MODULE_TYPE_METRIC, METRIC_HEARTRATE, true, CATEGORY_BLOOD, "heart-pulse.png"]);
-            tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category, icon) VALUES (?,?,?,?,?,?)', [MODULE_BP, MODULE_TYPE_CALC, "(" + METRIC_BP_SYS + ").toFixed(1)+'/'+(" + METRIC_BP_DIA + ").toFixed(1)", true, CATEGORY_BLOOD, "blood-pressure.svg"]);
+            tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category, icon) VALUES (?,?,?,?,?,?)', [MODULE_BP, MODULE_TYPE_CALC, "blood-pressure", true, CATEGORY_BLOOD, "blood-pressure.svg"]);
             tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category, icon) VALUES (?,?,?,?,?,?)', [MODULE_GLUCOSE, MODULE_TYPE_METRIC, METRIC_GLUCOSE, true, CATEGORY_BLOOD, "diabetes.png"]);
             tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category, icon) VALUES (?,?,?,?,?,?)', [MODULE_CONDITION, MODULE_TYPE_SUMMARY, "MainHealthCondition", true, CATEGORY_OTHER, "medical-bag.png"]);
             tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category, icon) VALUES (?,?,?,?,?,?)', [MODULE_VACCINATION, MODULE_TYPE_SUMMARY, "VaccinesList", true, CATEGORY_OTHER, "needle.png"]);
@@ -327,8 +304,9 @@ function init() {
             tx.executeSql('INSERT INTO MetricConstraints (metricName, label, minValue, maxValue, color) VALUES (?,?,?,?,?)', ["BMI", "Overweight", 25.0, 30.0, "orange"]);
             tx.executeSql('INSERT INTO MetricConstraints (metricName, label, minValue, maxValue, color) VALUES (?,?,?,?,?)', ["BMI", "Obese", 30.0, null, "red"]);
         }
-        // insert db version
-        tx.executeSql('INSERT INTO DBVersion (version) VALUES (?)', [DB_MIGRATE_VERSION]);
+        if (!hasSchemaVersion) {
+            tx.executeSql('INSERT INTO SchemaInfo (version) VALUES (?)', [DB_SCHEMA_VERSION]);
+        }
     });
 }
 
@@ -403,8 +381,7 @@ function addProfile(firstName, lastName, gender, birthDate) {
         var rs = tx.executeSql('INSERT INTO Profiles (firstName, lastName, gender, birthDate) VALUES (?,?,?,?)',
             [firstName, lastName, gender, birthDate]);
         id = rs.insertId;
-        var rs = tx.executeSql('INSERT INTO ProfileMetrics (profileId,metricId) SELECT ?,id FROM Metrics WHERE bydefault', [id]);
-        var rs = tx.executeSql('INSERT INTO ProfileModules (profileId,moduleId) SELECT ?,id FROM Modules WHERE bydefault', [id]);
+        tx.executeSql('INSERT INTO ProfileModules (profileId,moduleId) SELECT ?,id FROM Modules WHERE bydefault', [id]);
     });
     return id;
 }
@@ -440,14 +417,19 @@ function updateCoverMetrics(profileId, metric1, metric2) {
 function deleteProfile(id) {
     var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
     db.transaction(function (tx) {
-        tx.executeSql('DELETE FROM Profiles WHERE id=?', [id]);
+        // Delete all profile-owned records before the profile itself. SQLite does
+        // not enable foreign-key cascading by default for LocalStorage databases.
         tx.executeSql('DELETE FROM HealthLogs WHERE profileId=?', [id]);
+        tx.executeSql('DELETE FROM FoodLogs WHERE profileId=?', [id]);
         tx.executeSql('DELETE FROM Injections WHERE profileId=?', [id]);
         tx.executeSql('DELETE FROM Treatments WHERE profileId=?', [id]);
         tx.executeSql('DELETE FROM HealthConditions WHERE profileId=?', [id]);
         tx.executeSql('DELETE FROM MenstrualCycles WHERE profileId=?', [id]);
         tx.executeSql('DELETE FROM MenstrualLogs WHERE profileId=?', [id]);
         tx.executeSql('DELETE FROM MeditationSessions WHERE profileId=?', [id]);
+        tx.executeSql('DELETE FROM MedicationLogs WHERE profileId=?', [id]);
+        tx.executeSql('DELETE FROM ProfileModules WHERE profileId=?', [id]);
+        tx.executeSql('DELETE FROM Profiles WHERE id=?', [id]);
     });
 }
 
@@ -525,18 +507,19 @@ function getMetricsToModel(a_model) {
 }
 
 function calculateMetrics(profileId, calculate) {
-    var s = calculate;
-    // get all metrics and last value in a object
-    var metrics = getLatestLogValues(profileId);
-    print("check metrics in " + s);
-    for (var k in metrics) {
-        print(k);
-        print(metrics[k]);
-        s = s.replace(RegExp(k, 'g'), metrics[k]);
+    if (calculate === "bmi") {
+        var bmi = calcBMI(profileId);
+        return bmi === null ? null : Math.round(bmi * 10) / 10;
     }
-    print("after metrics in " + s);
-    // do a replace_all
-    return eval(s);
+    if (calculate === "blood-pressure") {
+        var systolic = getLatestLogValue(profileId, METRIC_BP_SYS);
+        var diastolic = getLatestLogValue(profileId, METRIC_BP_DIA);
+        if (systolic === null || diastolic === null) {
+            return null;
+        }
+        return systolic + "/" + diastolic;
+    }
+    return null;
 }
 
 // Log Operations
@@ -544,14 +527,10 @@ function addLog(profileId, metricName, value, timestamp, note) {
     var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
     db.transaction(function (tx) {
         var rs = tx.executeSql('SELECT id FROM Metrics WHERE name=?', [metricName]);
-        print("found " + metricName + ": " + rs.rows.length);
         if (rs.rows.length > 0) {
             var metricId = rs.rows.item(0).id;
-            print("found " + metricName + " = " + metricId);
-            var rs2 = tx.executeSql('INSERT INTO HealthLogs (profileId, metricId, value, timestamp, note) VALUES (?,?,?,?,?)',
+            tx.executeSql('INSERT INTO HealthLogs (profileId, metricId, value, timestamp, note) VALUES (?,?,?,?,?)',
                 [profileId, metricId, value, timestamp, note || ""]);
-            var id = rs2.insertId;
-            print("inserted: " + id);
         }
     });
 }
@@ -559,7 +538,6 @@ function addLog(profileId, metricName, value, timestamp, note) {
 function deleteLog(id) {
     var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
     db.transaction(function (tx) {
-        print("deleting from logs: " + id);
         tx.executeSql('DELETE FROM HealthLogs WHERE id=?', [id]);
     });
 }
@@ -610,7 +588,6 @@ function getLatestDayLogValue(profileId, metricName) {
         var rs = tx.executeSql('SELECT SUM(l.value) AS total, date(l.timestamp, ?) AS day FROM HealthLogs l LEFT JOIN Metrics m ON l.metricId = m.id ' +
             'WHERE l.profileId=? AND m.name=? GROUP BY day ORDER BY day DESC LIMIT 1', ["-" + DAY_START_TIME, profileId, metricName]);
         if (rs.rows.length > 0) {
-            print("day " + rs.rows.item(0).day + " has " + rs.rows.item(0).total);
             value = rs.rows.item(0).total;
         }
     });
@@ -650,7 +627,6 @@ function addDayLogsToModel(profileId, metricName, a_model) {
     var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
     db.transaction(function (tx) {
         var rs = tx.executeSql('SELECT DATE(l.timestamp, ?) AS day,l.id,timestamp,l.value FROM HealthLogs AS l LEFT JOIN Metrics ON l.MetricId=Metrics.id WHERE l.profileId=? AND Metrics.name=? ORDER BY timestamp DESC', ["-" + DAY_START_TIME, profileId, metricName]);
-        print("found day logs for " + metricName + ": " + rs.rows.length);
         for (var i = 0; i < rs.rows.length; i++) {
             a_model.append(rs.rows.item(i));
         }
@@ -987,7 +963,6 @@ function addModulesToModel(profileId, a_model, on_only) {
         for (var i = 0; i < rs.rows.length; i++) {
             a_model.append(rs.rows.item(i));
         }
-        print("modules: " + rs.rows.length);
     });
 }
 
@@ -1002,34 +977,6 @@ function removeProfileModule(profileId, moduleId) {
     var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
     db.transaction(function (tx) {
         tx.executeSql('DELETE FROM ProfileModules WHERE profileId=? AND moduleId=?', [profileId, moduleId]);
-    });
-}
-
-// Metric Settings
-function addMetricsToModel(profileId, a_model) {
-    var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
-    db.transaction(function (tx) {
-        var rs = tx.executeSql('SELECT id,category,metrics.name AS metricName,metrics.unit AS metricUnit,(SELECT value FROM HealthLogs WHERE metricId=Metrics.id AND profileId=? ORDER BY timestamp LIMIT 1) AS lastValue,( SELECT ProfileMetrics.profileId FROM ProfileMetrics WHERE Metrics.id=ProfileMetrics.metricId AND ProfileMetrics.profileId=? ) IS NOT NULL AS is_on FROM Metrics ORDER BY category,metricName', [profileId, profileId]);
-        for (var i = 0; i < rs.rows.length; i++) {
-            a_model.append(rs.rows.item(i));
-        }
-        print("metrics: " + rs.rows.length);
-    });
-}
-
-function addProfileMetric(profileId, metricId) {
-    print("add metric: " + metricId);
-    var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
-    db.transaction(function (tx) {
-        tx.executeSql('INSERT OR IGNORE INTO ProfileMetrics (profileId, metricId) VALUES (?, ?)', [profileId, metricId]);
-    });
-}
-
-function removeProfileMetric(profileId, metricId) {
-    print("remove metric: " + metricId);
-    var db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
-    db.transaction(function (tx) {
-        tx.executeSql('DELETE FROM ProfileMetrics WHERE profileId=? AND metricId=?', [profileId, metricId]);
     });
 }
 
