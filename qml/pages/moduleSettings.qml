@@ -19,6 +19,8 @@ Page {
         model: modelModules
 
         header: PageHeader {
+            x: Theme.horizontalPageMargin
+            width: parent.width - 2 * Theme.horizontalPageMargin
             title: qsTr("Modules")
         }
 
@@ -36,6 +38,7 @@ Page {
             TextSwitch {
                 anchors.verticalCenter: parent.verticalCenter
                 x: Theme.horizontalPageMargin
+                width: parent.width - 2 * Theme.horizontalPageMargin
 
                 text: model.name
                 checked: model.is_on

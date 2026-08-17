@@ -21,6 +21,8 @@ Page {
         anchors.fill: parent
 
         header: PageHeader {
+            x: Theme.horizontalPageMargin
+            width: parent.width - 2 * Theme.horizontalPageMargin
             title: qsTr("Constraints — %1").arg(metricName)
         }
 
@@ -52,6 +54,7 @@ Page {
             Column {
                 anchors.verticalCenter: parent.verticalCenter
                 x: Theme.horizontalPageMargin
+                width: parent.width - 2 * Theme.horizontalPageMargin
 
                 Label {
                     text: model.label || qsTr("No label")

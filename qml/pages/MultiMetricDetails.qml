@@ -59,6 +59,8 @@ Page {
         anchors.fill: parent
 
         header: PageHeader {
+            x: Theme.horizontalPageMargin
+            width: parent.width - 2 * Theme.horizontalPageMargin
             title: qsTr("Blood Pressure History")
         }
 
@@ -81,6 +83,8 @@ Page {
             property: "day"
             criteria: ViewSection.FullString
             delegate: SectionHeader {
+                x: Theme.horizontalPageMargin
+                width: parent.width - 2 * Theme.horizontalPageMargin
                 text: section
             }
         }
@@ -108,6 +112,7 @@ Page {
             Row {
                 anchors.verticalCenter: parent.verticalCenter
                 x: Theme.horizontalPageMargin
+                width: parent.width - 2 * Theme.horizontalPageMargin
                 spacing: Theme.paddingSmall
 
                 Label {

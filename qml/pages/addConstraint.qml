@@ -42,8 +42,16 @@ Dialog {
                 focus: true
             }
 
-            SectionHeader {
-                text: qsTr("Value range")
+            Item {
+                width: parent.width
+                height: childrenRect.height
+
+                SectionHeader {
+                    anchors.right: parent.right
+                    anchors.rightMargin: Theme.horizontalPageMargin
+                    width: parent.width - 2 * Theme.horizontalPageMargin
+                    text: qsTr("Value range")
+                }
             }
 
             Label {

@@ -17,8 +17,16 @@ Page {
             width: page.width
             spacing: Theme.paddingLarge
 
-            PageHeader {
-                title: qsTr("Health")
+            Item {
+                width: parent.width
+                height: childrenRect.height
+
+                PageHeader {
+                    anchors.right: parent.right
+                    anchors.rightMargin: Theme.horizontalPageMargin
+                    width: parent.width - 2 * Theme.horizontalPageMargin
+                    title: qsTr("Health")
+                }
             }
 
             Label {
@@ -33,8 +41,16 @@ Page {
                 }
             }
 
-            SectionHeader {
-                text: qsTr("Privacy and medical use")
+            Item {
+                width: parent.width
+                height: childrenRect.height
+
+                SectionHeader {
+                    anchors.right: parent.right
+                    anchors.rightMargin: Theme.horizontalPageMargin
+                    width: parent.width - 2 * Theme.horizontalPageMargin
+                    text: qsTr("Privacy and medical use")
+                }
             }
 
             Label {
@@ -46,8 +62,16 @@ Page {
                 font.pixelSize: Theme.fontSizeSmall
             }
 
-            SectionHeader {
-                text: qsTr("Maintainer and Current Developers")
+            Item {
+                width: parent.width
+                height: childrenRect.height
+
+                SectionHeader {
+                    anchors.right: parent.right
+                    anchors.rightMargin: Theme.horizontalPageMargin
+                    width: parent.width - 2 * Theme.horizontalPageMargin
+                    text: qsTr("Maintainer and Current Developers")
+                }
             }
 
             Label {
@@ -62,8 +86,16 @@ Page {
                 }
             }
 
-            SectionHeader {
-                text: qsTr("Students and Contributors")
+            Item {
+                width: parent.width
+                height: childrenRect.height
+
+                SectionHeader {
+                    anchors.right: parent.right
+                    anchors.rightMargin: Theme.horizontalPageMargin
+                    width: parent.width - 2 * Theme.horizontalPageMargin
+                    text: qsTr("Students and Contributors")
+                }
             }
 
             Column {
@@ -138,8 +170,16 @@ Page {
 
             }
 
-            SectionHeader {
-                text: qsTr("Source Code")
+            Item {
+                width: parent.width
+                height: childrenRect.height
+
+                SectionHeader {
+                    anchors.right: parent.right
+                    anchors.rightMargin: Theme.horizontalPageMargin
+                    width: parent.width - 2 * Theme.horizontalPageMargin
+                    text: qsTr("Source Code")
+                }
             }
 
             Label {
@@ -162,16 +202,15 @@ Page {
              }
 
             Text {
-                text: "<a href=\"https://gitlab.com/adelnoureddine/harbour-health\">" + qsTr("View source code on GitLab") + "</a>"
+                text: "<a href=\"https://github.com/adelnoureddine/harbour-health\">" + qsTr("View source code on GitHub") + "</a>"
                 anchors {
                     horizontalCenter: parent.horizontalCenter
                 }
                 font.pixelSize: Theme.fontSizeSmall
                 linkColor: Theme.highlightColor
 
-                onLinkActivated: Qt.openUrlExternally("https://gitlab.com/adelnoureddine/harbour-health")
+                onLinkActivated: Qt.openUrlExternally("https://github.com/adelnoureddine/harbour-health")
             }
         }
     }
 }
-

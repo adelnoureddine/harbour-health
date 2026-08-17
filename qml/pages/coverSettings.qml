@@ -27,12 +27,28 @@ Page {
             width: parent.width
             spacing: Theme.paddingLarge
 
-            PageHeader {
-                title: qsTr("Cover Page Settings")
+            Item {
+                width: parent.width
+                height: childrenRect.height
+
+                PageHeader {
+                    anchors.right: parent.right
+                    anchors.rightMargin: Theme.horizontalPageMargin
+                    width: parent.width - 2 * Theme.horizontalPageMargin
+                    title: qsTr("Cover Page Settings")
+                }
             }
 
-            SectionHeader {
-                text: qsTr("Metrics to display")
+            Item {
+                width: parent.width
+                height: childrenRect.height
+
+                SectionHeader {
+                    anchors.right: parent.right
+                    anchors.rightMargin: Theme.horizontalPageMargin
+                    width: parent.width - 2 * Theme.horizontalPageMargin
+                    text: qsTr("Metrics to display")
+                }
             }
 
             ComboBox {
@@ -95,8 +111,16 @@ Page {
                 }
             }
 
-            SectionHeader {
-                text: qsTr("Preview")
+            Item {
+                width: parent.width
+                height: childrenRect.height
+
+                SectionHeader {
+                    anchors.right: parent.right
+                    anchors.rightMargin: Theme.horizontalPageMargin
+                    width: parent.width - 2 * Theme.horizontalPageMargin
+                    text: qsTr("Preview")
+                }
             }
 
             Label {

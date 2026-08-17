@@ -58,8 +58,9 @@ Dialog {
                 wrapMode: Text.Wrap
             }
 
-            SectionHeader {
-                text: qsTr("Profile to Delete")
+            Item { width: parent.width; height: childrenRect.height
+                SectionHeader { anchors.right: parent.right; anchors.rightMargin: Theme.horizontalPageMargin
+                    width: parent.width - 2 * Theme.horizontalPageMargin; text: qsTr("Profile to Delete") }
             }
 
             DetailItem {
@@ -81,4 +82,3 @@ Dialog {
 
     Component.onCompleted: load()
 }
-

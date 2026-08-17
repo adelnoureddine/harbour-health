@@ -20,6 +20,8 @@ Page {
         model: modelProfiles
 
         header: PageHeader {
+            x: Theme.horizontalPageMargin
+            width: parent.width - 2 * Theme.horizontalPageMargin
             title: qsTr("Profiles")
         }
 
@@ -39,6 +41,7 @@ Page {
             Column {
                 anchors.verticalCenter: parent.verticalCenter
                 x: Theme.horizontalPageMargin
+                width: parent.width - 2 * Theme.horizontalPageMargin
                 Label {
                     text: model.firstName + " " + model.lastName
                     color: Theme.primaryColor
@@ -86,4 +89,3 @@ Page {
 
     Component.onCompleted: refreshProfiles()
 }
-

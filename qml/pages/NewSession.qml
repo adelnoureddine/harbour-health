@@ -29,8 +29,9 @@ Page {
             width: parent.width
             spacing: Theme.paddingLarge
 
-            PageHeader {
-                title: qsTr("New Session")
+            Item { width: parent.width; height: childrenRect.height
+                PageHeader { anchors.right: parent.right; anchors.rightMargin: Theme.horizontalPageMargin
+                    width: parent.width - 2 * Theme.horizontalPageMargin; title: qsTr("New Session") }
             }
 
             TextField {
@@ -41,8 +42,9 @@ Page {
                 onTextChanged: sessionName = text
             }
 
-            SectionHeader {
-                text: qsTr("Timer")
+            Item { width: parent.width; height: childrenRect.height
+                SectionHeader { anchors.right: parent.right; anchors.rightMargin: Theme.horizontalPageMargin
+                    width: parent.width - 2 * Theme.horizontalPageMargin; text: qsTr("Timer") }
             }
 
             Label {
@@ -74,8 +76,9 @@ Page {
                 }
             }
 
-            SectionHeader {
-                text: qsTr("Summary")
+            Item { width: parent.width; height: childrenRect.height
+                SectionHeader { anchors.right: parent.right; anchors.rightMargin: Theme.horizontalPageMargin
+                    width: parent.width - 2 * Theme.horizontalPageMargin; text: qsTr("Summary") }
             }
 
             DetailItem {

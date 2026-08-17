@@ -21,10 +21,19 @@ Page {
         anchors.fill: parent
 
         header: PageHeader {
+            x: Theme.horizontalPageMargin
+            width: parent.width - 2 * Theme.horizontalPageMargin
             title: qsTr("%1 History").arg(metricName)
         }
 
         PullDownMenu {
+            MenuItem {
+                text: qsTr("Constraints")
+                onClicked: pageStack.animatorPush(Qt.resolvedUrl("metricConstraints.qml"), {
+                    profileId: profileId,
+                    metricName: page.metricName
+                })
+            }
             MenuItem {
                 text: qsTr("Add Entry")
                 onClicked: pageStack.animatorPush(Qt.resolvedUrl("addEntryMetric.qml"), {
@@ -32,13 +41,6 @@ Page {
                     metricName: page.metricName,
                     metricUnit: page.metricUnit,
                     invalidateSignal: invalidateSignal
-                })
-            }
-            MenuItem {
-                text: qsTr("Constraints")
-                onClicked: pageStack.animatorPush(Qt.resolvedUrl("metricConstraints.qml"), {
-                    profileId: profileId,
-                    metricName: page.metricName
                 })
             }
         }
@@ -49,6 +51,8 @@ Page {
             property: "day"
             criteria: ViewSection.FullString
             delegate: SectionHeader {
+                x: Theme.horizontalPageMargin
+                width: parent.width - 2 * Theme.horizontalPageMargin
                 text: DataManager.filteredSumFromModel(ListView.view.model, {day: section}, "value") + page.metricUnit + " - " + section
             }
         }
@@ -74,6 +78,7 @@ Page {
             
             Label {
                 x: Theme.horizontalPageMargin
+                width: parent.width - 2 * Theme.horizontalPageMargin
                 anchors.verticalCenter: parent.verticalCenter
                 text: model.value + " " + metricUnit
                 color: highlighted ? Theme.highlightColor : Theme.primaryColor

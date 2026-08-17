@@ -45,12 +45,14 @@ Page {
             width: parent.width
             spacing: Theme.paddingLarge
 
-            PageHeader {
-                title: qsTr("Profile")
+            Item { width: parent.width; height: childrenRect.height
+                PageHeader { anchors.right: parent.right; anchors.rightMargin: Theme.horizontalPageMargin
+                    width: parent.width - 2 * Theme.horizontalPageMargin; title: qsTr("Profile") }
             }
 
-            SectionHeader {
-                text: qsTr("Personal Information")
+            Item { width: parent.width; height: childrenRect.height
+                SectionHeader { anchors.right: parent.right; anchors.rightMargin: Theme.horizontalPageMargin
+                    width: parent.width - 2 * Theme.horizontalPageMargin; text: qsTr("Personal Information") }
             }
 
             DetailItem {

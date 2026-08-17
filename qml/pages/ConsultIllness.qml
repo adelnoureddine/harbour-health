@@ -29,8 +29,16 @@ Page {
             width: parent.width
             spacing: Theme.paddingLarge
 
-            PageHeader {
-                title: conditionName
+            Item {
+                width: parent.width
+                height: childrenRect.height
+
+                PageHeader {
+                    anchors.right: parent.right
+                    anchors.rightMargin: Theme.horizontalPageMargin
+                    width: parent.width - 2 * Theme.horizontalPageMargin
+                    title: conditionName
+                }
             }
 
             DetailItem {
@@ -55,8 +63,16 @@ Page {
                 visible: value !== ""
             }
 
-            SectionHeader {
-                text: qsTr("Treatments")
+            Item {
+                width: parent.width
+                height: childrenRect.height
+
+                SectionHeader {
+                    anchors.right: parent.right
+                    anchors.rightMargin: Theme.horizontalPageMargin
+                    width: parent.width - 2 * Theme.horizontalPageMargin
+                    text: qsTr("Treatments")
+                }
             }
         }
 
@@ -139,5 +155,4 @@ Page {
 
     Component.onCompleted: refresh()
 }
-
 

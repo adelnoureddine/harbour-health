@@ -32,6 +32,8 @@ Page {
         model: listModel
 
         header: PageHeader {
+            x: Theme.horizontalPageMargin
+            width: parent.width - 2 * Theme.horizontalPageMargin
             title: metricName
         }
 
@@ -63,6 +65,7 @@ Page {
             
             Label {
                 x: Theme.horizontalPageMargin
+                width: parent.width - 2 * Theme.horizontalPageMargin
                 anchors.verticalCenter: parent.verticalCenter
                 text: model.value
                 color: highlighted ? Theme.highlightColor : Theme.primaryColor
@@ -98,4 +101,3 @@ Page {
 
     Component.onCompleted: refresh()
 }
-

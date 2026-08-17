@@ -42,12 +42,14 @@ Page {
             width: parent.width
             spacing: Theme.paddingLarge
 
-            PageHeader {
-                title: qsTr("Nutrition & Hydration")
+            Item { width: parent.width; height: childrenRect.height
+                PageHeader { anchors.right: parent.right; anchors.rightMargin: Theme.horizontalPageMargin
+                    width: parent.width - 2 * Theme.horizontalPageMargin; title: qsTr("Nutrition & Hydration") }
             }
 
-            SectionHeader {
-                text: qsTr("Hydration")
+            Item { width: parent.width; height: childrenRect.height
+                SectionHeader { anchors.right: parent.right; anchors.rightMargin: Theme.horizontalPageMargin
+                    width: parent.width - 2 * Theme.horizontalPageMargin; text: qsTr("Hydration") }
             }
 
             SummaryCard {
@@ -72,8 +74,9 @@ Page {
                 }
             }
 
-            SectionHeader {
-                text: qsTr("Nutrition")
+            Item { width: parent.width; height: childrenRect.height
+                SectionHeader { anchors.right: parent.right; anchors.rightMargin: Theme.horizontalPageMargin
+                    width: parent.width - 2 * Theme.horizontalPageMargin; text: qsTr("Nutrition") }
             }
 
             SummaryCard {

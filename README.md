@@ -7,6 +7,7 @@ Health is not medical advice and must not be used for diagnosis or treatment dec
 # Authors
 
 This project was initially built during software engineering course in 2022 at the Université de Pau et des Pays de l'Adour (France), by students and under the supervision of Prof. Adel Noureddine.
+It has been then updated with contribution from the open source community.
 
 # Contributors
 
@@ -20,6 +21,7 @@ This project was initially built during software engineering course in 2022 at t
 - Ashraf Ajouka (student) © 2022
 - Jose Buepoyo Sopale (student) © 2022
 - Charlotte Ortali (student) © 2022
+- Maarten Vanraes © 2026
 - Ilies Hamadene (student) © 2026
 
 # License

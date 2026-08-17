@@ -39,12 +39,28 @@ Page {
             width: parent.width
             spacing: Theme.paddingLarge
 
-            PageHeader {
-                title: medicationName
+            Item {
+                width: parent.width
+                height: childrenRect.height
+
+                PageHeader {
+                    anchors.right: parent.right
+                    anchors.rightMargin: Theme.horizontalPageMargin
+                    width: parent.width - 2 * Theme.horizontalPageMargin
+                    title: medicationName
+                }
             }
 
-            SectionHeader {
-                text: qsTr("Today's intakes")
+            Item {
+                width: parent.width
+                height: childrenRect.height
+
+                SectionHeader {
+                    anchors.right: parent.right
+                    anchors.rightMargin: Theme.horizontalPageMargin
+                    width: parent.width - 2 * Theme.horizontalPageMargin
+                    text: qsTr("Today's intakes")
+                }
             }
 
             Repeater {
@@ -54,6 +70,7 @@ Page {
                     Column {
                         anchors.verticalCenter: parent.verticalCenter
                         x: Theme.horizontalPageMargin
+                        width: parent.width - 2 * Theme.horizontalPageMargin
                         Label {
                             text: new Date(model.timestamp).toLocaleTimeString()
                             color: Theme.highlightColor
@@ -71,14 +88,23 @@ Page {
 
             Label {
                 x: Theme.horizontalPageMargin
+                width: parent.width - 2 * Theme.horizontalPageMargin
                 text: qsTr("No intakes today")
                 color: Theme.secondaryColor
                 font.pixelSize: Theme.fontSizeSmall
                 visible: todayModel.count === 0
             }
 
-            SectionHeader {
-                text: qsTr("History")
+            Item {
+                width: parent.width
+                height: childrenRect.height
+
+                SectionHeader {
+                    anchors.right: parent.right
+                    anchors.rightMargin: Theme.horizontalPageMargin
+                    width: parent.width - 2 * Theme.horizontalPageMargin
+                    text: qsTr("History")
+                }
             }
 
             Repeater {
@@ -88,6 +114,7 @@ Page {
                     Column {
                         anchors.verticalCenter: parent.verticalCenter
                         x: Theme.horizontalPageMargin
+                        width: parent.width - 2 * Theme.horizontalPageMargin
                         Label {
                             text: new Date(model.timestamp).toLocaleString()
                             color: Theme.primaryColor

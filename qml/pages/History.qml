@@ -24,6 +24,8 @@ Page {
         model: listModel
 
         header: PageHeader {
+            x: Theme.horizontalPageMargin
+            width: parent.width - 2 * Theme.horizontalPageMargin
             title: qsTr("Meditation History")
         }
 
@@ -45,6 +47,7 @@ Page {
             Column {
                 anchors.verticalCenter: parent.verticalCenter
                 x: Theme.horizontalPageMargin
+                width: parent.width - 2 * Theme.horizontalPageMargin
                 
                 Label {
                     text: model.name || qsTr("Meditation Session")

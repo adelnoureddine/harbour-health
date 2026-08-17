@@ -55,12 +55,14 @@ Page {
             width: parent.width
             spacing: Theme.paddingLarge
 
-            PageHeader {
-                title: qsTr("Menstrual Cycle")
+            Item { width: parent.width; height: childrenRect.height
+                PageHeader { anchors.right: parent.right; anchors.rightMargin: Theme.horizontalPageMargin
+                    width: parent.width - 2 * Theme.horizontalPageMargin; title: qsTr("Menstrual Cycle") }
             }
 
-            SectionHeader {
-                text: qsTr("Current Cycle")
+            Item { width: parent.width; height: childrenRect.height
+                SectionHeader { anchors.right: parent.right; anchors.rightMargin: Theme.horizontalPageMargin
+                    width: parent.width - 2 * Theme.horizontalPageMargin; text: qsTr("Current Cycle") }
             }
 
             Column {
@@ -70,6 +72,7 @@ Page {
 
                 Label {
                     x: Theme.horizontalPageMargin
+                    width: parent.width - 2 * Theme.horizontalPageMargin
                     text: qsTr("Day %1").arg(dayOfCycle)
                     font.pixelSize: Theme.fontSizeExtraLarge
                     color: Theme.highlightColor
@@ -90,9 +93,9 @@ Page {
                 color: Theme.secondaryColor
             }
 
-            SectionHeader {
-                text: qsTr("Today's Summary")
-                visible: todayLog !== null
+            Item { width: parent.width; height: childrenRect.height; visible: todayLog !== null
+                SectionHeader { anchors.right: parent.right; anchors.rightMargin: Theme.horizontalPageMargin
+                    width: parent.width - 2 * Theme.horizontalPageMargin; text: qsTr("Today's Summary") }
             }
 
             Column {
@@ -129,5 +132,3 @@ Page {
 
     Component.onCompleted: refresh()
 }
-
-

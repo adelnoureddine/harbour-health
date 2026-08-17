@@ -24,6 +24,8 @@ Page {
         model: listModel
 
         header: PageHeader {
+            x: Theme.horizontalPageMargin
+            width: parent.width - 2 * Theme.horizontalPageMargin
             title: qsTr("Cycle History")
         }
 
@@ -40,6 +42,7 @@ Page {
             Column {
                 anchors.verticalCenter: parent.verticalCenter
                 x: Theme.horizontalPageMargin
+                width: parent.width - 2 * Theme.horizontalPageMargin
                 
                 Label {
                     text: qsTr("Started on %1").arg(model.startDate)

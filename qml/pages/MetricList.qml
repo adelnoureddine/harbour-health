@@ -18,6 +18,8 @@ Page {
         anchors.fill: parent
 
         header: PageHeader {
+            x: Theme.horizontalPageMargin
+            width: parent.width - 2 * Theme.horizontalPageMargin
             title: qsTr("Health Metrics")
         }
 
@@ -41,6 +43,7 @@ Page {
 
             Label {
                 x: Theme.horizontalPageMargin
+                width: parent.width - 2 * Theme.horizontalPageMargin
                 anchors.verticalCenter: parent.verticalCenter
                 text: qsTr(model.name)
                 color: Theme.primaryColor

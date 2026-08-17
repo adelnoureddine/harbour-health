@@ -20,12 +20,14 @@ Page {
             width: parent.width
             spacing: Theme.paddingLarge
 
-            PageHeader {
-                title: qsTr("Cycle Details")
+            Item { width: parent.width; height: childrenRect.height
+                PageHeader { anchors.right: parent.right; anchors.rightMargin: Theme.horizontalPageMargin
+                    width: parent.width - 2 * Theme.horizontalPageMargin; title: qsTr("Cycle Details") }
             }
 
-            SectionHeader {
-                text: qsTr("Overview")
+            Item { width: parent.width; height: childrenRect.height
+                SectionHeader { anchors.right: parent.right; anchors.rightMargin: Theme.horizontalPageMargin
+                    width: parent.width - 2 * Theme.horizontalPageMargin; text: qsTr("Overview") }
             }
 
             DetailItem {
@@ -44,8 +46,9 @@ Page {
                 visible: note !== ""
             }
 
-            SectionHeader {
-                text: qsTr("Daily Logs")
+            Item { width: parent.width; height: childrenRect.height
+                SectionHeader { anchors.right: parent.right; anchors.rightMargin: Theme.horizontalPageMargin
+                    width: parent.width - 2 * Theme.horizontalPageMargin; text: qsTr("Daily Logs") }
             }
 
             Repeater {
@@ -62,6 +65,7 @@ Page {
 
                     Label {
                         x: Theme.horizontalPageMargin
+                        width: parent.width - 2 * Theme.horizontalPageMargin
                         text: model.date
                         color: Theme.highlightColor
                         font.bold: true

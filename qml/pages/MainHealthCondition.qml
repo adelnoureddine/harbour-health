@@ -22,6 +22,8 @@ Page {
         anchors.fill: parent
 
         header: PageHeader {
+            x: Theme.horizontalPageMargin
+            width: parent.width - 2 * Theme.horizontalPageMargin
             title: qsTr("Health Conditions")
         }
 

@@ -21,6 +21,8 @@ Page {
         anchors.fill: parent
 
         header: PageHeader {
+            x: Theme.horizontalPageMargin
+            width: parent.width - 2 * Theme.horizontalPageMargin
             title: qsTr("%1 History").arg(vaccineName)
         }
 
@@ -41,6 +43,7 @@ Page {
             
             Label {
                 x: Theme.horizontalPageMargin
+                width: parent.width - 2 * Theme.horizontalPageMargin
                 anchors.verticalCenter: parent.verticalCenter
                 text: model.date
                 color: Theme.primaryColor
