@@ -1,38 +1,33 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
 import "../js/DataManager.js" as DataManager
+import "../js/utils.js" as Utils
 
 Dialog {
     id: dialog
     allowedOrientations: Orientation.All
 
-    property int profileId: 1
+    property int profileId: -1
     property var profile: null
 
+    // Nothing is deleted unless the requested profile was actually found. The old
+    // code fell back to profiles[0], so a stale id destroyed a different profile
+    // than the one named in this dialog.
+    canAccept: profile !== null
+
     function load() {
-        var profiles = DataManager.getProfiles();
-        if (profiles.length > 0) {
-            var found = false;
-            for (var i=0; i<profiles.length; i++) {
-                if (profiles[i].id === profileId) {
-                    profile = profiles[i];
-                    found = true;
-                    break;
-                }
-            }
-            if (!found) profile = profiles[0];
-        }
+        profile = DataManager.getProfile(profileId);
     }
 
     onAccepted: {
-        if (profile) {
-            DataManager.deleteProfile(profile.id);
-            var remaining = DataManager.getProfiles();
-            if (remaining.length === 0) {
-                pageStack.replace(Qt.resolvedUrl("createProfile.qml"));
-            } else {
-                pageStack.pop();
-            }
+        if (!profile) {
+            return;
+        }
+        DataManager.deleteProfile(profile.id);
+        if (DataManager.countProfiles() === 0) {
+            pageStack.replace(Qt.resolvedUrl("createProfile.qml"));
+        } else {
+            pageStack.pop();
         }
     }
 
@@ -58,27 +53,43 @@ Dialog {
                 wrapMode: Text.Wrap
             }
 
-            Item { width: parent.width; height: childrenRect.height
-                SectionHeader { anchors.right: parent.right; anchors.rightMargin: Theme.horizontalPageMargin
-                    width: parent.width - 2 * Theme.horizontalPageMargin; text: qsTr("Profile to Delete") }
+            Label {
+                x: Theme.horizontalPageMargin
+                width: parent.width - 2 * Theme.horizontalPageMargin
+                text: qsTr("This profile could not be found. Nothing will be deleted.")
+                color: Theme.errorColor
+                wrapMode: Text.Wrap
+                visible: profile === null
+            }
+
+            SectionHeader {
+                text: qsTr("Profile to Delete")
+                visible: profile !== null
             }
 
             DetailItem {
                 label: qsTr("Name")
                 value: profile ? (profile.firstName + " " + profile.lastName) : ""
+                visible: profile !== null
             }
-            
+
             DetailItem {
                 label: qsTr("Gender")
-                value: profile ? profile.gender : ""
+                value: profile ? Utils.genderDisplayName(profile.gender) : ""
+                visible: profile !== null
             }
 
             DetailItem {
                 label: qsTr("Birthday")
-                value: profile ? profile.birthDate : ""
+                value: profile ? Utils.formatDate(profile.birthDate) : ""
+                visible: profile !== null
             }
         }
+
+        VerticalScrollDecorator {}
     }
 
     Component.onCompleted: load()
 }
+
+// vim:et:ts=4:sw=4

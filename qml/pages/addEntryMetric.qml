@@ -1,6 +1,7 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
 import "../js/DataManager.js" as DataManager
+import "../js/utils.js" as Utils
 
 Dialog {
     id: dialog
@@ -12,10 +13,51 @@ Dialog {
     property date selectedDate: new Date()
     property var invalidateSignal
 
+    // Set when editing an existing reading rather than adding one.
+    property int logId: -1
+    // Set when the metric is already decided by the page that opened this dialog.
+    property bool lockMetric: false
+
+    readonly property bool editing: logId >= 0
+
     canAccept: profileId >= 0 && metricValue.text !== "" && dialog.metricName !== ""
+               && !isNaN(parseFloat(metricValue.text.replace(',', '.')))
+
+    function load() {
+        DataManager.getMetricsToModel(metricTypeModel);
+
+        if (editing) {
+            var log = DataManager.getLog(logId);
+            if (log) {
+                dialog.metricName = log.metricName;
+                dialog.metricUnit = log.unit;
+                metricValue.text = Utils.formatValue(log.value);
+                noteField.text = log.note ? log.note : "";
+                var parsed = Utils.parseTimestamp(log.timestamp);
+                if (parsed !== null) {
+                    dialog.selectedDate = parsed;
+                }
+            }
+        }
+
+        // Preselect the metric that was passed in. The combo box used to always open
+        // on the first entry regardless of which metric the user had tapped.
+        for (var i = 0; i < metricTypeModel.count; i++) {
+            if (metricTypeModel.get(i).name === dialog.metricName) {
+                metricField.currentIndex = i;
+                break;
+            }
+        }
+        metricField.value = Utils.metricDisplayName(dialog.metricName);
+    }
 
     onAccepted: {
-        DataManager.addLog(profileId, metricField.value, parseFloat(metricValue.text.replace(',', '.')), selectedDate, noteField.text);
+        var value = parseFloat(metricValue.text.replace(',', '.'));
+        if (editing) {
+            DataManager.updateLog(logId, value, selectedDate, noteField.text);
+        } else {
+            DataManager.addLog(profileId, dialog.metricName, value, selectedDate, noteField.text);
+        }
         if (dialog.invalidateSignal) {
             dialog.invalidateSignal(dialog.metricName);
         }
@@ -31,22 +73,27 @@ Dialog {
             spacing: Theme.paddingLarge
 
             DialogHeader {
-                title: qsTr("Add %1 (%2)").arg(metricName || '?').arg(metricUnit || '?')
+                title: dialog.editing
+                       ? qsTr("Edit %1").arg(Utils.metricDisplayName(dialog.metricName))
+                       : qsTr("Add %1").arg(Utils.metricDisplayName(dialog.metricName))
                 acceptText: qsTr("Save")
             }
 
             ComboBox {
                 id: metricField
+                width: parent.width
                 label: qsTr("Type")
+                // Pointless once the metric is fixed by the calling page.
+                visible: !dialog.lockMetric && !dialog.editing
+
                 menu: ContextMenu {
                     Repeater {
                         model: ListModel {
                             id: metricTypeModel
                         }
                         MenuItem {
-                            text: model.name
+                            text: Utils.metricDisplayName(model.name)
                             onClicked: {
-                                metricField.value = model.name;
                                 dialog.metricName = model.name;
                                 dialog.metricUnit = model.unit;
                             }
@@ -58,23 +105,31 @@ Dialog {
             TextField {
                 id: metricValue
                 width: parent.width
-                label: qsTr("Value (%1)").arg(metricUnit)
-                placeholderText: qsTr("Enter %1").arg(metricName)
+                label: qsTr("Value (%1)").arg(dialog.metricUnit)
+                placeholderText: qsTr("Enter %1").arg(Utils.metricDisplayName(dialog.metricName))
                 inputMethodHints: Qt.ImhFormattedNumbersOnly
-                validator: RegExpValidator { regExp: /^\d+([\.|,]\d{1,2})?$/ }
+                // The old pattern was [\.|,], a character class that also accepted a
+                // literal pipe, so "12|5" passed validation and then parsed as 12.
+                validator: RegExpValidator { regExp: /^\d{1,6}([.,]\d{1,3})?$/ }
                 focus: true
+                EnterKey.iconSource: "image://theme/icon-m-enter-next"
+                EnterKey.onClicked: noteField.focus = true
             }
 
             ValueButton {
                 id: dateButton
                 label: qsTr("Date")
-                value: selectedDate.toLocaleDateString()
+                value: Qt.formatDate(dialog.selectedDate, Qt.DefaultLocaleShortDate)
                 onClicked: {
                     var dateDialog = pageStack.push("Sailfish.Silica.DatePickerDialog", {
-                        date: selectedDate
+                        date: dialog.selectedDate
                     })
                     dateDialog.accepted.connect(function() {
-                        selectedDate = new Date(dateDialog.date.getFullYear(), dateDialog.date.getMonth(), dateDialog.date.getDate(), selectedDate.getHours(), selectedDate.getMinutes(), selectedDate.getSeconds());
+                        dialog.selectedDate = new Date(dateDialog.date.getFullYear(),
+                                                       dateDialog.date.getMonth(),
+                                                       dateDialog.date.getDate(),
+                                                       dialog.selectedDate.getHours(),
+                                                       dialog.selectedDate.getMinutes(), 0);
                     })
                 }
             }
@@ -82,35 +137,39 @@ Dialog {
             ValueButton {
                 id: timeButton
                 label: qsTr("Time")
-                value: selectedDate.toLocaleTimeString()
+                value: Qt.formatTime(dialog.selectedDate, "hh:mm")
                 onClicked: {
                     var timeDialog = pageStack.push("Sailfish.Silica.TimePickerDialog", {
-                        hour: selectedDate.getHours(),
-                        minute: selectedDate.getMinutes()
+                        hour: dialog.selectedDate.getHours(),
+                        minute: dialog.selectedDate.getMinutes()
                     })
                     timeDialog.accepted.connect(function() {
-                        var time = timeDialog.timeText.split(":");
-                        selectedDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), parseInt(time[0]), parseInt(time[1]), 0);
+                        // timeText is locale formatted -- in a 12-hour locale, parsing
+                        // it recorded 1 pm as 01:00. The numeric properties are exact.
+                        dialog.selectedDate = new Date(dialog.selectedDate.getFullYear(),
+                                                       dialog.selectedDate.getMonth(),
+                                                       dialog.selectedDate.getDate(),
+                                                       timeDialog.hour, timeDialog.minute, 0);
                     })
                 }
             }
 
             TextField {
                 id: noteField
+                width: parent.width
                 label: qsTr("Note")
+                placeholderText: qsTr("Optional")
+                EnterKey.iconSource: "image://theme/icon-m-enter-close"
+                EnterKey.onClicked: focus = false
             }
         }
+
+        VerticalScrollDecorator {}
     }
 
-    Component.onCompleted: {
-        DataManager.getMetricsToModel(metricTypeModel);
-        metricField.value = dialog.metricName;
-        // TODO: find a way to select the one that was supplied from the properties
-        // extend with (Food: no unit) and that should be a combination of water content/calories content (or other measurables, like fat, or sugar, or ...)
-        // and find a way to show nothing if the property was null
-        // time field does not start with the entered time
-        // metricType does not change, even though the rest does
-    }
+    // Loaded once. Reloading on PageStatus.Active would overwrite whatever the user
+    // had typed every time they came back from the date or time picker.
+    Component.onCompleted: load()
 }
 
 // vim:et:ts=4:sw=4

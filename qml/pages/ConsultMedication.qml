@@ -1,6 +1,7 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
 import "../js/DataManager.js" as DataManager
+import "../js/utils.js" as Utils
 
 Page {
     id: page
@@ -39,28 +40,12 @@ Page {
             width: parent.width
             spacing: Theme.paddingLarge
 
-            Item {
-                width: parent.width
-                height: childrenRect.height
-
-                PageHeader {
-                    anchors.right: parent.right
-                    anchors.rightMargin: Theme.horizontalPageMargin
-                    width: parent.width - 2 * Theme.horizontalPageMargin
-                    title: medicationName
-                }
+            PageHeader {
+                title: medicationName
             }
 
-            Item {
-                width: parent.width
-                height: childrenRect.height
-
-                SectionHeader {
-                    anchors.right: parent.right
-                    anchors.rightMargin: Theme.horizontalPageMargin
-                    width: parent.width - 2 * Theme.horizontalPageMargin
-                    text: qsTr("Today's intakes")
-                }
+            SectionHeader {
+                text: qsTr("Today's intakes")
             }
 
             Repeater {
@@ -72,15 +57,19 @@ Page {
                         x: Theme.horizontalPageMargin
                         width: parent.width - 2 * Theme.horizontalPageMargin
                         Label {
-                            text: new Date(model.timestamp).toLocaleTimeString()
+                            width: parent.width
+                            truncationMode: TruncationMode.Fade
+                            text: Utils.formatTime(model.timestamp)
                             color: Theme.highlightColor
                             font.pixelSize: Theme.fontSizeMedium
                         }
                         Label {
-                            text: model.note || qsTr("No note")
+                            width: parent.width
+                            truncationMode: TruncationMode.Fade
+                            text: model.note ? model.note : ""
                             font.pixelSize: Theme.fontSizeExtraSmall
                             color: Theme.secondaryColor
-                            visible: true
+                            visible: text !== ""
                         }
                     }
                 }
@@ -95,16 +84,8 @@ Page {
                 visible: todayModel.count === 0
             }
 
-            Item {
-                width: parent.width
-                height: childrenRect.height
-
-                SectionHeader {
-                    anchors.right: parent.right
-                    anchors.rightMargin: Theme.horizontalPageMargin
-                    width: parent.width - 2 * Theme.horizontalPageMargin
-                    text: qsTr("History")
-                }
+            SectionHeader {
+                text: qsTr("History")
             }
 
             Repeater {
@@ -116,24 +97,31 @@ Page {
                         x: Theme.horizontalPageMargin
                         width: parent.width - 2 * Theme.horizontalPageMargin
                         Label {
-                            text: new Date(model.timestamp).toLocaleString()
+                            width: parent.width
+                            truncationMode: TruncationMode.Fade
+                            text: Utils.formatDateTime(model.timestamp)
                             color: Theme.primaryColor
                             font.pixelSize: Theme.fontSizeSmall
                         }
                         Label {
-                            text: model.note || qsTr("No note")
+                            width: parent.width
+                            truncationMode: TruncationMode.Fade
+                            text: model.note ? model.note : ""
                             font.pixelSize: Theme.fontSizeExtraSmall
                             color: Theme.secondaryColor
-                            visible: model.note !== ""
+                            visible: text !== ""
                         }
                     }
                 }
             }
 
-            ViewPlaceholder {
-                enabled: historyModel.count === 0
+            Label {
+                x: Theme.horizontalPageMargin
+                width: parent.width - 2 * Theme.horizontalPageMargin
                 text: qsTr("No intake history")
-                hintText: qsTr("Pull down to log an intake")
+                color: Theme.secondaryColor
+                font.pixelSize: Theme.fontSizeSmall
+                visible: historyModel.count === 0
             }
         }
     }

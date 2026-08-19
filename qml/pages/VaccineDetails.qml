@@ -1,13 +1,14 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
 import "../js/DataManager.js" as DataManager
+import "../js/utils.js" as Utils
 
 Page {
     id: page
     allowedOrientations: Orientation.All
 
     property int profileId: -1
-    property int vaccineId
+    property int vaccineId: -1
     property string vaccineName
     property bool isMandatory
 
@@ -18,20 +19,24 @@ Page {
     }
 
     SilicaListView {
+        id: listView
         anchors.fill: parent
 
         header: PageHeader {
-            x: Theme.horizontalPageMargin
-            width: parent.width - 2 * Theme.horizontalPageMargin
-            title: qsTr("%1 History").arg(vaccineName)
+            width: listView.width
+            title: page.vaccineName
+            description: qsTr("Injections")
         }
 
         PullDownMenu {
             MenuItem {
                 text: qsTr("Record Injection")
+                // The vaccine is already known here; this used to open a blank form
+                // and make the user retype the name they had just tapped.
                 onClicked: pageStack.animatorPush(Qt.resolvedUrl("AddVaccine.qml"), {
-                    // In a more complex app we might pass the vaccine ID to auto-fill
-		    profileId: page.profileId
+                    profileId: page.profileId,
+                    knownVaccineId: page.vaccineId,
+                    knownVaccineName: page.vaccineName
                 })
             }
         }
@@ -39,21 +44,37 @@ Page {
         model: vaccinesDetailModel
 
         delegate: ListItem {
+            id: injectionItem
             contentHeight: Theme.itemSizeSmall
-            
+
+            menu: ContextMenu {
+                MenuItem {
+                    text: qsTr("Delete")
+                    onClicked: injectionItem.remorseDelete(function() {
+                        DataManager.deleteVaccineLog(model.id);
+                        vaccinesDetailModel.remove(index);
+                    })
+                }
+            }
+
             Label {
+                id: dateLabel
                 x: Theme.horizontalPageMargin
-                width: parent.width - 2 * Theme.horizontalPageMargin
                 anchors.verticalCenter: parent.verticalCenter
-                text: model.date
-                color: Theme.primaryColor
+                width: parent.width / 2 - Theme.horizontalPageMargin
+                truncationMode: TruncationMode.Fade
+                text: Utils.formatDate(model.date)
+                color: injectionItem.highlighted ? Theme.highlightColor : Theme.primaryColor
             }
 
             Label {
                 anchors.right: parent.right
                 anchors.rightMargin: Theme.horizontalPageMargin
                 anchors.verticalCenter: parent.verticalCenter
-                text: model.note || ""
+                width: parent.width / 2
+                horizontalAlignment: Text.AlignRight
+                text: model.note ? model.note : ""
+                truncationMode: TruncationMode.Fade
                 font.pixelSize: Theme.fontSizeExtraSmall
                 color: Theme.secondaryColor
                 visible: text !== ""
@@ -78,6 +99,6 @@ Page {
             refresh();
         }
     }
-
-    Component.onCompleted: refresh()
 }
+
+// vim:et:ts=4:sw=4

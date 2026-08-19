@@ -4,8 +4,9 @@ X-Nemo-Application-Type=silica-qt5
 Icon=harbour-health
 Exec=harbour-health
 Name=Health
+Comment=Private on-device health and fitness tracker
 
 [X-Sailjail]
 OrganizationName=org.noureddine
 ApplicationName=Health
-Permissions=
+Permissions=Documents

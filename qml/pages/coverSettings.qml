@@ -1,21 +1,44 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
 import "../js/DataManager.js" as DataManager
+import "../js/utils.js" as Utils
 
 Page {
     id: page
     allowedOrientations: Orientation.All
 
     property int profileId: -1
-    property string metric1: "weight"
-    property string metric2: "water"
+    property string metric1: DataManager.METRIC_WEIGHT
+    property string metric2: DataManager.METRIC_WATER
+
+    function loadMetrics() {
+        metricModel.clear();
+        var metrics = DataManager.getMetrics();
+        for (var i = 0; i < metrics.length; i++) {
+            metricModel.append({ name: metrics[i].name });
+        }
+    }
+
+    function indexOfMetric(name) {
+        for (var i = 0; i < metricModel.count; i++) {
+            if (metricModel.get(i).name === name) {
+                return i;
+            }
+        }
+        return 0;
+    }
 
     function refresh() {
         var metrics = DataManager.getCoverMetrics(profileId);
         metric1 = metrics.metric1;
         metric2 = metrics.metric2;
-        metric1Combo.updateSelection();
-        metric2Combo.updateSelection();
+        // Set after the model is populated, otherwise there is nothing to select.
+        metric1Combo.currentIndex = indexOfMetric(metric1);
+        metric2Combo.currentIndex = indexOfMetric(metric2);
+    }
+
+    function save() {
+        DataManager.updateCoverMetrics(profileId, metric1, metric2);
     }
 
     SilicaFlickable {
@@ -27,54 +50,26 @@ Page {
             width: parent.width
             spacing: Theme.paddingLarge
 
-            Item {
-                width: parent.width
-                height: childrenRect.height
-
-                PageHeader {
-                    anchors.right: parent.right
-                    anchors.rightMargin: Theme.horizontalPageMargin
-                    width: parent.width - 2 * Theme.horizontalPageMargin
-                    title: qsTr("Cover Page Settings")
-                }
+            PageHeader {
+                title: qsTr("Cover Page Settings")
             }
 
-            Item {
-                width: parent.width
-                height: childrenRect.height
-
-                SectionHeader {
-                    anchors.right: parent.right
-                    anchors.rightMargin: Theme.horizontalPageMargin
-                    width: parent.width - 2 * Theme.horizontalPageMargin
-                    text: qsTr("Metrics to display")
-                }
+            SectionHeader {
+                text: qsTr("Metrics to display")
             }
 
             ComboBox {
                 id: metric1Combo
                 width: parent.width
                 label: qsTr("First metric")
-
-                function updateSelection() {
-                    var metrics = DataManager.getMetrics();
-                    metricModel1.clear();
-                    for (var i = 0; i < metrics.length; i++) {
-                        metricModel1.append({ name: metrics[i].name });
-                        if (metrics[i].name === page.metric1) {
-                            currentIndex = i;
-                        }
-                    }
-                }
-
                 menu: ContextMenu {
                     Repeater {
-                        model: ListModel { id: metricModel1 }
+                        model: metricModel
                         MenuItem {
-                            text: model.name
+                            text: Utils.metricDisplayName(model.name)
                             onClicked: {
                                 page.metric1 = model.name;
-                                DataManager.updateCoverMetrics(page.profileId, page.metric1, page.metric2);
+                                page.save();
                             }
                         }
                     }
@@ -85,42 +80,22 @@ Page {
                 id: metric2Combo
                 width: parent.width
                 label: qsTr("Second metric")
-
-                function updateSelection() {
-                    var metrics = DataManager.getMetrics();
-                    metricModel2.clear();
-                    for (var i = 0; i < metrics.length; i++) {
-                        metricModel2.append({ name: metrics[i].name });
-                        if (metrics[i].name === page.metric2) {
-                            currentIndex = i;
-                        }
-                    }
-                }
-
                 menu: ContextMenu {
                     Repeater {
-                        model: ListModel { id: metricModel2 }
+                        model: metricModel
                         MenuItem {
-                            text: model.name
+                            text: Utils.metricDisplayName(model.name)
                             onClicked: {
                                 page.metric2 = model.name;
-                                DataManager.updateCoverMetrics(page.profileId, page.metric1, page.metric2);
+                                page.save();
                             }
                         }
                     }
                 }
             }
 
-            Item {
-                width: parent.width
-                height: childrenRect.height
-
-                SectionHeader {
-                    anchors.right: parent.right
-                    anchors.rightMargin: Theme.horizontalPageMargin
-                    width: parent.width - 2 * Theme.horizontalPageMargin
-                    text: qsTr("Preview")
-                }
+            SectionHeader {
+                text: qsTr("Preview")
             }
 
             Label {
@@ -129,14 +104,31 @@ Page {
                 wrapMode: Text.Wrap
                 color: Theme.secondaryColor
                 font.pixelSize: Theme.fontSizeSmall
-                text: qsTr("The cover page will display: %1 and %2").arg(metric1).arg(metric2)
+                text: qsTr("The cover will show %1 and %2.")
+                        .arg(Utils.metricDisplayName(metric1))
+                        .arg(Utils.metricDisplayName(metric2))
+            }
+
+            Label {
+                x: Theme.horizontalPageMargin
+                width: parent.width - 2 * Theme.horizontalPageMargin
+                wrapMode: Text.Wrap
+                color: Theme.secondaryColor
+                font.pixelSize: Theme.fontSizeExtraSmall
+                visible: metric1 === metric2
+                text: qsTr("Both slots show the same metric.")
             }
         }
+
+        VerticalScrollDecorator {}
     }
 
-    onStatusChanged: {
-        if (status === PageStatus.Active) refresh();
-    }
+    ListModel { id: metricModel }
 
-    Component.onCompleted: refresh()
+    Component.onCompleted: {
+        loadMetrics();
+        refresh();
+    }
 }
+
+// vim:et:ts=4:sw=4

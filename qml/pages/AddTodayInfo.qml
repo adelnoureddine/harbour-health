@@ -1,6 +1,7 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
 import "../js/DataManager.js" as DataManager
+import "../js/utils.js" as Utils
 
 Dialog {
     id: dialog
@@ -15,8 +16,30 @@ Dialog {
 
     canAccept: profileId >= 0
 
+    /*
+     * A day has at most one entry, and saving replaces it. Load whatever is already
+     * recorded for the chosen day so saving never silently drops fields the user
+     * did not retype.
+     */
+    function loadForDate() {
+        if (profileId < 0) {
+            return;
+        }
+        var logs = DataManager.getMenstrualLogs(profileId, Utils.toLocalDateString(logDate));
+        if (logs.length === 0) {
+            return;
+        }
+        var log = logs[0];
+        flow = log.flow;
+        pain = log.pain;
+        energy = log.energy;
+        sleepHours = log.sleepTime;
+        sleepSlider.value = log.sleepTime;
+        notesField.text = log.note ? log.note : "";
+    }
+
     onAccepted: {
-            var dateStr = logDate.toISOString().split('T')[0];
+            var dateStr = Utils.toLocalDateString(logDate);
             DataManager.addMenstrualLog(profileId, dateStr, flow, pain, energy, sleepHours, notesField.text);
     }
 
@@ -36,13 +59,14 @@ Dialog {
 
             ValueButton {
                 label: qsTr("Date")
-                value: logDate.toLocaleDateString()
+                value: Qt.formatDate(logDate, Qt.DefaultLocaleShortDate)
                 onClicked: {
                     var dateDialog = pageStack.push("Sailfish.Silica.DatePickerDialog", {
                         date: logDate
                     })
                     dateDialog.accepted.connect(function() {
-                        logDate = dateDialog.date
+                        logDate = dateDialog.date;
+                        loadForDate();
                     })
                 }
             }
@@ -86,13 +110,14 @@ Dialog {
             }
 
             Slider {
+                id: sleepSlider
                 width: parent.width
                 label: qsTr("Sleep")
                 minimumValue: 0
                 maximumValue: 24
                 stepSize: 0.5
                 value: sleepHours
-                valueText: qsTr("%1 hours").arg(value)
+                valueText: qsTr("%1 hours").arg(Utils.formatValue(value, 1))
                 onValueChanged: sleepHours = value
             }
 
@@ -104,6 +129,6 @@ Dialog {
             }
         }
     }
+
+    Component.onCompleted: loadForDate()
 }
-
-

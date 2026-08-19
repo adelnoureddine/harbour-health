@@ -17,9 +17,8 @@ Page {
             width: parent.width
             spacing: Theme.paddingLarge
 
-            Item { width: parent.width; height: childrenRect.height
-                PageHeader { anchors.right: parent.right; anchors.rightMargin: Theme.horizontalPageMargin
-                    width: parent.width - 2 * Theme.horizontalPageMargin; title: qsTr("Meditation") }
+            PageHeader {
+                title: qsTr("Meditation")
             }
 
             Button {

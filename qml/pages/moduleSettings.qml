@@ -19,9 +19,9 @@ Page {
         model: modelModules
 
         header: PageHeader {
-            x: Theme.horizontalPageMargin
-            width: parent.width - 2 * Theme.horizontalPageMargin
+            width: listView.width
             title: qsTr("Modules")
+            description: qsTr("Choose what appears on your dashboard")
         }
 
         PullDownMenu {
@@ -33,8 +33,21 @@ Page {
             }
         }
 
+        section {
+            property: "category"
+            criteria: ViewSection.FullString
+            delegate: SectionHeader { text: section }
+        }
+
         delegate: ListItem {
             contentHeight: Theme.itemSizeMedium
+
+            /*
+             * automaticCheck/onClicked rather than onCheckedChanged: the latter also
+             * fired while the delegate was being built and again while the model was
+             * being cleared, so simply opening this page rewrote every row -- and
+             * leaving it could silently switch modules back off.
+             */
             TextSwitch {
                 anchors.verticalCenter: parent.verticalCenter
                 x: Theme.horizontalPageMargin
@@ -42,13 +55,16 @@ Page {
 
                 text: model.name
                 checked: model.is_on
-                onCheckedChanged: {
-                    if (checked) {
+                automaticCheck: false
+
+                onClicked: {
+                    var enabled = !checked;
+                    if (enabled) {
                         DataManager.addProfileModule(root.profileId, model.id);
-                    }
-                    else {
+                    } else {
                         DataManager.removeProfileModule(root.profileId, model.id);
                     }
+                    modelModules.setProperty(index, "is_on", enabled ? 1 : 0);
                 }
             }
         }
@@ -58,12 +74,6 @@ Page {
 
     ListModel {
         id: modelModules
-    }
-
-    onStatusChanged: {
-        if (status === PageStatus.Active) {
-            refreshModules();
-        }
     }
 
     Component.onCompleted: refreshModules()

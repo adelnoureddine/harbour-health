@@ -7,17 +7,57 @@ Page {
     allowedOrientations: Orientation.All
 
     property int profileId: -1
-    property int duration: 0
-    property bool running: false
     property string sessionName: qsTr("Meditation Session")
 
-    Timer {
-        id: timer
-        interval: 1000
-        repeat: true
-        onTriggered: {
-            duration++;
+    /*
+     * Elapsed time comes from the wall clock, not from counting Timer ticks. A
+     * 1-second Timer drifts and can be throttled outright while the app is in the
+     * background, so a counted session could end up far shorter than the real one.
+     * The Timer now only drives the display.
+     */
+    property bool running: false
+    property double startedAt: 0        // ms, while running
+    property int accumulated: 0         // seconds banked from previous runs
+    property int elapsed: 0             // seconds, what is displayed
+
+    function currentElapsed() {
+        if (!running) {
+            return accumulated;
         }
+        return accumulated + Math.floor((Date.now() - startedAt) / 1000);
+    }
+
+    function start() {
+        startedAt = Date.now();
+        running = true;
+        ticker.start();
+    }
+
+    function pause() {
+        accumulated = currentElapsed();
+        running = false;
+        ticker.stop();
+        elapsed = accumulated;
+    }
+
+    function reset() {
+        running = false;
+        ticker.stop();
+        accumulated = 0;
+        elapsed = 0;
+    }
+
+    function formatDuration(seconds) {
+        var minutes = Math.floor(seconds / 60);
+        var remainder = seconds % 60;
+        return minutes + ":" + (remainder < 10 ? "0" : "") + remainder;
+    }
+
+    Timer {
+        id: ticker
+        interval: 500
+        repeat: true
+        onTriggered: page.elapsed = page.currentElapsed()
     }
 
     SilicaFlickable {
@@ -29,9 +69,8 @@ Page {
             width: parent.width
             spacing: Theme.paddingLarge
 
-            Item { width: parent.width; height: childrenRect.height
-                PageHeader { anchors.right: parent.right; anchors.rightMargin: Theme.horizontalPageMargin
-                    width: parent.width - 2 * Theme.horizontalPageMargin; title: qsTr("New Session") }
+            PageHeader {
+                title: qsTr("New Session")
             }
 
             TextField {
@@ -40,16 +79,17 @@ Page {
                 label: qsTr("Session Name")
                 text: sessionName
                 onTextChanged: sessionName = text
+                EnterKey.iconSource: "image://theme/icon-m-enter-close"
+                EnterKey.onClicked: focus = false
             }
 
-            Item { width: parent.width; height: childrenRect.height
-                SectionHeader { anchors.right: parent.right; anchors.rightMargin: Theme.horizontalPageMargin
-                    width: parent.width - 2 * Theme.horizontalPageMargin; text: qsTr("Timer") }
+            SectionHeader {
+                text: qsTr("Timer")
             }
 
             Label {
                 anchors.horizontalCenter: parent.horizontalCenter
-                text: qsTr("%1:%2").arg(Math.floor(duration / 60)).arg((duration % 60 < 10 ? "0" : "") + (duration % 60))
+                text: page.formatDuration(page.elapsed)
                 font.pixelSize: Theme.fontSizeHuge
                 color: Theme.highlightColor
             }
@@ -59,44 +99,37 @@ Page {
                 spacing: Theme.paddingLarge
 
                 Button {
-                    text: running ? qsTr("Pause") : qsTr("Start")
-                    onClicked: {
-                        running = !running;
-                        timer.running = running;
-                    }
+                    text: page.running ? qsTr("Pause") : qsTr("Start")
+                    onClicked: page.running ? page.pause() : page.start()
                 }
 
                 Button {
                     text: qsTr("Reset")
-                    onClicked: {
-                        running = false;
-                        timer.running = false;
-                        duration = 0;
-                    }
+                    enabled: page.elapsed > 0 || page.running
+                    onClicked: page.reset()
                 }
-            }
-
-            Item { width: parent.width; height: childrenRect.height
-                SectionHeader { anchors.right: parent.right; anchors.rightMargin: Theme.horizontalPageMargin
-                    width: parent.width - 2 * Theme.horizontalPageMargin; text: qsTr("Summary") }
-            }
-
-            DetailItem {
-                label: qsTr("Elapsed Time")
-                value: qsTr("%1 minutes").arg(Math.ceil(duration / 60))
             }
 
             Button {
                 anchors.horizontalCenter: parent.horizontalCenter
                 text: qsTr("Save and Finish")
-                enabled: duration > 0
+                enabled: page.profileId >= 0 && page.currentElapsed() > 0
                 onClicked: {
-                    if (profileId >= 0) {
-                        DataManager.addMeditationSession(profileId, Math.ceil(duration / 60), sessionName);
-                        pageStack.pop();
-                    }
+                    page.pause();
+                    // Stored in seconds: rounding up to whole minutes turned a
+                    // ten-second sitting into a one-minute session.
+                    DataManager.addMeditationSession(page.profileId, page.accumulated,
+                                                     page.sessionName, new Date());
+                    pageStack.pop();
                 }
             }
         }
+
+        VerticalScrollDecorator {}
     }
+
+    // Leaving the page must not leave the ticker running.
+    Component.onDestruction: ticker.stop()
 }
+
+// vim:et:ts=4:sw=4

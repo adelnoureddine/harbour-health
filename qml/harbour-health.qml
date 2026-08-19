@@ -8,20 +8,21 @@ ApplicationWindow {
     initialPage: Component { MainPage { } }
     cover: Qt.resolvedUrl("cover/CoverPage.qml")
     allowedOrientations: defaultAllowedOrientations
-    property var profileId
+
+    // Empty unless the database could not be opened or upgraded.
+    property string databaseError: ""
 
     Component.onCompleted: {
-        DataManager.init();
-        loadActiveProfile();
+        try {
+            DataManager.init();
+        } catch (error) {
+            // A failed schema upgrade must not leave a blank, unexplained window.
+            databaseError = error.message ? error.message : String(error);
+            return;
+        }
+
         if (DataManager.countProfiles() === 0) {
             pageStack.push(Qt.resolvedUrl("pages/createProfile.qml"));
-        }
-    }
-
-    function loadActiveProfile() {
-        var profiles = DataManager.getProfiles();
-        if (profiles.length > 0) {
-            profileId = profiles[0].id;
         }
     }
 }

@@ -1,16 +1,20 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
 import "../js/DataManager.js" as DataManager
+import "../js/utils.js" as Utils
 
 Page {
     id: root
     allowedOrientations: Orientation.All
 
+    property int activeProfileId: -1
+
     function refreshProfiles() {
+        activeProfileId = DataManager.lastUsedProfileId();
         modelProfiles.clear();
         var profiles = DataManager.getProfiles();
-        profiles.forEach(function(p) {
-            modelProfiles.append(p);
+        profiles.forEach(function(profile) {
+            modelProfiles.append(profile);
         });
     }
 
@@ -20,8 +24,7 @@ Page {
         model: modelProfiles
 
         header: PageHeader {
-            x: Theme.horizontalPageMargin
-            width: parent.width - 2 * Theme.horizontalPageMargin
+            width: listView.width
             title: qsTr("Profiles")
         }
 
@@ -33,25 +36,46 @@ Page {
         }
 
         delegate: ListItem {
+            id: profileItem
             contentHeight: Theme.itemSizeMedium
+
+            readonly property bool isActive: model.id === root.activeProfileId
+
             onClicked: {
                 DataManager.useProfile(model.id);
                 pageStack.pop();
             }
+
             Column {
                 anchors.verticalCenter: parent.verticalCenter
                 x: Theme.horizontalPageMargin
-                width: parent.width - 2 * Theme.horizontalPageMargin
+                width: parent.width - 2 * Theme.horizontalPageMargin - activeIcon.width
                 Label {
+                    width: parent.width
                     text: model.firstName + " " + model.lastName
-                    color: Theme.primaryColor
+                    truncationMode: TruncationMode.Fade
+                    color: profileItem.isActive || profileItem.highlighted ? Theme.highlightColor
+                                                                          : Theme.primaryColor
                 }
                 Label {
-                    text: qsTr("Gender: %1 | Birthday: %2").arg(model.gender).arg(model.birthDate)
+                    width: parent.width
+                    truncationMode: TruncationMode.Fade
+                    text: qsTr("%1 · born %2").arg(Utils.genderDisplayName(model.gender))
+                                              .arg(Utils.formatDate(model.birthDate))
                     font.pixelSize: Theme.fontSizeExtraSmall
                     color: Theme.secondaryColor
                 }
             }
+
+            Icon {
+                id: activeIcon
+                anchors.right: parent.right
+                anchors.rightMargin: Theme.horizontalPageMargin
+                anchors.verticalCenter: parent.verticalCenter
+                source: "image://theme/icon-s-installed"
+                visible: profileItem.isActive
+            }
+
             menu: ContextMenu {
                 MenuItem {
                     text: qsTr("Edit")
@@ -86,6 +110,6 @@ Page {
             refreshProfiles();
         }
     }
-
-    Component.onCompleted: refreshProfiles()
 }
+
+// vim:et:ts=4:sw=4

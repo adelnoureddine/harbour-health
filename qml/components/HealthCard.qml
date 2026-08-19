@@ -1,10 +1,11 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
 import "../js/DataManager.js" as DataManager
+import "../js/utils.js" as Utils
 
 GridItem {
     id: root
-    
+
     property int profileId: -1
     property string metricName
     property string metricName2: ""
@@ -19,27 +20,31 @@ GridItem {
     property string constraintColor: ""
     property string constraintLabel: ""
 
+    // Displayed value, with binary floating point noise trimmed. A summed day of
+    // water intake arrives as 1.7999999999999998.
+    readonly property string displayValue: {
+        // Summary tiles are a link to another page and carry no reading of their own.
+        if (clickThrough) {
+            return "";
+        }
+        if (value === undefined || value === null || value === "") {
+            return "—";
+        }
+        // Blood pressure is already formatted as "120/80".
+        return isNaN(value) ? String(value) : Utils.formatValue(value);
+    }
+
     function updateConstraintColor() {
-        if (root.value !== undefined && root.value !== null && root.value !== '?') {
-            var name = root.metricName !== "" ? root.metricName : root.title;
-            var constraints = DataManager.getConstraintsForMetric(name);
-            var val = parseFloat(root.value);
-            constraintColor = "";
-            constraintLabel = "";
-            for (var i = 0; i < constraints.length; i++) {
-                var c = constraints[i];
-                var min = c.minValue;
-                var max = c.maxValue;
-                if ((min === null || val >= min) && (max === null || val < max)) {
-                    constraintLabel = c.label || "";
-                    var col = c.color;
-                    if (col === "green") constraintColor = "#2ecc71";
-                    else if (col === "orange") constraintColor = "#e67e22";
-                    else if (col === "red") constraintColor = "#e74c3c";
-                    else if (col === "blue") constraintColor = "#3498db";
-                    break;
-                }
-            }
+        constraintColor = "";
+        constraintLabel = "";
+        if (root.value === undefined || root.value === null || isNaN(root.value)) {
+            return;
+        }
+        var name = root.metricName !== "" ? root.metricName : root.title;
+        var match = DataManager.matchConstraint(name, root.value);
+        if (match !== null) {
+            constraintLabel = match.label;
+            constraintColor = Utils.constraintColor(match.color);
         }
     }
 
@@ -67,7 +72,12 @@ GridItem {
     function invalidateMetric(metricName) {
         // A dashboard card can be destroyed while a dialog is closing. Ignore a
         // late invalidation instead of dereferencing the destroyed QML object.
-        if (root && metricName !== null && metricName === root.metricName) {
+        if (!root || metricName === null) {
+            return;
+        }
+        // Derived cards have no metric of their own but depend on other metrics,
+        // so they refresh whenever anything changes.
+        if (root.calculate || metricName === root.metricName || metricName === root.metricName2) {
             refreshValue();
         }
     }
@@ -80,34 +90,27 @@ GridItem {
 
         Column {
             anchors.centerIn: parent
+            width: parent.width - Theme.paddingMedium
             spacing: 2
 
-            Image {
+            // HighlightImage recolours the monochrome icon natively. This used to be
+            // a per-card ShaderEffect on a layer, i.e. one FBO per dashboard tile.
+            HighlightImage {
                 source: root.icon
                 anchors.horizontalCenter: parent.horizontalCenter
                 width: Theme.iconSizeMedium
                 height: Theme.iconSizeMedium
-                fillMode: Image.PreserveAspectFit
-                smooth: true
+                color: highlighted ? Theme.highlightColor : Theme.primaryColor
                 opacity: highlighted ? 1.0 : 0.8
-                layer.enabled: true
-                layer.effect: ShaderEffect {
-                    fragmentShader: "
-                        uniform lowp sampler2D source;
-                        uniform lowp float qt_Opacity;
-                        varying highp vec2 qt_TexCoord0;
-                        void main() {
-                            lowp vec4 tex = texture2D(source, qt_TexCoord0);
-                            gl_FragColor = vec4(tex.a, tex.a, tex.a, tex.a) * qt_Opacity;
-                        }"
-                }
             }
 
             Label {
+                width: parent.width
+                horizontalAlignment: Text.AlignHCenter
+                truncationMode: TruncationMode.Fade
                 text: root.title
                 font.pixelSize: Theme.fontSizeExtraSmall
                 color: Theme.secondaryColor
-                anchors.horizontalCenter: parent.horizontalCenter
             }
 
             Column {
@@ -118,21 +121,30 @@ GridItem {
                     anchors.horizontalCenter: parent.horizontalCenter
                     spacing: Theme.paddingSmall
                     Label {
-                        text: root.value != undefined ? root.value : '?'
+                        // Bounded so an out-of-range reading fades rather than
+                        // spilling out of the tile.
+                        width: Math.min(implicitWidth, root.width - 2 * Theme.paddingMedium)
+                        truncationMode: TruncationMode.Fade
+                        text: root.displayValue
                         font.pixelSize: Theme.fontSizeLarge
                         color: root.constraintColor !== "" ? root.constraintColor : Theme.primaryColor
                     }
                     Label {
+                        width: Math.min(implicitWidth, root.width / 3)
+                        truncationMode: TruncationMode.Fade
                         text: root.unit ? root.unit : ''
                         font.pixelSize: Theme.fontSizeSmall
                         color: Theme.secondaryColor
                         anchors.bottom: parent.bottom
                         anchors.bottomMargin: Theme.paddingSmall
+                        visible: root.value !== undefined && root.value !== null && root.value !== ''
                     }
                 }
 
                 Label {
-                    anchors.horizontalCenter: parent.horizontalCenter
+                    width: root.width - 2 * Theme.paddingMedium
+                    horizontalAlignment: Text.AlignHCenter
+                    truncationMode: TruncationMode.Fade
                     text: root.constraintLabel
                     font.pixelSize: Theme.fontSizeExtraSmall
                     color: root.constraintColor !== "" ? root.constraintColor : Theme.secondaryColor
@@ -143,7 +155,10 @@ GridItem {
     }
 
     onClicked: {
-        if (root.profileId >= 0 && root.metricName2 !== "") {
+        if (root.profileId < 0) {
+            return;
+        }
+        if (root.metricName2 !== "") {
             pageStack.animatorPush(Qt.resolvedUrl("../pages/MultiMetricDetails.qml"), {
                 profileId: root.profileId,
                 metricName1: root.metricName,
@@ -151,7 +166,7 @@ GridItem {
                 invalidateSignal: root.invalidateSignal
             });
         }
-        else if (root.profileId >= 0 && root.metricName) {
+        else if (root.metricName) {
             pageStack.animatorPush(Qt.resolvedUrl("../pages/MetricDetails.qml"), {
                 profileId: root.profileId,
                 grouped: root.grouped,
@@ -160,7 +175,18 @@ GridItem {
                 invalidateSignal: root.invalidateSignal
             });
         }
-        else if (root.profileId >= 0 && root.clickThrough) {
+        else if (root.calculate) {
+            // Derived metrics (BMI) previously had no destination at all, which left
+            // the card inert and its reference bands unreachable.
+            pageStack.animatorPush(Qt.resolvedUrl("../pages/CalcMetricDetails.qml"), {
+                profileId: root.profileId,
+                calculate: root.calculate,
+                title: root.title,
+                metricUnit: root.unit ? root.unit : "",
+                invalidateSignal: root.invalidateSignal
+            });
+        }
+        else if (root.clickThrough) {
             pageStack.animatorPush(Qt.resolvedUrl('../pages/' + root.clickThrough + ".qml"), {
                 profileId: root.profileId
             });

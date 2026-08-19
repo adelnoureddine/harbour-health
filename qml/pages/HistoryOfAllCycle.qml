@@ -1,6 +1,7 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
 import "../js/DataManager.js" as DataManager
+import "../js/utils.js" as Utils
 
 Page {
     id: page
@@ -24,20 +25,32 @@ Page {
         model: listModel
 
         header: PageHeader {
-            x: Theme.horizontalPageMargin
-            width: parent.width - 2 * Theme.horizontalPageMargin
+            width: listView.width
             title: qsTr("Cycle History")
         }
 
         PullDownMenu {
             MenuItem {
-                text: qsTr("Refresh")
-                onClicked: refresh()
+                text: qsTr("New Cycle")
+                onClicked: pageStack.animatorPush(Qt.resolvedUrl("AddNewCycle.qml"), {
+                    profileId: page.profileId
+                })
             }
         }
 
         delegate: ListItem {
+            id: cycleItem
             contentHeight: Theme.itemSizeMedium
+
+            menu: ContextMenu {
+                MenuItem {
+                    text: qsTr("Delete")
+                    onClicked: cycleItem.remorseDelete(function() {
+                        DataManager.deleteMenstrualCycle(model.id);
+                        listModel.remove(index);
+                    })
+                }
+            }
 
             Column {
                 anchors.verticalCenter: parent.verticalCenter
@@ -45,22 +58,29 @@ Page {
                 width: parent.width - 2 * Theme.horizontalPageMargin
                 
                 Label {
-                    text: qsTr("Started on %1").arg(model.startDate)
-                    color: highlighted ? Theme.highlightColor : Theme.primaryColor
+                    width: parent.width
+                    truncationMode: TruncationMode.Fade
+                    text: model.endDate
+                          ? qsTr("%1 to %2").arg(Utils.formatDate(model.startDate))
+                                            .arg(Utils.formatDate(model.endDate))
+                          : qsTr("Started on %1").arg(Utils.formatDate(model.startDate))
+                    color: cycleItem.highlighted ? Theme.highlightColor : Theme.primaryColor
                 }
                 Label {
-                    text: model.note || qsTr("No notes")
+                    width: parent.width
+                    truncationMode: TruncationMode.Fade
+                    text: model.note ? model.note : ""
                     font.pixelSize: Theme.fontSizeSmall
-                    color: highlighted ? Theme.secondaryHighlightColor : Theme.secondaryColor
-                    visible: model.note !== null
+                    color: cycleItem.highlighted ? Theme.secondaryHighlightColor : Theme.secondaryColor
+                    visible: text !== ""
                 }
             }
 
             onClicked: pageStack.animatorPush(Qt.resolvedUrl("HistoryOfOneCycle.qml"), {
-                "profileId": page.profileId,
-                "startDate": model.startDate,
-                "endDate": model.endDate,
-                "note": model.note
+                profileId: page.profileId,
+                startDate: model.startDate,
+                endDate: model.endDate ? model.endDate : "",
+                note: model.note ? model.note : ""
             })
         }
 
@@ -76,5 +96,9 @@ Page {
         id: listModel
     }
 
-    Component.onCompleted: refresh()
+    onStatusChanged: {
+        if (status === PageStatus.Active) {
+            refresh();
+        }
+    }
 }

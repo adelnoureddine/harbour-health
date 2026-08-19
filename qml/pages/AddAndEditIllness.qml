@@ -1,6 +1,7 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
 import "../js/DataManager.js" as DataManager
+import "../js/utils.js" as Utils
 
 Dialog {
     id: dialog
@@ -15,27 +16,38 @@ Dialog {
     property bool hasEndDate: false
     property string note
 
-    onStatusChanged: {
-        if (status === PageStatus.Active && conditionId !== -1) {
-            var c = DataManager.getCondition(conditionId);
-            if (c) {
-                conditionName = c.name;
-                conditionStatus = c.status;
-                startDate = new Date(c.startDate);
-                if (c.endDate) {
-                    endDate = new Date(c.endDate);
-                    hasEndDate = true;
-                }
-                note = c.note;
-            }
+    // Loaded once, not on every PageStatus.Active: returning from the date picker
+    // re-activates this dialog, and reloading there discarded the chosen date.
+    function load() {
+        if (conditionId === -1) {
+            return;
         }
+        var condition = DataManager.getCondition(conditionId);
+        if (!condition) {
+            return;
+        }
+        conditionName = condition.name;
+        conditionStatus = condition.status;
+        var start = Utils.fromLocalDateString(condition.startDate);
+        if (start !== null) {
+            startDate = start;
+        }
+        if (condition.endDate) {
+            var end = Utils.fromLocalDateString(condition.endDate);
+            if (end !== null) {
+                endDate = end;
+            }
+            hasEndDate = true;
+        }
+        note = condition.note ? condition.note : "";
     }
 
-    canAccept: profileId >=0 && nameField.text !== ""
+    canAccept: profileId >= 0 && nameField.text !== ""
+               && (!hasEndDate || endDate >= startDate)
 
     onAccepted: {
-        var startStr = startDate.toISOString().split('T')[0];
-        var endStr = hasEndDate ? endDate.toISOString().split('T')[0] : null;
+        var startStr = Utils.toLocalDateString(startDate);
+        var endStr = hasEndDate ? Utils.toLocalDateString(endDate) : null;
         
         if (conditionId === -1) {
             DataManager.addCondition(profileId, nameField.text, statusField.text, startStr, endStr, notesField.text);
@@ -87,7 +99,7 @@ Dialog {
 
             ValueButton {
                 label: qsTr("Start Date")
-                value: startDate.toLocaleDateString()
+                value: Qt.formatDate(startDate, Qt.DefaultLocaleShortDate)
                 onClicked: {
                     var dateDialog = pageStack.push("Sailfish.Silica.DatePickerDialog", {
                         date: startDate
@@ -102,12 +114,13 @@ Dialog {
                 id: endDateSwitch
                 text: qsTr("Has end date")
                 checked: hasEndDate
-                onCheckedChanged: hasEndDate = checked
+                automaticCheck: false
+                onClicked: hasEndDate = !hasEndDate
             }
 
             ValueButton {
                 label: qsTr("End Date")
-                value: endDate.toLocaleDateString()
+                value: Qt.formatDate(endDate, Qt.DefaultLocaleShortDate)
                 visible: hasEndDate
                 onClicked: {
                     var dateDialog = pageStack.push("Sailfish.Silica.DatePickerDialog", {
@@ -118,6 +131,18 @@ Dialog {
                     })
                 }
             }
+
+            Label {
+                x: Theme.horizontalPageMargin
+                width: parent.width - 2 * Theme.horizontalPageMargin
+                wrapMode: Text.Wrap
+                font.pixelSize: Theme.fontSizeExtraSmall
+                color: Theme.errorColor
+                visible: hasEndDate && endDate < startDate
+                text: qsTr("The end date is before the start date.")
+            }
         }
     }
+
+    Component.onCompleted: load()
 }

@@ -1,6 +1,7 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
 import "../js/DataManager.js" as DataManager
+import "../js/utils.js" as Utils
 
 Page {
     id: page
@@ -29,16 +30,8 @@ Page {
             width: parent.width
             spacing: Theme.paddingLarge
 
-            Item {
-                width: parent.width
-                height: childrenRect.height
-
-                PageHeader {
-                    anchors.right: parent.right
-                    anchors.rightMargin: Theme.horizontalPageMargin
-                    width: parent.width - 2 * Theme.horizontalPageMargin
-                    title: conditionName
-                }
+            PageHeader {
+                title: conditionName
             }
 
             DetailItem {
@@ -48,13 +41,13 @@ Page {
 
             DetailItem {
                 label: qsTr("Start Date")
-                value: conditionData.startDate || ""
+                value: conditionData.startDate ? Utils.formatDate(conditionData.startDate) : ""
             }
 
             DetailItem {
                 label: qsTr("End Date")
-                value: conditionData.endDate || qsTr("Ongoing")
-                visible: conditionData.endDate !== null
+                value: conditionData.endDate ? Utils.formatDate(conditionData.endDate)
+                                             : qsTr("Ongoing")
             }
 
             DetailItem {
@@ -63,16 +56,8 @@ Page {
                 visible: value !== ""
             }
 
-            Item {
-                width: parent.width
-                height: childrenRect.height
-
-                SectionHeader {
-                    anchors.right: parent.right
-                    anchors.rightMargin: Theme.horizontalPageMargin
-                    width: parent.width - 2 * Theme.horizontalPageMargin
-                    text: qsTr("Treatments")
-                }
+            SectionHeader {
+                text: qsTr("Treatments")
             }
         }
 
@@ -96,17 +81,23 @@ Page {
         model: listModel
 
         delegate: ListItem {
+            id: treatmentItem
             contentHeight: Theme.itemSizeMedium
             Column {
                 anchors.verticalCenter: parent.verticalCenter
                 x: Theme.horizontalPageMargin
                 width: parent.width - 2 * Theme.horizontalPageMargin
                 Label {
+                    width: parent.width
+                    truncationMode: TruncationMode.Fade
                     text: model.medicationName
-                    color: Theme.primaryColor
+                    color: treatmentItem.highlighted ? Theme.highlightColor : Theme.primaryColor
                 }
                 Label {
-                    text: qsTr("%1 - %2").arg(model.dosage).arg(model.frequency)
+                    width: parent.width
+                    truncationMode: TruncationMode.Fade
+                    text: model.frequency ? qsTr("%1 · %2").arg(model.dosage).arg(model.frequency)
+                                          : model.dosage
                     font.pixelSize: Theme.fontSizeExtraSmall
                     color: Theme.secondaryColor
                 }
@@ -122,12 +113,14 @@ Page {
                     onClicked: pageStack.animatorPush(Qt.resolvedUrl("AddAndEditMedication.qml"), {
                         profileId: profileId,
                         conditionId: conditionId,
-                        medicationId: model.medicationId,
-                        treatmentId: model.id,
-                        medicationName: model.medicationName,
-                        dosage: model.dosage,
-                        frequency: model.frequency,
-                        note: model.note
+                        treatmentId: model.id
+                    })
+                }
+                MenuItem {
+                    text: qsTr("Delete")
+                    onClicked: treatmentItem.remorseDelete(function() {
+                        DataManager.deleteTreatment(model.id);
+                        listModel.remove(index);
                     })
                 }
             }

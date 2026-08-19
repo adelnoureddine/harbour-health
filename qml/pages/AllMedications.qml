@@ -17,11 +17,11 @@ Page {
     }
 
     SilicaListView {
+        id: listView
         anchors.fill: parent
 
         header: PageHeader {
-            x: Theme.horizontalPageMargin
-            width: parent.width - 2 * Theme.horizontalPageMargin
+            width: listView.width
             title: qsTr("All Medications")
         }
 
@@ -42,6 +42,8 @@ Page {
                 width: parent.width - 2 * Theme.horizontalPageMargin
 
                 Label {
+                    width: parent.width
+                    truncationMode: TruncationMode.Fade
                     text: model.name
                     color: Theme.primaryColor
                 }

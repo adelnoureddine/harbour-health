@@ -1,8 +1,18 @@
 # Health for SailfishOS
 
-Health is a private health and fitness tracker for SailfishOS. All health data is stored locally on the device, the application has no network permissions.
+Health is a private health tracker for SailfishOS. All health data is stored locally on the device, and the application has no network permissions.
 
 Health is not medical advice and must not be used for diagnosis or treatment decisions.
+
+# Features
+
+- Multiple profiles, each with its own data and its own dashboard
+- Track weight, height, BMI, water, calories, heart rate, blood pressure and glucose
+- History graphs for every metric, with editable reference ranges shaded behind them
+- Health conditions, treatments and medication intake logs
+- Vaccination records, meditation sessions and menstrual cycle tracking
+- Configurable cover page showing two metrics at a glance
+- Backup and restore to a JSON file, plus CSV export of all measurements
 
 # Authors
 
@@ -23,6 +33,20 @@ It has been then updated with contribution from the open source community.
 - Charlotte Ortali (student) © 2022
 - Maarten Vanraes © 2026
 - Ilies Hamadene (student) © 2026
+
+# Building
+
+Build with the Sailfish OS SDK:
+
+```
+mb2 -t SailfishOS-latest-armv7hl build
+```
+
+Before a release, refresh the translation catalogue from the SDK shell:
+
+```
+lupdate harbour-health.pro
+```
 
 # License
 

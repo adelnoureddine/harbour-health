@@ -1,6 +1,7 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
 import "../js/DataManager.js" as DataManager
+import "../js/utils.js" as Utils
 
 Page {
     id: page
@@ -20,24 +21,22 @@ Page {
             width: parent.width
             spacing: Theme.paddingLarge
 
-            Item { width: parent.width; height: childrenRect.height
-                PageHeader { anchors.right: parent.right; anchors.rightMargin: Theme.horizontalPageMargin
-                    width: parent.width - 2 * Theme.horizontalPageMargin; title: qsTr("Cycle Details") }
+            PageHeader {
+                title: qsTr("Cycle Details")
             }
 
-            Item { width: parent.width; height: childrenRect.height
-                SectionHeader { anchors.right: parent.right; anchors.rightMargin: Theme.horizontalPageMargin
-                    width: parent.width - 2 * Theme.horizontalPageMargin; text: qsTr("Overview") }
+            SectionHeader {
+                text: qsTr("Overview")
             }
 
             DetailItem {
                 label: qsTr("Start Date")
-                value: startDate
+                value: Utils.formatDate(startDate)
             }
 
             DetailItem {
                 label: qsTr("End Date")
-                value: endDate || qsTr("Ongoing")
+                value: endDate ? Utils.formatDate(endDate) : qsTr("Ongoing")
             }
 
             DetailItem {
@@ -46,9 +45,8 @@ Page {
                 visible: note !== ""
             }
 
-            Item { width: parent.width; height: childrenRect.height
-                SectionHeader { anchors.right: parent.right; anchors.rightMargin: Theme.horizontalPageMargin
-                    width: parent.width - 2 * Theme.horizontalPageMargin; text: qsTr("Daily Logs") }
+            SectionHeader {
+                text: qsTr("Daily Logs")
             }
 
             Repeater {
@@ -66,7 +64,8 @@ Page {
                     Label {
                         x: Theme.horizontalPageMargin
                         width: parent.width - 2 * Theme.horizontalPageMargin
-                        text: model.date
+                        truncationMode: TruncationMode.Fade
+                        text: Utils.formatDate(model.date)
                         color: Theme.highlightColor
                         font.bold: true
                     }
@@ -74,7 +73,7 @@ Page {
                     DetailItem { label: qsTr("Flow"); value: model.flow }
                     DetailItem { label: qsTr("Pain"); value: model.pain }
                     DetailItem { label: qsTr("Energy"); value: model.energy }
-                    DetailItem { label: qsTr("Sleep"); value: qsTr("%1 hours").arg(model.sleepTime) }
+                    DetailItem { label: qsTr("Sleep"); value: qsTr("%1 hours").arg(Utils.formatValue(model.sleepTime, 1)) }
                 }
             }
         }

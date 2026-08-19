@@ -1,6 +1,7 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
 import "../js/DataManager.js" as DataManager
+import "../js/utils.js" as Utils
 
 Dialog {
     id: dialog
@@ -9,13 +10,20 @@ Dialog {
     property int profileId: -1
     property date injectionDate: new Date()
 
-    canAccept: profileId >= 0 && vaccineName.text !== ""
+    // Set when recording a further injection of a vaccine that already exists, so
+    // the name does not have to be typed again.
+    property int knownVaccineId: -1
+    property string knownVaccineName: ""
+
+    readonly property bool knownVaccine: knownVaccineId >= 0
+
+    canAccept: profileId >= 0 && (knownVaccine || vaccineName.text !== "")
 
     onAccepted: {
-        // First add the vaccine record (if it doesn't exist)
-        var vaccineId = DataManager.getOrCreateVaccine(vaccineName.text, false);
-        var dateStr = injectionDate.toISOString().split('T')[0];
-        DataManager.addVaccineLog(profileId, vaccineId, dateStr, notesField.text);
+        var vaccineId = knownVaccine ? knownVaccineId
+                                     : DataManager.getOrCreateVaccine(vaccineName.text, false);
+        DataManager.addVaccineLog(profileId, vaccineId,
+                                  Utils.toLocalDateString(injectionDate), notesField.text);
     }
 
     SilicaFlickable {
@@ -28,8 +36,18 @@ Dialog {
             spacing: Theme.paddingLarge
 
             DialogHeader {
-                title: qsTr("Add Vaccine Record")
+                title: dialog.knownVaccine ? qsTr("Record Injection") : qsTr("Add Vaccine Record")
                 acceptText: qsTr("Save")
+            }
+
+            Label {
+                x: Theme.horizontalPageMargin
+                width: parent.width - 2 * Theme.horizontalPageMargin
+                text: dialog.knownVaccineName
+                truncationMode: TruncationMode.Fade
+                font.pixelSize: Theme.fontSizeLarge
+                color: Theme.highlightColor
+                visible: dialog.knownVaccine
             }
 
             TextField {
@@ -37,8 +55,24 @@ Dialog {
                 width: parent.width
                 label: qsTr("Vaccine Name")
                 placeholderText: label
-                focus: true
+                visible: !dialog.knownVaccine
+                focus: !dialog.knownVaccine
+                EnterKey.iconSource: "image://theme/icon-m-enter-next"
                 EnterKey.onClicked: notesField.focus = true
+            }
+
+            ValueButton {
+                id: dateButton
+                label: qsTr("Injection Date")
+                value: Qt.formatDate(dialog.injectionDate, Qt.DefaultLocaleShortDate)
+                onClicked: {
+                    var dateDialog = pageStack.push("Sailfish.Silica.DatePickerDialog", {
+                        date: dialog.injectionDate
+                    })
+                    dateDialog.accepted.connect(function() {
+                        dialog.injectionDate = dateDialog.date;
+                    })
+                }
             }
 
             TextField {
@@ -46,23 +80,13 @@ Dialog {
                 width: parent.width
                 label: qsTr("Notes")
                 placeholderText: qsTr("Optional notes")
-                EnterKey.onClicked: dateButton.focus = true
-            }
-
-            ValueButton {
-                id: dateButton
-                label: qsTr("Injection Date")
-                value: injectionDate.toLocaleDateString()
-                onClicked: {
-                    var dateDialog = pageStack.push("Sailfish.Silica.DatePickerDialog", {
-                        date: injectionDate
-                    })
-                    dateDialog.accepted.connect(function() {
-                        injectionDate = dateDialog.date
-                    })
-                }
+                EnterKey.iconSource: "image://theme/icon-m-enter-close"
+                EnterKey.onClicked: focus = false
             }
         }
+
+        VerticalScrollDecorator {}
     }
 }
+
 // vim:et:ts=4:sw=4

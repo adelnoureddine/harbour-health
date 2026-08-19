@@ -15,11 +15,11 @@ Page {
     }
 
     SilicaListView {
+        id: listView
         anchors.fill: parent
 
         header: PageHeader {
-            x: Theme.horizontalPageMargin
-            width: parent.width - 2 * Theme.horizontalPageMargin
+            width: listView.width
             title: qsTr("Vaccines")
         }
 
@@ -45,9 +45,10 @@ Page {
 
             Label {
                 x: Theme.horizontalPageMargin
-                width: parent.width - 2 * Theme.horizontalPageMargin
+                width: parent.width - 2 * Theme.horizontalPageMargin - Theme.iconSizeSmall
                 anchors.verticalCenter: parent.verticalCenter
-                text: qsTr(model.name)
+                text: model.name
+                truncationMode: TruncationMode.Fade
                 color: model.isMandatory ? Theme.highlightColor : Theme.primaryColor
             }
 

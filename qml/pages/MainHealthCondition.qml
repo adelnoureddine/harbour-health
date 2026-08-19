@@ -1,6 +1,7 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
 import "../js/DataManager.js" as DataManager
+import "../js/utils.js" as Utils
 
 Page {
     id: root
@@ -19,11 +20,11 @@ Page {
     }
 
     SilicaListView {
+        id: listView
         anchors.fill: parent
 
         header: PageHeader {
-            x: Theme.horizontalPageMargin
-            width: parent.width - 2 * Theme.horizontalPageMargin
+            width: listView.width
             title: qsTr("Health Conditions")
         }
 
@@ -41,6 +42,7 @@ Page {
         model: listModel
 
         delegate: ListItem {
+            id: conditionItem
             contentHeight: Theme.itemSizeMedium
             onClicked: {
                 pageStack.animatorPush(Qt.resolvedUrl("ConsultIllness.qml"), {
@@ -56,31 +58,43 @@ Page {
                 width: parent.width - 2 * Theme.horizontalPageMargin
 
                 Label {
+                    width: parent.width
+                    truncationMode: TruncationMode.Fade
                     text: model.name
-                    color: Theme.primaryColor
+                    color: conditionItem.highlighted ? Theme.highlightColor : Theme.primaryColor
                 }
                 Label {
+                    width: parent.width
+                    truncationMode: TruncationMode.Fade
                     text: qsTr("Status: %1").arg(model.status)
                     font.pixelSize: Theme.fontSizeExtraSmall
                     color: Theme.secondaryColor
                 }
                 Label {
-                    text: qsTr("Since: %1").arg(model.startDate)
+                    width: parent.width
+                    truncationMode: TruncationMode.Fade
+                    text: qsTr("Since: %1").arg(Utils.formatDate(model.startDate))
                     font.pixelSize: Theme.fontSizeExtraSmall
                     color: Theme.secondaryColor
-                    visible: model.startDate !== ""
+                    visible: model.startDate !== "" && model.startDate !== null
                 }
             }
 
-            menu: Component {
-                ContextMenu {
-                    MenuItem {
-                        text: qsTr("Edit")
-                        onClicked: pageStack.animatorPush(Qt.resolvedUrl("AddAndEditIllness.qml"), {
-                            profileId: root.profileId,
-                            conditionId: model.id
-                        })
-                    }
+            menu: ContextMenu {
+                MenuItem {
+                    text: qsTr("Edit")
+                    onClicked: pageStack.animatorPush(Qt.resolvedUrl("AddAndEditIllness.qml"), {
+                        profileId: root.profileId,
+                        conditionId: model.id
+                    })
+                }
+                MenuItem {
+                    text: qsTr("Delete")
+                    onClicked: conditionItem.remorseDelete(function() {
+                        // Removes the condition together with its treatments.
+                        DataManager.deleteCondition(model.id);
+                        listModel.remove(index);
+                    })
                 }
             }
         }

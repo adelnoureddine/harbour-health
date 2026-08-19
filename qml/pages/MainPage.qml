@@ -5,30 +5,26 @@ import "../components"
 
 Page {
     id: mainPage
+    // Looked up by DataTransfer after a restore, to unwind back to a clean dashboard.
+    objectName: "dashboardPage"
 
     signal invalidateMetric(string metricName)
 
     allowedOrientations: Orientation.All
 
-    property bool debug: false
     property int profileCount: 0
     property int profileId: -1
     property var profile
-    property var weightLog
-    property var waterLog
-    property var calorieLog
-    property var countVaccines
-
 
     function updateData() {
-	    mainPage.profileCount = DataManager.countProfiles();
-	    if (mainPage.profileCount > 0) {
-	        mainPage.profileId = DataManager.lastUsedProfileId();
-        }
-	    if (mainPage.profileId >= 0) {
-	        mainPage.profile = DataManager.getProfile(mainPage.profileId);
+        mainPage.profileCount = DataManager.countProfiles();
+        mainPage.profileId = mainPage.profileCount > 0 ? DataManager.lastUsedProfileId() : -1;
+        if (mainPage.profileId >= 0) {
+            mainPage.profile = DataManager.getProfile(mainPage.profileId);
             refreshModules();
-            mainPage.countVaccines = DataManager.getVaccineCount(mainPage.profileId);
+        } else {
+            mainPage.profile = undefined;
+            modelModules.clear();
         }
     }
 
@@ -43,15 +39,38 @@ Page {
         }
     }
 
-    SilicaFlickable {
+    // The grid owns the pull-down menu directly. It used to sit on a SilicaFlickable
+    // wrapped around the grid, so the two competed for the same drag gesture.
+    SilicaGridView {
+        id: dashboardGrid
         anchors.fill: parent
 
+        // Two columns in portrait, four in landscape.
+        cellWidth: width / (width > height ? 4 : 2)
+        cellHeight: Theme.itemSizeHuge
+
+        header: Column {
+            width: dashboardGrid.width
+            spacing: Theme.paddingMedium
+
+            PageHeader {
+                title: qsTr("My Health")
+            }
+
+            Label {
+                x: Theme.horizontalPageMargin
+                width: parent.width - 2 * Theme.horizontalPageMargin
+                text: profile ? profile.firstName : qsTr("No Profile Selected")
+                truncationMode: TruncationMode.Fade
+                font.pixelSize: Theme.fontSizeExtraLarge
+                color: Theme.highlightColor
+            }
+
+            // Positioner padding needs a newer QtQuick import than this file uses.
+            Item { width: 1; height: Theme.paddingLarge }
+        }
+
         PullDownMenu {
-            /*MenuItem {
-                text: qsTr("Debug DB")
-                visible: debug
-                onClicked: pageStack.animatorPush(Qt.resolvedUrl("DebugDB.qml"))
-            }*/
             MenuItem {
                 text: qsTr("About")
                 onClicked: pageStack.animatorPush(Qt.resolvedUrl("AboutPage.qml"))
@@ -63,8 +82,12 @@ Page {
             }
             MenuItem {
                 text: qsTr("Create a new profile")
-                visible: profileCount == 0
+                visible: profileCount === 0
                 onClicked: pageStack.animatorPush(Qt.resolvedUrl("createProfile.qml"))
+            }
+            MenuItem {
+                text: qsTr("Backup and restore")
+                onClicked: pageStack.animatorPush(Qt.resolvedUrl("DataTransfer.qml"))
             }
             MenuItem {
                 text: qsTr("Settings")
@@ -73,69 +96,68 @@ Page {
                     profileId: mainPage.profileId
                 })
             }
-            /*MenuItem {
-                text: qsTr("Add entry")
-                visible: mainPage.profileId >= 0
-                onClicked: pageStack.animatorPush(Qt.resolvedUrl("addEntryMetric.qml"), {
-                    profileId: mainPage.profileId,
-                    invalidateSignal: mainPage.invalidateMetric
-                })
-            }*/
         }
 
-        Column {
-            id: column
-            width: parent.width
-            spacing: Theme.paddingLarge
+        model: modelModules
 
-            Item { width: parent.width; height: childrenRect.height
-                PageHeader { anchors.right: parent.right; anchors.rightMargin: Theme.horizontalPageMargin
-                    width: parent.width - 2 * Theme.horizontalPageMargin; title: qsTr("My Health") }
-            }
-
-            Label {
-                x: Theme.horizontalPageMargin
-                width: parent.width - 2 * Theme.horizontalPageMargin
-                text: profile ? profile.firstName : qsTr("No Profile Selected")
-                font.pixelSize: Theme.fontSizeExtraLarge
-                color: Theme.highlightColor
-            }
+        delegate: HealthCard {
+            width: dashboardGrid.cellWidth
+            height: dashboardGrid.cellHeight
+            icon: model.icon ? Qt.resolvedUrl("../icons/" + model.icon) : "image://theme/icon-m-health"
+            title: model.name
+            profileId: mainPage.profileId
+            metricName: model.type == DataManager.MODULE_TYPE_METRIC ? model.uses : (model.name == DataManager.MODULE_BP ? DataManager.METRIC_BP_SYS : '')
+            metricName2: model.name == DataManager.MODULE_BP ? DataManager.METRIC_BP_DIA : ''
+            unit: model.unit ? model.unit : undefined
+            clickThrough: model.type == DataManager.MODULE_TYPE_SUMMARY ? model.uses : undefined
+            calculate: model.type == DataManager.MODULE_TYPE_CALC ? model.uses : undefined
+            invalidateSignal: mainPage.invalidateMetric
         }
 
-        SilicaGridView {
-            id: dashboardGrid
-
-            width: parent.width
-
-            anchors.horizontalCenter: parent.horizontalCenter
-            anchors.top: column.bottom
-            anchors.bottom: parent.bottom
-            anchors.topMargin: Theme.paddingLarge
-
-            cellWidth: dashboardGrid.width / 2
-            cellHeight: Theme.itemSizeHuge
-
-            visible: profile
-
-            model: modelModules
-
-            delegate: HealthCard {
-                icon: model.icon ? Qt.resolvedUrl("../icons/" + model.icon) : "image://theme/icon-m-health"
-                title: model.name
-                visible: model.is_on
-                profileId: mainPage.profileId
-                metricName: model.type == DataManager.MODULE_TYPE_METRIC ? model.uses : (model.name == DataManager.MODULE_BP ? DataManager.METRIC_BP_SYS : '')
-                metricName2: model.name == DataManager.MODULE_BP ? DataManager.METRIC_BP_DIA : ''
-                unit: model.unit ? model.unit: undefined
-                clickThrough: model.type == DataManager.MODULE_TYPE_SUMMARY ? model.uses : undefined
-                calculate: model.type == DataManager.MODULE_TYPE_CALC ? model.uses : undefined
-                invalidateSignal: mainPage.invalidateMetric
-            }
+        ViewPlaceholder {
+            enabled: modelModules.count === 0
+            text: mainPage.profileId >= 0 ? qsTr("No modules enabled") : qsTr("No profile yet")
+            hintText: mainPage.profileId >= 0
+                      ? qsTr("Pull down to open Settings and choose what to track")
+                      : qsTr("Pull down to create a profile")
         }
+
+        VerticalScrollDecorator {}
     }
 
     ListModel {
         id: modelModules
+    }
+
+    // Shown only when the database itself could not be opened or upgraded.
+    Rectangle {
+        anchors.fill: parent
+        color: Theme.overlayBackgroundColor
+        visible: appWindow.databaseError !== ""
+
+        Column {
+            anchors.centerIn: parent
+            width: parent.width - 2 * Theme.horizontalPageMargin
+            spacing: Theme.paddingLarge
+
+            Label {
+                width: parent.width
+                wrapMode: Text.Wrap
+                horizontalAlignment: Text.AlignHCenter
+                font.pixelSize: Theme.fontSizeLarge
+                color: Theme.highlightColor
+                text: qsTr("Health could not open its database")
+            }
+
+            Label {
+                width: parent.width
+                wrapMode: Text.Wrap
+                horizontalAlignment: Text.AlignHCenter
+                font.pixelSize: Theme.fontSizeSmall
+                color: Theme.secondaryColor
+                text: appWindow.databaseError
+            }
+        }
     }
 
     Component.onCompleted: updateData()

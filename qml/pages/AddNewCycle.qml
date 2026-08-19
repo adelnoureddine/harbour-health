@@ -1,6 +1,7 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
 import "../js/DataManager.js" as DataManager
+import "../js/utils.js" as Utils
 
 Dialog {
     id: dialog
@@ -13,7 +14,7 @@ Dialog {
     canAccept: profileId >= 0
 
     onAccepted: {
-            var startStr = startDate.toISOString().split('T')[0];
+            var startStr = Utils.toLocalDateString(startDate);
             DataManager.addMenstrualCycle(profileId, startStr, null, notesField.text);
     }
 
@@ -33,7 +34,7 @@ Dialog {
 
             ValueButton {
                 label: qsTr("Start Date")
-                value: startDate.toLocaleDateString()
+                value: Qt.formatDate(startDate, Qt.DefaultLocaleShortDate)
                 onClicked: {
                     var dateDialog = pageStack.push("Sailfish.Silica.DatePickerDialog", {
                         date: startDate

@@ -12,6 +12,7 @@
 # * date Author's Name <author's email> version-release
 # - Summary of changes
 
-* Mon Aug 17 2026 Adel Noureddine 1.0-1
-- First Harbour Store release.
-- Health data remains on-device; the app is not medical advice.
+* Mon Aug 19 2026 Adel Noureddine 1.0-1
+- First stable release.
+- History graphs for every metric, with editable reference ranges.
+- Backup and restore, plus CSV export of all measurements.
