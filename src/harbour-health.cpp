@@ -1,20 +1,62 @@
+/*
+ * Health for SailfishOS
+ * Copyright (C) 2022-2026 Adel Noureddine
+ * Licensed under the GNU GPL 3 license only (GPL-3.0-only).
+ */
+
 #ifdef QT_QML_DEBUG
 #include <QtQuick>
 #endif
 
+#include <QCoreApplication>
+#include <QGuiApplication>
+#include <QQmlContext>
+#include <QQmlEngine>
+#include <QLocale>
+#include <QQuickView>
+#include <QScopedPointer>
+#include <QTranslator>
+#include <QtQml>
+
 #include <sailfishapp.h>
+
+#include "filewriter.h"
+
+#ifndef APP_VERSION
+#define APP_VERSION "0.0"
+#endif
 
 int main(int argc, char *argv[])
 {
-    // SailfishApp::main() will display "qml/harbour-health.qml", if you need more
-    // control over initialization, you can use:
-    //
-    //   - SailfishApp::application(int, char *[]) to get the QGuiApplication *
-    //   - SailfishApp::createView() to get a new QQuickView * instance
-    //   - SailfishApp::pathTo(QString) to get a QUrl to a resource file
-    //   - SailfishApp::pathToMainQml() to get a QUrl to the main QML file
-    //
-    // To display the view, call "show()" (will show fullscreen on device).
+    QScopedPointer<QGuiApplication> app(SailfishApp::application(argc, argv));
 
-    return SailfishApp::main(argc, argv);
+    // These must match [X-Sailjail] in harbour-health.desktop. Sailjail only grants
+    // write access to ~/.local/share/<OrganizationName>/<ApplicationName>, and that
+    // is exactly the directory QtQuick.LocalStorage derives the database path from.
+    // SailfishApp would otherwise name us after argv[0] ("harbour-health") and the
+    // database would land outside the sandbox.
+    //
+    // Order matters: QQmlEngine resolves its offline storage path when it is
+    // constructed, so this has to happen before SailfishApp::createView().
+    QCoreApplication::setOrganizationName(QStringLiteral("org.noureddine"));
+    QCoreApplication::setOrganizationDomain(QStringLiteral("org.noureddine"));
+    QCoreApplication::setApplicationName(QStringLiteral("Health"));
+    QCoreApplication::setApplicationVersion(QStringLiteral(APP_VERSION));
+
+    // sailfishapp_i18n installs the compiled catalogues next to the QML.
+    QScopedPointer<QTranslator> translator(new QTranslator);
+    if (translator->load(QStringLiteral("harbour-health-") + QLocale::system().name(),
+                         SailfishApp::pathTo(QStringLiteral("translations")).toLocalFile())) {
+        app->installTranslator(translator.data());
+    }
+
+    qmlRegisterType<FileWriter>("harbour.health.FileWriter", 1, 0, "FileWriter");
+
+    QScopedPointer<QQuickView> view(SailfishApp::createView());
+    view->rootContext()->setContextProperty(QStringLiteral("appVersion"),
+                                            QStringLiteral(APP_VERSION));
+    view->setSource(SailfishApp::pathToMainQml());
+    view->show();
+
+    return app->exec();
 }

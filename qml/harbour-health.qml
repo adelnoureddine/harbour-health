@@ -1,32 +1,30 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
 import "pages"
-
-// For database
-import QtQuick.LocalStorage 2.0
+import "js/DataManager.js" as DataManager
 
 ApplicationWindow {
+    id: appWindow
     initialPage: Component { MainPage { } }
     cover: Qt.resolvedUrl("cover/CoverPage.qml")
     allowedOrientations: defaultAllowedOrientations
 
-    Component.onCompleted: {
-        initDatabase();
-    }
+    // Empty unless the database could not be opened or upgraded.
+    property string databaseError: ""
 
-    function initDatabase() {
-        var db = LocalStorage.openDatabaseSync("HealthApp", "1.0", "Health App", 100000);
-        var createXXTable = "CREATE TABLE IF NOT EXISTS XXXX";
-        var createXYTable = "CREATE TABLE IF NOT EXISTS XXXX";
-        var createYYTable = "CREATE TABLE IF NOT EXISTS XXXX";
-        var createYXTable = "CREATE TABLE IF NOT EXISTS XXXX";
-        db.transaction(
-                function(tx) {
-                    tx.executeSql(createXXTable);
-                    tx.executeSql(createXYTable);
-                    tx.executeSql(createYYTable);
-                    tx.executeSql(createYXTable);
-                }
-            );
+    Component.onCompleted: {
+        try {
+            DataManager.init();
+        } catch (error) {
+            // A failed schema upgrade must not leave a blank, unexplained window.
+            databaseError = error.message ? error.message : String(error);
+            return;
+        }
+
+        if (DataManager.countProfiles() === 0) {
+            pageStack.push(Qt.resolvedUrl("pages/createProfile.qml"));
+        }
     }
 }
+
+// vim:et:ts=4:sw=4

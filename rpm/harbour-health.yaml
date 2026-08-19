@@ -1,18 +1,19 @@
 Name: harbour-health
 Summary: Health
-Version: 0.1
+Version: 1.0
 Release: 1
 # The contents of the Group field should be one of the groups listed here:
 # https://github.com/mer-tools/spectacle/blob/master/data/GROUPS
 Group: Qt/Qt
-URL: https://gitlab.com/adelnoureddine/harbour-health
-License: LICENSE
+URL: https://github.com/adelnoureddine/harbour-health
+License: GPL-3.0-only
 # This must be generated before uploading a package to a remote build service.
 # Usually this line does not need to be modified.
 Sources:
 - '%{name}-%{version}.tar.bz2'
 Description: |
-  Health is a health and fitness tracker for SailfishOS
+  Health is a private, on-device health tracker for SailfishOS.
+  It is not medical advice and must not be used for diagnosis or treatment decisions.
 Builder: qmake5
 
 # This section specifies build dependencies that are resolved using pkgconfig.
@@ -24,8 +25,8 @@ PkgConfigBR:
   - Qt5Quick
 
 # Build dependencies without a pkgconfig setup can be listed here
-# PkgBR:
-#   - package-needed-to-build
+PkgBR:
+  - qt5-qttools-linguist
 
 # Runtime dependencies which are not automatically detected
 Requires:

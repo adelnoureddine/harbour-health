@@ -12,5 +12,7 @@
 # * date Author's Name <author's email> version-release
 # - Summary of changes
 
-* Wed Nov 23 2022 Adel Noureddine 0.0.1-1
-- First public release
+* Mon Aug 19 2026 Adel Noureddine 1.0-1
+- First stable release.
+- History graphs for every metric, with editable reference ranges.
+- Backup and restore, plus CSV export of all measurements.
