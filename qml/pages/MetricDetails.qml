@@ -27,6 +27,9 @@ Page {
     readonly property string unitSuffix: metricUnit ? " " + metricUnit : ""
     // Set once the range has been chosen, by the first refresh or by the user.
     property bool rangeSettled: false
+    // What the page last loaded (see DataManager.dataKey). Coming back from a cancelled
+    // dialog, a chart or the reference ranges used to reload the whole history.
+    property string loadedFrom: ""
 
     // The list holds every entry regardless of the chart range. With none at all the
     // chart, range tabs and stats are hidden, so the placeholder has the page to itself
@@ -60,6 +63,7 @@ Page {
     }
 
     function refresh() {
+        var key = DataManager.dataKey();
         listModel.clear();
         DataManager.addLogsToModel(profileId, metricName, listModel, page.grouped);
         var totals = {};
@@ -80,6 +84,7 @@ Page {
                 rangeDays = 0;
             }
         }
+        loadedFrom = key;
     }
 
     function notifyChanged() {
@@ -252,7 +257,7 @@ Page {
     }
 
     onStatusChanged: {
-        if (status === PageStatus.Active) {
+        if (status === PageStatus.Active && DataManager.dataKey() !== loadedFrom) {
             refresh();
         }
     }

@@ -26,12 +26,8 @@ Page {
      */
     property string builtFrom: ""
 
-    function buildKey() {
-        return DataManager.changeCount() + "|" + DataManager.toTimestamp(DataManager.dayStart());
-    }
-
     function updateData() {
-        var key = buildKey();
+        var key = DataManager.dataKey();
         if (key === builtFrom) {
             return;
         }

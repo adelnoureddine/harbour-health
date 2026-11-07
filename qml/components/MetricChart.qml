@@ -57,12 +57,12 @@ Item {
      * frame. A flat series (or a single reading) has no natural range, so it gets an
      * artificial one rather than dividing by zero.
      */
-    function bounds() {
+    function bounds(seriesList, precision) {
         var b = { xMin: 0, xMax: 1, yMin: 0, yMax: 1, valid: false };
         var first = true;
 
-        for (var i = 0; i < series.length; i++) {
-            var points = series[i] ? series[i].points : null;
+        for (var i = 0; i < seriesList.length; i++) {
+            var points = seriesList[i] ? seriesList[i].points : null;
             if (!points) {
                 continue;
             }
@@ -97,7 +97,7 @@ Item {
             // The minimum room scales with the precision shown: 0.5 at one decimal,
             // 0.05 at two, so a flat ratio series (0.47) gets an axis of 0.42 to 0.52
             // rather than one running from below zero to nearly one.
-            var minSpread = 5 * Math.pow(10, -root.decimals);
+            var minSpread = 5 * Math.pow(10, -precision);
             var spread = Math.abs(b.yMax) * 0.1;
             if (spread < minSpread) {
                 spread = minSpread;
@@ -110,6 +110,18 @@ Item {
             b.yMax += margin;
         }
         return b;
+    }
+
+    // Computed once per data change. The touch handler used to rescan every point for
+    // the extent on each finger movement.
+    readonly property var _bounds: bounds(series, decimals)
+
+    function xAt(t) {
+        return _plotX + ((t - _bounds.xMin) / (_bounds.xMax - _bounds.xMin)) * _plotWidth;
+    }
+
+    function yAt(v) {
+        return _plotY + _plotHeight - ((v - _bounds.yMin) / (_bounds.yMax - _bounds.yMin)) * _plotHeight;
     }
 
     onSeriesChanged: canvas.requestPaint()
@@ -129,7 +141,7 @@ Item {
             ctx.reset();
             ctx.clearRect(0, 0, width, height);
 
-            var b = root.bounds();
+            var b = root._bounds;
             if (!b.valid) {
                 return;
             }
@@ -138,13 +150,8 @@ Item {
             var py = root._plotY;
             var pw = root._plotWidth;
             var ph = root._plotHeight;
-
-            function xAt(t) {
-                return px + ((t - b.xMin) / (b.xMax - b.xMin)) * pw;
-            }
-            function yAt(v) {
-                return py + ph - ((v - b.yMin) / (b.yMax - b.yMin)) * ph;
-            }
+            var xAt = root.xAt;
+            var yAt = root.yAt;
 
             // --- reference bands -------------------------------------------------
             for (var i = 0; i < root.bands.length; i++) {
@@ -257,23 +264,31 @@ Item {
                     ctx.stroke();
                 }
             }
-
-            // --- touch marker ----------------------------------------------------
-            if (root.highlightedPoint !== null) {
-                var hx = xAt(root.highlightedPoint.t);
-                ctx.strokeStyle = Theme.rgba(Theme.highlightColor, 0.6);
-                ctx.lineWidth = Theme.pixelRatio;
-                ctx.beginPath();
-                ctx.moveTo(hx, py);
-                ctx.lineTo(hx, py + ph);
-                ctx.stroke();
-
-                ctx.fillStyle = Theme.highlightColor;
-                ctx.beginPath();
-                ctx.arc(hx, yAt(root.highlightedPoint.v), 5 * Theme.pixelRatio, 0, 2 * Math.PI);
-                ctx.fill();
-            }
         }
+    }
+
+    /*
+     * Touch marker, drawn over the canvas. Dragging a finger along the chart used to
+     * repaint the whole chart -- bands, grid, labels and every point, on the CPU -- for
+     * each touch event; now only these two items move.
+     */
+    Rectangle {
+        visible: root.highlightedPoint !== null
+        x: visible ? Math.round(root.xAt(root.highlightedPoint.t) - width / 2) : 0
+        y: root._plotY
+        width: Math.max(1, Math.round(Theme.pixelRatio))
+        height: root._plotHeight
+        color: Theme.rgba(Theme.highlightColor, 0.6)
+    }
+
+    Rectangle {
+        visible: root.highlightedPoint !== null
+        width: Math.round(10 * Theme.pixelRatio)
+        height: width
+        radius: width / 2
+        x: visible ? root.xAt(root.highlightedPoint.t) - width / 2 : 0
+        y: visible ? root.yAt(root.highlightedPoint.v) - height / 2 : 0
+        color: Theme.highlightColor
     }
 
     // Drag anywhere across the plot to read individual values off the line.
@@ -282,7 +297,7 @@ Item {
         enabled: root.pointCount() > 0
 
         function pick(mouseX) {
-            var b = root.bounds();
+            var b = root._bounds;
             if (!b.valid) {
                 return;
             }
@@ -306,7 +321,6 @@ Item {
             }
             root.highlightedPoint = best;
             root.highlightedSeries = bestSeries;
-            canvas.requestPaint();
         }
 
         onPressed: pick(mouse.x)
@@ -314,12 +328,10 @@ Item {
         onReleased: {
             root.highlightedPoint = null;
             root.highlightedSeries = -1;
-            canvas.requestPaint();
         }
         onCanceled: {
             root.highlightedPoint = null;
             root.highlightedSeries = -1;
-            canvas.requestPaint();
         }
     }
 

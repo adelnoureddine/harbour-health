@@ -126,6 +126,10 @@ GridItem {
                 anchors.horizontalCenter: parent.horizontalCenter
                 width: Theme.iconSizeMedium
                 height: Theme.iconSizeMedium
+                // Without it the SVG icons were rendered at their nominal 800x800 and
+                // scaled down, for every tile.
+                sourceSize.width: Theme.iconSizeMedium
+                sourceSize.height: Theme.iconSizeMedium
                 color: highlighted ? Theme.highlightColor : Theme.primaryColor
                 opacity: highlighted ? 1.0 : 0.8
             }

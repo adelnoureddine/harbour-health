@@ -35,6 +35,9 @@ Page {
     // does not collapse and re-expand while it is being pushed.
     property bool loaded: false
     readonly property bool hasData: !loaded || currentValue !== null
+    // What the page last loaded (see DataManager.dataKey). Coming back from a cancelled
+    // dialog, a chart or the reference ranges used to reload the whole history.
+    property string loadedFrom: ""
 
     // The untranslated module name reference bands are stored under, passed in by the
     // dashboard card. The fallback only matters if the page is opened from elsewhere.
@@ -54,6 +57,7 @@ Page {
         if (profileId < 0) {
             return;
         }
+        var key = DataManager.dataKey();
 
         var since = DataManager.sinceForDays(rangeDays, false);
         var points = isWHtR ? DataManager.getWHtRSeries(profileId, since)
@@ -74,10 +78,15 @@ Page {
         currentColor = match === null ? "" : Utils.constraintColor(match.color);
 
         historyModel.clear();
+        var rows = [];
         for (var i = points.length - 1; i >= 0; i--) {
-            historyModel.append({ t: points[i].t, v: points[i].v });
+            rows.push({ t: points[i].t, v: points[i].v });
+        }
+        if (rows.length > 0) {
+            historyModel.append(rows);
         }
         loaded = true;
+        loadedFrom = key;
     }
 
     onRangeDaysChanged: refresh()
@@ -248,7 +257,9 @@ Page {
     }
 
     onStatusChanged: {
-        if (status === PageStatus.Active) refresh();
+        if (status === PageStatus.Active && DataManager.dataKey() !== loadedFrom) {
+            refresh();
+        }
     }
 }
 

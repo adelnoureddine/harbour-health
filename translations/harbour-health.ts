@@ -406,57 +406,57 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/CalcMetricDetails.qml" line="127"/>
+        <location filename="../qml/pages/CalcMetricDetails.qml" line="136"/>
         <source>Calculated from your waist and the height recorded at the time. An estimate, not a diagnosis: a common rule of thumb is to keep your waist below half your height, and cut-offs vary with age and ethnicity.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/CalcMetricDetails.qml" line="129"/>
+        <location filename="../qml/pages/CalcMetricDetails.qml" line="138"/>
         <source>Record a weight and a height to see your BMI.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/CalcMetricDetails.qml" line="130"/>
+        <location filename="../qml/pages/CalcMetricDetails.qml" line="139"/>
         <source>Calculated from your weight and the height recorded at the time.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/CalcMetricDetails.qml" line="153"/>
+        <location filename="../qml/pages/CalcMetricDetails.qml" line="162"/>
         <source>No data in this period</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/CalcMetricDetails.qml" line="179"/>
+        <location filename="../qml/pages/CalcMetricDetails.qml" line="188"/>
         <source>Reference ranges</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/CalcMetricDetails.qml" line="186"/>
+        <location filename="../qml/pages/CalcMetricDetails.qml" line="195"/>
         <source>Add height</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/CalcMetricDetails.qml" line="197"/>
+        <location filename="../qml/pages/CalcMetricDetails.qml" line="206"/>
         <source>Add weight</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/CalcMetricDetails.qml" line="197"/>
+        <location filename="../qml/pages/CalcMetricDetails.qml" line="206"/>
         <source>Add waist</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/CalcMetricDetails.qml" line="238"/>
+        <location filename="../qml/pages/CalcMetricDetails.qml" line="247"/>
         <source>Nothing to calculate yet</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/CalcMetricDetails.qml" line="239"/>
+        <location filename="../qml/pages/CalcMetricDetails.qml" line="248"/>
         <source>Pull down to record a height and a waist measurement</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/CalcMetricDetails.qml" line="240"/>
+        <location filename="../qml/pages/CalcMetricDetails.qml" line="249"/>
         <source>Pull down to record a height and a weight</source>
         <translation type="unfinished"></translation>
     </message>
@@ -956,62 +956,62 @@
 <context>
     <name>MainPage</name>
     <message>
-        <location filename="../qml/pages/MainPage.qml" line="75"/>
+        <location filename="../qml/pages/MainPage.qml" line="71"/>
         <source>My health</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MainPage.qml" line="81"/>
+        <location filename="../qml/pages/MainPage.qml" line="77"/>
         <source>No profile selected</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MainPage.qml" line="93"/>
+        <location filename="../qml/pages/MainPage.qml" line="89"/>
         <source>About</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MainPage.qml" line="97"/>
+        <location filename="../qml/pages/MainPage.qml" line="93"/>
         <source>Profiles</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MainPage.qml" line="102"/>
+        <location filename="../qml/pages/MainPage.qml" line="98"/>
         <source>Create a new profile</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MainPage.qml" line="107"/>
+        <location filename="../qml/pages/MainPage.qml" line="103"/>
         <source>Backup and restore</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MainPage.qml" line="111"/>
+        <location filename="../qml/pages/MainPage.qml" line="107"/>
         <source>Settings</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MainPage.qml" line="140"/>
+        <location filename="../qml/pages/MainPage.qml" line="136"/>
         <source>No modules enabled</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MainPage.qml" line="140"/>
+        <location filename="../qml/pages/MainPage.qml" line="136"/>
         <source>No profile yet</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MainPage.qml" line="142"/>
+        <location filename="../qml/pages/MainPage.qml" line="138"/>
         <source>Pull down to open Settings and choose what to track</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MainPage.qml" line="143"/>
+        <location filename="../qml/pages/MainPage.qml" line="139"/>
         <source>Pull down to create a profile</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MainPage.qml" line="170"/>
+        <location filename="../qml/pages/MainPage.qml" line="166"/>
         <source>Health could not open its database</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1163,37 +1163,37 @@
 <context>
     <name>MetricDetails</name>
     <message>
-        <location filename="../qml/pages/MetricDetails.qml" line="114"/>
+        <location filename="../qml/pages/MetricDetails.qml" line="119"/>
         <source>No data in this period</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MetricDetails.qml" line="140"/>
+        <location filename="../qml/pages/MetricDetails.qml" line="145"/>
         <source>Reference ranges</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MetricDetails.qml" line="147"/>
+        <location filename="../qml/pages/MetricDetails.qml" line="152"/>
         <source>Add entry</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MetricDetails.qml" line="188"/>
+        <location filename="../qml/pages/MetricDetails.qml" line="193"/>
         <source>Edit</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MetricDetails.qml" line="199"/>
+        <location filename="../qml/pages/MetricDetails.qml" line="204"/>
         <source>Delete</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MetricDetails.qml" line="243"/>
+        <location filename="../qml/pages/MetricDetails.qml" line="248"/>
         <source>No data points recorded</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MetricDetails.qml" line="244"/>
+        <location filename="../qml/pages/MetricDetails.qml" line="249"/>
         <source>Pull down to add the first entry</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1201,47 +1201,47 @@
 <context>
     <name>MultiMetricDetails</name>
     <message>
-        <location filename="../qml/pages/MultiMetricDetails.qml" line="156"/>
+        <location filename="../qml/pages/MultiMetricDetails.qml" line="166"/>
         <source>No data in this period</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MultiMetricDetails.qml" line="174"/>
+        <location filename="../qml/pages/MultiMetricDetails.qml" line="184"/>
         <source>Systolic reference ranges</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MultiMetricDetails.qml" line="181"/>
+        <location filename="../qml/pages/MultiMetricDetails.qml" line="191"/>
         <source>Diastolic reference ranges</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MultiMetricDetails.qml" line="144"/>
+        <location filename="../qml/pages/MultiMetricDetails.qml" line="154"/>
         <source>Blood pressure</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MultiMetricDetails.qml" line="188"/>
+        <location filename="../qml/pages/MultiMetricDetails.qml" line="198"/>
         <source>Add entry</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MultiMetricDetails.qml" line="218"/>
+        <location filename="../qml/pages/MultiMetricDetails.qml" line="228"/>
         <source>Edit</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MultiMetricDetails.qml" line="232"/>
+        <location filename="../qml/pages/MultiMetricDetails.qml" line="242"/>
         <source>Delete</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MultiMetricDetails.qml" line="284"/>
+        <location filename="../qml/pages/MultiMetricDetails.qml" line="294"/>
         <source>No blood pressure recorded</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MultiMetricDetails.qml" line="285"/>
+        <location filename="../qml/pages/MultiMetricDetails.qml" line="295"/>
         <source>Pull down to add an entry</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1502,62 +1502,62 @@
 <context>
     <name>addEntryMultiMetric</name>
     <message>
-        <location filename="../qml/pages/addEntryMultiMetric.qml" line="85"/>
+        <location filename="../qml/pages/addEntryMultiMetric.qml" line="87"/>
         <source>Edit blood pressure</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/addEntryMultiMetric.qml" line="85"/>
+        <location filename="../qml/pages/addEntryMultiMetric.qml" line="87"/>
         <source>Add blood pressure</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/addEntryMultiMetric.qml" line="86"/>
+        <location filename="../qml/pages/addEntryMultiMetric.qml" line="88"/>
         <source>Save</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/addEntryMultiMetric.qml" line="92"/>
+        <location filename="../qml/pages/addEntryMultiMetric.qml" line="94"/>
         <source>Systolic (%1)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/addEntryMultiMetric.qml" line="93"/>
+        <location filename="../qml/pages/addEntryMultiMetric.qml" line="95"/>
         <source>Systolic — e.g. 120</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/addEntryMultiMetric.qml" line="106"/>
+        <location filename="../qml/pages/addEntryMultiMetric.qml" line="108"/>
         <source>Diastolic (%1)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/addEntryMultiMetric.qml" line="107"/>
+        <location filename="../qml/pages/addEntryMultiMetric.qml" line="109"/>
         <source>Diastolic — e.g. 80</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/addEntryMultiMetric.qml" line="122"/>
+        <location filename="../qml/pages/addEntryMultiMetric.qml" line="124"/>
         <source>Systolic is usually the higher of the two — check the order.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/addEntryMultiMetric.qml" line="126"/>
+        <location filename="../qml/pages/addEntryMultiMetric.qml" line="128"/>
         <source>Date</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/addEntryMultiMetric.qml" line="143"/>
+        <location filename="../qml/pages/addEntryMultiMetric.qml" line="145"/>
         <source>Time</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/addEntryMultiMetric.qml" line="164"/>
+        <location filename="../qml/pages/addEntryMultiMetric.qml" line="166"/>
         <source>Note</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/addEntryMultiMetric.qml" line="165"/>
+        <location filename="../qml/pages/addEntryMultiMetric.qml" line="167"/>
         <source>Optional</source>
         <translation type="unfinished"></translation>
     </message>

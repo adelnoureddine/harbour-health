@@ -57,14 +57,16 @@ Dialog {
     onAccepted: {
         var systolic = parseFloat(value1Field.text.replace(',', '.'));
         var diastolic = parseFloat(value2Field.text.replace(',', '.'));
+        // Both halves in one transaction: one disk sync, and never half a pair saved.
         if (editing) {
-            DataManager.updateLog(logId1, systolic, selectedDate, noteField.text);
-            DataManager.updateLog(logId2, diastolic, selectedDate, noteField.text);
+            DataManager.updateLogs([{ id: logId1, value: systolic }, { id: logId2, value: diastolic }],
+                                   selectedDate, noteField.text);
         } else {
             // Both rows share one timestamp; that is what pairs them again on the
             // history page.
-            DataManager.addLog(profileId, metricName1, systolic, selectedDate, noteField.text);
-            DataManager.addLog(profileId, metricName2, diastolic, selectedDate, noteField.text);
+            DataManager.addLogs(profileId, [{ metricName: metricName1, value: systolic },
+                                            { metricName: metricName2, value: diastolic }],
+                                selectedDate, noteField.text);
         }
         if (invalidateSignal) {
             invalidateSignal(metricName1);

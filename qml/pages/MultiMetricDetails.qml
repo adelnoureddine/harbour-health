@@ -26,6 +26,9 @@ Page {
     readonly property bool hasData: !loaded || listModel.count > 0
     // Set once the range has been chosen, by the first refresh or by the user.
     property bool rangeSettled: false
+    // What the page last loaded (see DataManager.dataKey). Coming back from a cancelled
+    // dialog, a chart or the reference ranges used to reload the whole history.
+    property string loadedFrom: ""
 
     function refreshChart() {
         if (profileId < 0) {
@@ -57,6 +60,7 @@ Page {
      * the missing half blank.
      */
     function refresh() {
+        var key = DataManager.dataKey();
         listModel.clear();
 
         var systolic = DataManager.getLogsAscending(profileId, metricName1, null);
@@ -104,10 +108,15 @@ Page {
             }
         }
 
-        // Newest first, and with the day the section headers group by.
+        // Newest first, and with the day the section headers group by. Appended in
+        // one go: a model update per row made long histories slow to open.
+        var ordered = [];
         for (var k = rows.length - 1; k >= 0; k--) {
             rows[k].day = String(rows[k].timestamp).split("T")[0];
-            listModel.append(rows[k]);
+            ordered.push(rows[k]);
+        }
+        if (ordered.length > 0) {
+            listModel.append(ordered);
         }
 
         loaded = true;
@@ -121,6 +130,7 @@ Page {
                 rangeDays = 0;
             }
         }
+        loadedFrom = key;
     }
 
     function notifyChanged() {
@@ -232,8 +242,8 @@ Page {
                     text: qsTr("Delete")
                     onClicked: {
                         listItem.remorseDelete(function() {
-                            if (model.id1 >= 0) DataManager.deleteLog(model.id1);
-                            if (model.id2 >= 0) DataManager.deleteLog(model.id2);
+                            // Both halves in one transaction; a missing half is -1.
+                            DataManager.deleteLogs([model.id1, model.id2]);
                             page.refresh();
                             page.notifyChanged();
                         })
@@ -293,7 +303,9 @@ Page {
     }
 
     onStatusChanged: {
-        if (status === PageStatus.Active) refresh();
+        if (status === PageStatus.Active && DataManager.dataKey() !== loadedFrom) {
+            refresh();
+        }
     }
 }
 

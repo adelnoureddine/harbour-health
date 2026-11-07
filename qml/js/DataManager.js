@@ -191,6 +191,15 @@ function changeCount() {
     return count;
 }
 
+/*
+ * Identifies the data a page was built from: anything written since, or a new day
+ * (for "today" totals and chart windows), changes it. Pages compare it when they
+ * become active again and skip reloading when it is the same.
+ */
+function dataKey() {
+    return changeCount() + "|" + toTimestamp(dayStart());
+}
+
 // Milliseconds since epoch for a stored timestamp or date, parsed as local time.
 function timestampToMs(s) {
     if (!s) {
@@ -610,26 +619,53 @@ function calculateMetrics(profileId, calculate) {
     return null;
 }
 
+/*
+ * Log queries select the metric with `metricId = METRIC_ID` instead of joining Metrics
+ * and filtering on its name. With the join SQLite could only use the first column of
+ * idx_healthlogs_lookup, so it read and sorted every reading of the profile, all
+ * metrics together, for each query. The scalar subquery runs once and the whole
+ * (profileId, metricId, timestamp) index applies: the latest value is one lookup.
+ */
+var METRIC_ID = '(SELECT id FROM Metrics WHERE name=?)';
+
 // Log Operations
-function addLog(profileId, metricName, value, timestamp, note) {
-    var inserted = false;
+
+/*
+ * Readings taken together -- blood pressure is two -- in one transaction: one commit
+ * and one disk sync instead of one each, and never half a pair.
+ * entries: [{metricName, value}]. Returns how many were stored.
+ */
+function addLogs(profileId, entries, timestamp, note) {
+    var inserted = 0;
     db().transaction(function (tx) {
-        var rs = tx.executeSql('SELECT id FROM Metrics WHERE name=?', [metricName]);
-        if (rs.rows.length > 0) {
-            var metricId = rs.rows.item(0).id;
-            tx.executeSql('INSERT INTO HealthLogs (profileId, metricId, value, timestamp, note) VALUES (?,?,?,?,?)',
-                [profileId, metricId, value, toTimestamp(timestamp), note || ""]);
-            inserted = true;
+        for (var i = 0; i < entries.length; i++) {
+            var rs = tx.executeSql('SELECT id FROM Metrics WHERE name=?', [entries[i].metricName]);
+            if (rs.rows.length > 0) {
+                tx.executeSql('INSERT INTO HealthLogs (profileId, metricId, value, timestamp, note) VALUES (?,?,?,?,?)',
+                    [profileId, rs.rows.item(0).id, entries[i].value, toTimestamp(timestamp), note || ""]);
+                inserted++;
+            }
         }
     });
     return inserted;
 }
 
-function updateLog(id, value, timestamp, note) {
+function addLog(profileId, metricName, value, timestamp, note) {
+    return addLogs(profileId, [{ metricName: metricName, value: value }], timestamp, note) > 0;
+}
+
+// The same for edits. updates: [{id, value}], sharing one timestamp and note.
+function updateLogs(updates, timestamp, note) {
     db().transaction(function (tx) {
-        tx.executeSql('UPDATE HealthLogs SET value=?, timestamp=?, note=? WHERE id=?',
-            [value, toTimestamp(timestamp), note || "", id]);
+        for (var i = 0; i < updates.length; i++) {
+            tx.executeSql('UPDATE HealthLogs SET value=?, timestamp=?, note=? WHERE id=?',
+                [updates[i].value, toTimestamp(timestamp), note || "", updates[i].id]);
+        }
     });
+}
+
+function updateLog(id, value, timestamp, note) {
+    updateLogs([{ id: id, value: value }], timestamp, note);
 }
 
 function getLog(id) {
@@ -645,16 +681,25 @@ function getLog(id) {
 }
 
 function deleteLog(id) {
+    deleteLogs([id]);
+}
+
+// Several readings in one transaction (both halves of a blood pressure entry).
+function deleteLogs(ids) {
     db().transaction(function (tx) {
-        tx.executeSql('DELETE FROM HealthLogs WHERE id=?', [id]);
+        for (var i = 0; i < ids.length; i++) {
+            if (ids[i] >= 0) {
+                tx.executeSql('DELETE FROM HealthLogs WHERE id=?', [ids[i]]);
+            }
+        }
     });
 }
 
 function getLatestLogValue(profileId, metricName) {
     var value = null;
     db().transaction(function (tx) {
-        var rs = tx.executeSql('SELECT l.value FROM HealthLogs l JOIN Metrics m ON l.metricId = m.id ' +
-            'WHERE l.profileId=? AND m.name=? ORDER BY l.timestamp DESC LIMIT 1', [profileId, metricName]);
+        var rs = tx.executeSql('SELECT value FROM HealthLogs WHERE profileId=? AND metricId=' + METRIC_ID +
+            ' ORDER BY timestamp DESC LIMIT 1', [profileId, metricName]);
         if (rs.rows.length > 0) {
             value = rs.rows.item(0).value;
         }
@@ -675,8 +720,8 @@ function getTodayTotal(profileId, metricName) {
     db().transaction(function (tx) {
         // Bound as stored strings: SQLite's datetime() writes a space where the stored
         // values have a "T", and the space sorts first.
-        var rs = tx.executeSql('SELECT SUM(l.value) AS total FROM HealthLogs l JOIN Metrics m ON l.metricId = m.id ' +
-            'WHERE l.profileId=? AND m.name=? AND l.timestamp >= ? AND l.timestamp < ?',
+        var rs = tx.executeSql('SELECT SUM(value) AS total FROM HealthLogs WHERE profileId=? AND metricId=' +
+            METRIC_ID + ' AND timestamp >= ? AND timestamp < ?',
             [profileId, metricName, toTimestamp(start), toTimestamp(end)]);
         if (rs.rows.length > 0) {
             value = rs.rows.item(0).total;
@@ -693,40 +738,58 @@ function getTodayTotal(profileId, metricName) {
  * model on every binding evaluation.
  */
 function addLogsToModel(profileId, metricName, a_model, grouped) {
+    var rows = [];
     db().transaction(function (tx) {
         var rs;
+        var i;
         if (grouped) {
             var border = "-" + DAY_START_TIME;
-            rs = tx.executeSql('SELECT l.id, l.timestamp, l.value, l.note, DATE(l.timestamp, ?) AS day, ' +
-                '(SELECT SUM(l2.value) FROM HealthLogs l2 WHERE l2.profileId=l.profileId ' +
-                'AND l2.metricId=l.metricId AND DATE(l2.timestamp, ?)=DATE(l.timestamp, ?)) AS dayTotal ' +
-                'FROM HealthLogs AS l JOIN Metrics ON l.metricId=Metrics.id ' +
-                'WHERE l.profileId=? AND Metrics.name=? ORDER BY l.timestamp DESC',
-                [border, border, border, profileId, metricName]);
+            // Day totals come from one grouped pass. They used to be a subquery run
+            // for every row, each re-reading the metric's entire history: with two
+            // years of water entries, opening the page took seconds.
+            var totals = {};
+            rs = tx.executeSql('SELECT DATE(timestamp, ?) AS day, SUM(value) AS total FROM HealthLogs ' +
+                'WHERE profileId=? AND metricId=' + METRIC_ID + ' GROUP BY day',
+                [border, profileId, metricName]);
+            for (i = 0; i < rs.rows.length; i++) {
+                totals[rs.rows.item(i).day] = rs.rows.item(i).total;
+            }
+            rs = tx.executeSql('SELECT id, timestamp, value, note, DATE(timestamp, ?) AS day FROM HealthLogs ' +
+                'WHERE profileId=? AND metricId=' + METRIC_ID + ' ORDER BY timestamp DESC',
+                [border, profileId, metricName]);
+            for (i = 0; i < rs.rows.length; i++) {
+                var row = rs.rows.item(i);
+                rows.push({ id: row.id, timestamp: row.timestamp, value: row.value, note: row.note,
+                            day: row.day, dayTotal: totals[row.day] });
+            }
         }
         else {
-            rs = tx.executeSql('SELECT HealthLogs.id, timestamp, value, note FROM HealthLogs ' +
-                'JOIN Metrics ON HealthLogs.metricId=Metrics.id ' +
-                'WHERE profileId=? AND Metrics.name=? ORDER BY timestamp DESC', [profileId, metricName]);
-        }
-        for (var i = 0; i < rs.rows.length; i++) {
-            a_model.append(rs.rows.item(i));
+            rs = tx.executeSql('SELECT id, timestamp, value, note FROM HealthLogs ' +
+                'WHERE profileId=? AND metricId=' + METRIC_ID + ' ORDER BY timestamp DESC',
+                [profileId, metricName]);
+            for (i = 0; i < rs.rows.length; i++) {
+                rows.push(rs.rows.item(i));
+            }
         }
     });
+    // One insertion for the whole history instead of one model update per row.
+    if (rows.length > 0) {
+        a_model.append(rows);
+    }
 }
 
 // Timestamp-ordered logs (oldest first) as a plain array. Used for chart pairing.
 function getLogsAscending(profileId, metricName, sinceIso) {
     var logs = [];
     db().transaction(function (tx) {
-        var query = 'SELECT l.id, l.timestamp, l.value, l.note FROM HealthLogs l ' +
-            'JOIN Metrics m ON l.metricId = m.id WHERE l.profileId=? AND m.name=?';
+        var query = 'SELECT id, timestamp, value, note FROM HealthLogs ' +
+            'WHERE profileId=? AND metricId=' + METRIC_ID;
         var params = [profileId, metricName];
         if (sinceIso) {
-            query += ' AND l.timestamp >= ?';
+            query += ' AND timestamp >= ?';
             params.push(sinceIso);
         }
-        query += ' ORDER BY l.timestamp ASC';
+        query += ' ORDER BY timestamp ASC';
         var rs = tx.executeSql(query, params);
         for (var i = 0; i < rs.rows.length; i++) {
             logs.push(rs.rows.item(i));
@@ -752,12 +815,11 @@ function getSeries(profileId, metricName, sinceIso, mode) {
 
         if (mode === SERIES_DAILY_SUM || mode === SERIES_DAILY_AVG) {
             var agg = (mode === SERIES_DAILY_SUM) ? "SUM" : "AVG";
-            query = 'SELECT DATE(l.timestamp, ?) AS day, ' + agg + '(l.value) AS v ' +
-                'FROM HealthLogs l JOIN Metrics m ON l.metricId = m.id ' +
-                'WHERE l.profileId=? AND m.name=?';
+            query = 'SELECT DATE(timestamp, ?) AS day, ' + agg + '(value) AS v ' +
+                'FROM HealthLogs WHERE profileId=? AND metricId=' + METRIC_ID;
             params = ["-" + DAY_START_TIME, profileId, metricName];
             if (sinceIso) {
-                query += ' AND l.timestamp >= ?';
+                query += ' AND timestamp >= ?';
                 params.push(sinceIso);
             }
             query += ' GROUP BY day ORDER BY day ASC';
@@ -766,14 +828,14 @@ function getSeries(profileId, metricName, sinceIso, mode) {
                 points.push({ t: timestampToMs(rs.rows.item(i).day), v: rs.rows.item(i).v });
             }
         } else {
-            query = 'SELECT l.timestamp AS ts, l.value AS v FROM HealthLogs l ' +
-                'JOIN Metrics m ON l.metricId = m.id WHERE l.profileId=? AND m.name=?';
+            query = 'SELECT timestamp AS ts, value AS v FROM HealthLogs ' +
+                'WHERE profileId=? AND metricId=' + METRIC_ID;
             params = [profileId, metricName];
             if (sinceIso) {
-                query += ' AND l.timestamp >= ?';
+                query += ' AND timestamp >= ?';
                 params.push(sinceIso);
             }
-            query += ' ORDER BY l.timestamp ASC';
+            query += ' ORDER BY timestamp ASC';
             rs = tx.executeSql(query, params);
             for (i = 0; i < rs.rows.length; i++) {
                 points.push({ t: timestampToMs(rs.rows.item(i).ts), v: rs.rows.item(i).v });
@@ -792,22 +854,22 @@ function getSeriesStats(profileId, metricName, sinceIso, mode) {
 
         if (mode === SERIES_DAILY_SUM || mode === SERIES_DAILY_AVG) {
             var agg = (mode === SERIES_DAILY_SUM) ? "SUM" : "AVG";
-            var inner = 'SELECT ' + agg + '(l.value) AS v FROM HealthLogs l ' +
-                'JOIN Metrics m ON l.metricId = m.id WHERE l.profileId=? AND m.name=?';
+            var inner = 'SELECT ' + agg + '(value) AS v FROM HealthLogs ' +
+                'WHERE profileId=? AND metricId=' + METRIC_ID;
             params = [profileId, metricName];
             if (sinceIso) {
-                inner += ' AND l.timestamp >= ?';
+                inner += ' AND timestamp >= ?';
                 params.push(sinceIso);
             }
-            inner += ' GROUP BY DATE(l.timestamp, ?)';
+            inner += ' GROUP BY DATE(timestamp, ?)';
             params.push("-" + DAY_START_TIME);
             query = 'SELECT MIN(v) AS mn, MAX(v) AS mx, AVG(v) AS av, COUNT(*) AS ct FROM (' + inner + ')';
         } else {
-            query = 'SELECT MIN(l.value) AS mn, MAX(l.value) AS mx, AVG(l.value) AS av, COUNT(*) AS ct ' +
-                'FROM HealthLogs l JOIN Metrics m ON l.metricId = m.id WHERE l.profileId=? AND m.name=?';
+            query = 'SELECT MIN(value) AS mn, MAX(value) AS mx, AVG(value) AS av, COUNT(*) AS ct ' +
+                'FROM HealthLogs WHERE profileId=? AND metricId=' + METRIC_ID;
             params = [profileId, metricName];
             if (sinceIso) {
-                query += ' AND l.timestamp >= ?';
+                query += ' AND timestamp >= ?';
                 params.push(sinceIso);
             }
         }
