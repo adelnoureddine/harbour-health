@@ -53,7 +53,8 @@ Dialog {
 
             ValueButton {
                 label: qsTr("Time")
-                value: Qt.formatTime(dialog.selectedDate, "hh:mm")
+                // Follows the system 12/24-hour setting.
+                value: Format.formatDate(dialog.selectedDate, Formatter.TimeValue)
                 onClicked: {
                     var timeDialog = pageStack.push("Sailfish.Silica.TimePickerDialog", {
                         hour: dialog.selectedDate.getHours(),

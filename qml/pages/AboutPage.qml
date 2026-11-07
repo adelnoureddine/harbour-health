@@ -60,7 +60,7 @@ Page {
             }
 
             SectionHeader {
-                text: qsTr("Maintainer and Current Developers")
+                text: qsTr("Maintainer and current developers")
             }
 
             Label {
@@ -73,7 +73,7 @@ Page {
             }
 
             SectionHeader {
-                text: qsTr("Students and Contributors")
+                text: qsTr("Students and contributors")
             }
 
             Column {
@@ -94,7 +94,7 @@ Page {
             }
 
             SectionHeader {
-                text: qsTr("Source Code")
+                text: qsTr("Source code")
             }
 
             Label {

@@ -51,7 +51,7 @@ Page {
             spacing: Theme.paddingLarge
 
             PageHeader {
-                title: qsTr("Cover Page Settings")
+                title: qsTr("Cover page settings")
             }
 
             SectionHeader {

@@ -46,12 +46,12 @@ GridItem {
         var match = null;
         if (root.metricName2 !== "") {
             // A paired reading (blood pressure, shown as "120/80") is judged on both
-            // halves against their own bands, and the more concerning one wins.
+            // halves against their own bands, and the more concerning one wins. The
+            // halves come from the value itself rather than two more queries.
+            var halves = String(root.value).split("/");
             match = DataManager.matchWorstConstraint([
-                { metricName: root.metricName,
-                  value: DataManager.getLatestLogValue(root.profileId, root.metricName) },
-                { metricName: root.metricName2,
-                  value: DataManager.getLatestLogValue(root.profileId, root.metricName2) }
+                { metricName: root.metricName, value: parseFloat(halves[0]) },
+                { metricName: root.metricName2, value: parseFloat(halves[1]) }
             ]);
         } else if (!isNaN(root.value)) {
             var name = root.metricName !== "" ? root.metricName : root.constraintKey;
@@ -72,16 +72,29 @@ GridItem {
                 root.value = DataManager.calculateMetrics(root.profileId, root.calculate);
             }
             else if (root.metricName) {
-                root.grouped = DataManager.getMetricGrouped(root.metricName);
-                if (root.grouped) {
-                    root.value = DataManager.getLatestDayLogValue(root.profileId, root.metricName);
-                }
-                else {
-                    root.value = DataManager.getLatestLogValue(root.profileId, root.metricName);
-                }
+                // Grouped metrics (water, calories) show today's total, the others
+                // their latest reading. `grouped` comes with the module row.
+                root.value = root.grouped
+                        ? DataManager.getTodayTotal(root.profileId, root.metricName)
+                        : DataManager.getLatestLogValue(root.profileId, root.metricName);
             }
         }
         updateConstraintColor();
+    }
+
+    // Whether a change to `metricName` can change what this card shows. Derived cards
+    // used to refresh on every change anywhere: logging water recomputed BMI.
+    function dependsOn(metricName) {
+        if (metricName === root.metricName || metricName === root.metricName2) {
+            return true;
+        }
+        if (root.calculate === DataManager.CALC_BMI) {
+            return metricName === DataManager.METRIC_HEIGHT || metricName === DataManager.METRIC_WEIGHT;
+        }
+        if (root.calculate === DataManager.CALC_WHTR) {
+            return metricName === DataManager.METRIC_HEIGHT || metricName === DataManager.METRIC_WAIST;
+        }
+        return false;
     }
 
     function invalidateMetric(metricName) {
@@ -90,9 +103,7 @@ GridItem {
         if (!root || metricName === null) {
             return;
         }
-        // Derived cards have no metric of their own but depend on other metrics,
-        // so they refresh whenever anything changes.
-        if (root.calculate || metricName === root.metricName || metricName === root.metricName2) {
+        if (dependsOn(metricName)) {
             refreshValue();
         }
     }
@@ -209,12 +220,6 @@ GridItem {
         }
     }
 
-    onMetricNameChanged: {
-        if (root.metricName && root.unit == undefined) {
-            root.unit = DataManager.getMetricUnit(root.metricName);
-        }
-    }
-
     // QML gives no guarantee about the order a delegate's bindings are applied in, so
     // the first refresh waits until every property (constraintKey, metricName2,
     // calculate...) is set rather than running whenever profileId happens to land.
@@ -227,6 +232,11 @@ GridItem {
     }
 
     Component.onCompleted: {
+        // Metric cards get their unit with the module row. A paired card (blood
+        // pressure) has none of its own and borrows its first metric's.
+        if (root.metricName && !root.unit) {
+            root.unit = DataManager.getMetricUnit(root.metricName);
+        }
         if (root.invalidateSignal && root.invalidateSignal.connect) {
             root.invalidateSignal.connect(root.invalidateMetric);
         }

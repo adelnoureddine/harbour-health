@@ -187,6 +187,7 @@ Item {
             // --- date labels -----------------------------------------------------
             ctx.textBaseline = "top";
             var dateLabels = pw > Theme.itemSizeHuge * 3 ? 3 : 2;
+            var longSpan = (b.xMax - b.xMin) > 300 * 86400000;
             for (var d = 0; d <= dateLabels; d++) {
                 var t = b.xMin + (b.xMax - b.xMin) * (d / dateLabels);
                 var lx = xAt(t);
@@ -197,7 +198,11 @@ Item {
                 } else {
                     ctx.textAlign = "center";
                 }
-                ctx.fillText(Qt.formatDate(new Date(t), "d MMM"), lx, py + ph + Theme.paddingSmall);
+                // Locale order rather than a fixed "d MMM", with the year once the
+                // window is long enough for "3 Jan" to be ambiguous.
+                ctx.fillText(Format.formatDate(new Date(t), longSpan ? Formatter.DateMedium
+                                                                     : Formatter.DateMediumWithoutYear),
+                             lx, py + ph + Theme.paddingSmall);
             }
 
             // --- series ----------------------------------------------------------
@@ -209,7 +214,8 @@ Item {
                 var lineColor = set.color ? set.color : Theme.highlightColor;
 
                 ctx.strokeStyle = lineColor;
-                ctx.lineWidth = 2;
+                // Device pixels: a 2 px line is a hairline on a high-density screen.
+                ctx.lineWidth = 2 * Theme.pixelRatio;
                 ctx.lineJoin = "round";
                 ctx.beginPath();
                 for (var k = 0; k < set.points.length; k++) {
@@ -227,7 +233,7 @@ Item {
                     ctx.fillStyle = lineColor;
                     for (var m = 0; m < set.points.length; m++) {
                         ctx.beginPath();
-                        ctx.arc(xAt(set.points[m].t), yAt(set.points[m].v), 3, 0, 2 * Math.PI);
+                        ctx.arc(xAt(set.points[m].t), yAt(set.points[m].v), 3 * Theme.pixelRatio, 0, 2 * Math.PI);
                         ctx.fill();
                     }
                 }
@@ -241,11 +247,12 @@ Item {
                     var avgY = yAt(total / set.points.length);
                     // Drawn as explicit segments: setLineDash is not dependable here.
                     ctx.strokeStyle = Theme.rgba(lineColor, 0.5);
-                    ctx.lineWidth = 1;
+                    ctx.lineWidth = Theme.pixelRatio;
                     ctx.beginPath();
-                    for (var dash = px; dash < px + pw; dash += 12) {
+                    var dashStep = 12 * Theme.pixelRatio;
+                    for (var dash = px; dash < px + pw; dash += dashStep) {
                         ctx.moveTo(dash, avgY);
-                        ctx.lineTo(Math.min(dash + 6, px + pw), avgY);
+                        ctx.lineTo(Math.min(dash + dashStep / 2, px + pw), avgY);
                     }
                     ctx.stroke();
                 }
@@ -255,7 +262,7 @@ Item {
             if (root.highlightedPoint !== null) {
                 var hx = xAt(root.highlightedPoint.t);
                 ctx.strokeStyle = Theme.rgba(Theme.highlightColor, 0.6);
-                ctx.lineWidth = 1;
+                ctx.lineWidth = Theme.pixelRatio;
                 ctx.beginPath();
                 ctx.moveTo(hx, py);
                 ctx.lineTo(hx, py + ph);
@@ -263,7 +270,7 @@ Item {
 
                 ctx.fillStyle = Theme.highlightColor;
                 ctx.beginPath();
-                ctx.arc(hx, yAt(root.highlightedPoint.v), 5, 0, 2 * Math.PI);
+                ctx.arc(hx, yAt(root.highlightedPoint.v), 5 * Theme.pixelRatio, 0, 2 * Math.PI);
                 ctx.fill();
             }
         }
@@ -331,9 +338,19 @@ Item {
             anchors.centerIn: parent
             font.pixelSize: Theme.fontSizeExtraSmall
             color: Theme.primaryColor
-            text: root.highlightedPoint === null ? ""
-                  : Utils.formatValue(root.highlightedPoint.v) + " " + root.unit + "  ·  "
-                    + Qt.formatDate(new Date(root.highlightedPoint.t), Qt.DefaultLocaleShortDate)
+            // Same decimals as the axis, no stray space without a unit (BMI), and on a
+            // chart with several lines the name of the one touched (systolic or diastolic).
+            text: {
+                if (root.highlightedPoint === null) {
+                    return "";
+                }
+                var set = root.series.length > 1 && root.highlightedSeries >= 0
+                        ? root.series[root.highlightedSeries] : null;
+                return (set && set.label ? set.label + " " : "")
+                        + Utils.formatValue(root.highlightedPoint.v, root.decimals)
+                        + (root.unit ? " " + root.unit : "") + "  ·  "
+                        + Qt.formatDate(new Date(root.highlightedPoint.t), Qt.DefaultLocaleShortDate);
+            }
         }
     }
 

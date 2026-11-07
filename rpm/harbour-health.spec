@@ -9,7 +9,7 @@ Name:       harbour-health
 # << macros
 
 Summary:    Health
-Version:    1.0
+Version:    1.1
 Release:    1
 Group:      Qt/Qt
 License:    GPL-3.0-only

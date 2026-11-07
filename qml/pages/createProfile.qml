@@ -15,11 +15,11 @@ Dialog {
 
     // ComboBox has no `text` property, so the old canAccept check could never fail
     // and a profile could be created with no gender at all.
-    canAccept: firstnameField.text !== "" && lastnameField.text !== ""
+    canAccept: firstnameField.text.trim() !== "" && lastnameField.text.trim() !== ""
                && genderField.currentIndex >= 0 && birthDate !== undefined
 
     onAccepted: {
-        var profileId = DataManager.addProfile(firstnameField.text, lastnameField.text,
+        var profileId = DataManager.addProfile(firstnameField.text.trim(), lastnameField.text.trim(),
                                                genderValues[genderField.currentIndex],
                                                Utils.toLocalDateString(birthDate));
         DataManager.useProfile(profileId);
@@ -35,14 +35,14 @@ Dialog {
             spacing: Theme.paddingLarge
 
             DialogHeader {
-                title: qsTr("Create Profile")
+                title: qsTr("Create profile")
                 acceptText: qsTr("Save")
             }
 
             TextField {
                 id: firstnameField
                 width: parent.width
-                label: qsTr("First Name")
+                label: qsTr("First name")
                 placeholderText: label
                 focus: true
                 EnterKey.iconSource: "image://theme/icon-m-enter-next"
@@ -52,7 +52,7 @@ Dialog {
             TextField {
                 id: lastnameField
                 width: parent.width
-                label: qsTr("Last Name")
+                label: qsTr("Last name")
                 placeholderText: label
                 EnterKey.iconSource: "image://theme/icon-m-enter-close"
                 EnterKey.onClicked: focus = false

@@ -26,12 +26,12 @@ Page {
 
         header: PageHeader {
             width: listView.width
-            title: qsTr("Cycle History")
+            title: qsTr("Cycle history")
         }
 
         PullDownMenu {
             MenuItem {
-                text: qsTr("New Cycle")
+                text: qsTr("New cycle")
                 onClicked: pageStack.animatorPush(Qt.resolvedUrl("AddNewCycle.qml"), {
                     profileId: page.profileId
                 })
@@ -89,6 +89,7 @@ Page {
         ViewPlaceholder {
             enabled: listModel.count === 0
             text: qsTr("No cycles recorded")
+            hintText: qsTr("Pull down to record a new cycle")
         }
     }
 

@@ -46,14 +46,14 @@ Dialog {
             spacing: Theme.paddingLarge
 
             DialogHeader {
-                title: qsTr("Edit Profile")
+                title: qsTr("Edit profile")
                 acceptText: qsTr("Save")
             }
 
             TextField {
                 id: firstnameField
                 width: parent.width
-                label: qsTr("First Name")
+                label: qsTr("First name")
                 text: firstName
                 placeholderText: label
                 EnterKey.iconSource: "image://theme/icon-m-enter-next"
@@ -63,7 +63,7 @@ Dialog {
             TextField {
                 id: lastnameField
                 width: parent.width
-                label: qsTr("Last Name")
+                label: qsTr("Last name")
                 text: lastName
                 placeholderText: label
                 EnterKey.iconSource: "image://theme/icon-m-enter-close"

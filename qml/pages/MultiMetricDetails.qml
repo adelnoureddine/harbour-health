@@ -24,24 +24,16 @@ Page {
     // so the common case does not collapse and re-expand while it is being pushed.
     property bool loaded: false
     readonly property bool hasData: !loaded || listModel.count > 0
-
-    function sinceTimestamp() {
-        if (rangeDays === 0) {
-            return null;
-        }
-        var from = new Date();
-        from.setDate(from.getDate() - rangeDays);
-        from.setHours(0, 0, 0, 0);
-        return DataManager.toTimestamp(from);
-    }
+    // Set once the range has been chosen, by the first refresh or by the user.
+    property bool rangeSettled: false
 
     function refreshChart() {
         if (profileId < 0) {
             return;
         }
-        var since = sinceTimestamp();
         var mode = (rangeDays === 0 || rangeDays > 90) ? DataManager.SERIES_DAILY_AVG
                                                        : DataManager.SERIES_RAW;
+        var since = DataManager.sinceForDays(rangeDays, mode !== DataManager.SERIES_RAW);
         chartSeries = [
             {
                 points: DataManager.getSeries(profileId, metricName1, since, mode),
@@ -120,6 +112,15 @@ Page {
 
         loaded = true;
         refreshChart();
+        // Readings older than the default month: show everything rather than an empty
+        // chart above a full list.
+        if (!rangeSettled) {
+            rangeSettled = true;
+            if (listModel.count > 0 && chartSeries[0].points.length === 0
+                    && chartSeries[1].points.length === 0) {
+                rangeDays = 0;
+            }
+        }
     }
 
     function notifyChanged() {
@@ -140,7 +141,7 @@ Page {
             spacing: Theme.paddingMedium
 
             PageHeader {
-                title: qsTr("Blood Pressure")
+                title: qsTr("Blood pressure")
                 description: page.metricUnit
             }
 
@@ -151,6 +152,7 @@ Page {
                 series: page.chartSeries
                 bands: page.chartBands
                 unit: page.metricUnit
+                decimals: 0
                 emptyText: qsTr("No data in this period")
             }
 
@@ -183,7 +185,7 @@ Page {
                 })
             }
             MenuItem {
-                text: qsTr("Add Entry")
+                text: qsTr("Add entry")
                 onClicked: pageStack.animatorPush(Qt.resolvedUrl("addEntryMultiMetric.qml"), {
                     profileId: page.profileId,
                     metricName1: page.metricName1,

@@ -16,7 +16,7 @@
 - Add waist circumference measurement and waist-to-height ratio (WHtR).
 - Fix translation and visual glitches
 
-* Mon Aug 19 2026 Adel Noureddine 1.0-1
+* Wed Aug 19 2026 Adel Noureddine 1.0-1
 - First stable release.
 - History graphs for every metric, with editable reference ranges.
 - Backup and restore, plus CSV export of all measurements.

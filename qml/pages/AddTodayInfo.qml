@@ -14,6 +14,19 @@ Dialog {
     property string energy: "Normal"
     property real sleepHours: 8.0
 
+    readonly property var flowValues: ["None", "Spotting", "Light", "Medium", "Heavy"]
+    readonly property var painValues: ["None", "Mild", "Moderate", "Severe"]
+    readonly property var energyValues: ["Exhausted", "Low", "Normal", "High", "Peak"]
+
+    // Picking a menu item replaces a ComboBox's currentIndex binding, so after the
+    // first pick the boxes no longer follow the properties. Set them explicitly.
+    function syncFields() {
+        flowBox.currentIndex = flowValues.indexOf(flow);
+        painBox.currentIndex = painValues.indexOf(pain);
+        energyBox.currentIndex = energyValues.indexOf(energy);
+        sleepSlider.value = sleepHours;
+    }
+
     canAccept: profileId >= 0
 
     /*
@@ -27,6 +40,14 @@ Dialog {
         }
         var logs = DataManager.getMenstrualLogs(profileId, Utils.toLocalDateString(logDate));
         if (logs.length === 0) {
+            // Start the new day clean. The previous day's values used to stay in the
+            // form and were saved to this day as if the user had entered them.
+            flow = "None";
+            pain = "None";
+            energy = "Normal";
+            sleepHours = 8.0;
+            notesField.text = "";
+            syncFields();
             return;
         }
         var log = logs[0];
@@ -34,8 +55,8 @@ Dialog {
         pain = log.pain;
         energy = log.energy;
         sleepHours = log.sleepTime;
-        sleepSlider.value = log.sleepTime;
         notesField.text = log.note ? log.note : "";
+        syncFields();
     }
 
     onAccepted: {
@@ -53,7 +74,7 @@ Dialog {
             spacing: Theme.paddingLarge
 
             DialogHeader {
-                title: qsTr("Record Daily Data")
+                title: qsTr("Record daily data")
                 acceptText: qsTr("Save")
             }
 
@@ -72,9 +93,10 @@ Dialog {
             }
 
             ComboBox {
+                id: flowBox
                 width: parent.width
                 label: qsTr("Flow")
-                currentIndex: ["None", "Spotting", "Light", "Medium", "Heavy"].indexOf(flow)
+                currentIndex: dialog.flowValues.indexOf(flow)
                 menu: ContextMenu {
                     MenuItem { text: qsTr("None"); onClicked: flow = "None" }
                     MenuItem { text: qsTr("Spotting"); onClicked: flow = "Spotting" }
@@ -85,9 +107,10 @@ Dialog {
             }
 
             ComboBox {
+                id: painBox
                 width: parent.width
                 label: qsTr("Pain")
-                currentIndex: ["None", "Mild", "Moderate", "Severe"].indexOf(pain)
+                currentIndex: dialog.painValues.indexOf(pain)
                 menu: ContextMenu {
                     MenuItem { text: qsTr("None"); onClicked: pain = "None" }
                     MenuItem { text: qsTr("Mild"); onClicked: pain = "Mild" }
@@ -97,9 +120,10 @@ Dialog {
             }
 
             ComboBox {
+                id: energyBox
                 width: parent.width
                 label: qsTr("Energy")
-                currentIndex: ["Exhausted", "Low", "Normal", "High", "Peak"].indexOf(energy)
+                currentIndex: dialog.energyValues.indexOf(energy)
                 menu: ContextMenu {
                     MenuItem { text: qsTr("Exhausted"); onClicked: energy = "Exhausted" }
                     MenuItem { text: qsTr("Low"); onClicked: energy = "Low" }
@@ -126,8 +150,13 @@ Dialog {
                 width: parent.width
                 label: qsTr("Notes")
                 placeholderText: qsTr("How are you feeling?")
+                EnterKey.iconSource: "image://theme/icon-m-enter-accept"
+                EnterKey.enabled: dialog.canAccept
+                EnterKey.onClicked: dialog.accept()
             }
         }
+
+        VerticalScrollDecorator {}
     }
 
     Component.onCompleted: loadForDate()

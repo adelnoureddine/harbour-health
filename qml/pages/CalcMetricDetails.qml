@@ -15,7 +15,7 @@ Page {
     allowedOrientations: Orientation.All
 
     property int profileId: -1
-    property string calculate: "bmi"
+    property string calculate: DataManager.CALC_BMI
     property string title: qsTr("BMI")
     property string metricUnit: ""
     property var invalidateSignal
@@ -50,22 +50,12 @@ Page {
     // A ratio around 0.5 is meaningless at one decimal.
     readonly property int decimals: isWHtR ? 2 : 1
 
-    function sinceTimestamp() {
-        if (rangeDays === 0) {
-            return null;
-        }
-        var from = new Date();
-        from.setDate(from.getDate() - rangeDays);
-        from.setHours(0, 0, 0, 0);
-        return DataManager.toTimestamp(from);
-    }
-
     function refresh() {
         if (profileId < 0) {
             return;
         }
 
-        var since = sinceTimestamp();
+        var since = DataManager.sinceForDays(rangeDays, false);
         var points = isWHtR ? DataManager.getWHtRSeries(profileId, since)
                    : isBMI ? DataManager.getBMISeries(profileId, since)
                    : [];

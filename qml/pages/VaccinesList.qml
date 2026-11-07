@@ -25,7 +25,7 @@ Page {
 
         PullDownMenu {
             MenuItem {
-                text: qsTr("Add Vaccine Record")
+                text: qsTr("Add vaccine record")
                 onClicked: pageStack.animatorPush(Qt.resolvedUrl("AddVaccine.qml"), {profileId: root.profileId})
             }
         }

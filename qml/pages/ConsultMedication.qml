@@ -51,7 +51,18 @@ Page {
             Repeater {
                 model: todayModel
                 delegate: ListItem {
+                    id: todayItem
                     contentHeight: Theme.itemSizeSmall
+                    // A mistaken intake could not be removed at all.
+                    menu: ContextMenu {
+                        MenuItem {
+                            text: qsTr("Delete")
+                            onClicked: todayItem.remorseDelete(function() {
+                                DataManager.deleteMedicationLog(model.id);
+                                page.refresh();
+                            })
+                        }
+                    }
                     Column {
                         anchors.verticalCenter: parent.verticalCenter
                         x: Theme.horizontalPageMargin
@@ -60,7 +71,7 @@ Page {
                             width: parent.width
                             truncationMode: TruncationMode.Fade
                             text: Utils.formatTime(model.timestamp)
-                            color: Theme.highlightColor
+                            color: todayItem.highlighted ? Theme.highlightColor : Theme.primaryColor
                             font.pixelSize: Theme.fontSizeMedium
                         }
                         Label {
@@ -91,7 +102,17 @@ Page {
             Repeater {
                 model: historyModel
                 delegate: ListItem {
+                    id: historyItem
                     contentHeight: Theme.itemSizeSmall
+                    menu: ContextMenu {
+                        MenuItem {
+                            text: qsTr("Delete")
+                            onClicked: historyItem.remorseDelete(function() {
+                                DataManager.deleteMedicationLog(model.id);
+                                page.refresh();
+                            })
+                        }
+                    }
                     Column {
                         anchors.verticalCenter: parent.verticalCenter
                         x: Theme.horizontalPageMargin
@@ -100,7 +121,7 @@ Page {
                             width: parent.width
                             truncationMode: TruncationMode.Fade
                             text: Utils.formatDateTime(model.timestamp)
-                            color: Theme.primaryColor
+                            color: historyItem.highlighted ? Theme.highlightColor : Theme.primaryColor
                             font.pixelSize: Theme.fontSizeSmall
                         }
                         Label {
@@ -124,6 +145,8 @@ Page {
                 visible: historyModel.count === 0
             }
         }
+
+        VerticalScrollDecorator {}
     }
 
     ListModel { id: todayModel }

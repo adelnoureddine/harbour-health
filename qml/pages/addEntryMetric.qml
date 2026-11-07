@@ -21,6 +21,7 @@ Dialog {
     readonly property bool editing: logId >= 0
 
     canAccept: profileId >= 0 && metricValue.text !== "" && dialog.metricName !== ""
+               && metricValue.acceptableInput
                && !isNaN(parseFloat(metricValue.text.replace(',', '.')))
 
     function load() {
@@ -31,7 +32,9 @@ Dialog {
             if (log) {
                 dialog.metricName = log.metricName;
                 dialog.metricUnit = log.unit;
-                metricValue.text = Utils.formatValue(log.value);
+                // Three decimals, as many as the field accepts: rounding to two here
+                // silently changed 1.755 to 1.76 when only the time was edited.
+                metricValue.text = Utils.formatValue(log.value, 3);
                 noteField.text = log.note ? log.note : "";
                 var parsed = Utils.parseTimestamp(log.timestamp);
                 if (parsed !== null) {
@@ -74,7 +77,9 @@ Dialog {
 
             DialogHeader {
                 title: dialog.editing
+                       //: Dialog title; %1 is a measurement name such as "Weight"
                        ? qsTr("Edit %1").arg(Utils.metricDisplayName(dialog.metricName))
+                       //: Dialog title; %1 is a measurement name such as "Weight"
                        : qsTr("Add %1").arg(Utils.metricDisplayName(dialog.metricName))
                 acceptText: qsTr("Save")
             }
@@ -105,7 +110,7 @@ Dialog {
             TextField {
                 id: metricValue
                 width: parent.width
-                label: qsTr("Value (%1)").arg(dialog.metricUnit)
+                label: dialog.metricUnit ? qsTr("Value (%1)").arg(dialog.metricUnit) : qsTr("Value")
                 placeholderText: qsTr("Enter %1").arg(Utils.metricDisplayName(dialog.metricName))
                 inputMethodHints: Qt.ImhFormattedNumbersOnly
                 // The old pattern was [\.|,], a character class that also accepted a
@@ -149,7 +154,8 @@ Dialog {
             ValueButton {
                 id: timeButton
                 label: qsTr("Time")
-                value: Qt.formatTime(dialog.selectedDate, "hh:mm")
+                // Follows the system 12/24-hour setting.
+                value: Format.formatDate(dialog.selectedDate, Formatter.TimeValue)
                 onClicked: {
                     var timeDialog = pageStack.push("Sailfish.Silica.TimePickerDialog", {
                         hour: dialog.selectedDate.getHours(),
@@ -171,8 +177,9 @@ Dialog {
                 width: parent.width
                 label: qsTr("Note")
                 placeholderText: qsTr("Optional")
-                EnterKey.iconSource: "image://theme/icon-m-enter-close"
-                EnterKey.onClicked: focus = false
+                EnterKey.iconSource: "image://theme/icon-m-enter-accept"
+                EnterKey.enabled: dialog.canAccept
+                EnterKey.onClicked: dialog.accept()
             }
         }
 

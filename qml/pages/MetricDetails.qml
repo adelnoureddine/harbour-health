@@ -22,6 +22,12 @@ Page {
     // day -> total, built once per refresh so section headers are a hash lookup.
     property var dayTotals: ({})
 
+    readonly property int decimals: Utils.metricDecimals(metricName)
+    // Unit with its leading space, or nothing for a unitless metric.
+    readonly property string unitSuffix: metricUnit ? " " + metricUnit : ""
+    // Set once the range has been chosen, by the first refresh or by the user.
+    property bool rangeSettled: false
+
     // The list holds every entry regardless of the chart range. With none at all the
     // chart, range tabs and stats are hidden, so the placeholder has the page to itself
     // instead of being drawn over them. Until the first refresh the page assumes there
@@ -38,22 +44,12 @@ Page {
                                                    : DataManager.SERIES_RAW;
     }
 
-    function sinceTimestamp() {
-        if (rangeDays === 0) {
-            return null;
-        }
-        var from = new Date();
-        from.setDate(from.getDate() - rangeDays);
-        from.setHours(0, 0, 0, 0);
-        return DataManager.toTimestamp(from);
-    }
-
     function refreshChart() {
         if (profileId < 0) {
             return;
         }
-        var since = sinceTimestamp();
         var mode = seriesMode();
+        var since = DataManager.sinceForDays(rangeDays, mode !== DataManager.SERIES_RAW);
         chartSeries = [{
             points: DataManager.getSeries(profileId, metricName, since, mode),
             color: Theme.highlightColor,
@@ -76,6 +72,14 @@ Page {
         dayTotals = totals;
         loaded = true;
         refreshChart();
+        // Someone whose last reading is older than the default month used to get
+        // "No data in this period" above a full list. Show everything instead.
+        if (!rangeSettled) {
+            rangeSettled = true;
+            if (listModel.count > 0 && chartStats !== null && chartStats.count === 0) {
+                rangeDays = 0;
+            }
+        }
     }
 
     function notifyChanged() {
@@ -106,6 +110,7 @@ Page {
                 series: page.chartSeries
                 bands: page.chartBands
                 unit: page.metricUnit
+                decimals: page.decimals
                 emptyText: qsTr("No data in this period")
             }
 
@@ -124,6 +129,7 @@ Page {
                 x: Theme.horizontalPageMargin
                 stats: page.chartStats
                 unit: page.metricUnit
+                decimals: page.decimals
             }
 
             Item { width: 1; height: Theme.paddingMedium }
@@ -138,7 +144,7 @@ Page {
                 })
             }
             MenuItem {
-                text: qsTr("Add Entry")
+                text: qsTr("Add entry")
                 onClicked: pageStack.animatorPush(Qt.resolvedUrl("addEntryMetric.qml"), {
                     profileId: page.profileId,
                     metricName: page.metricName,
@@ -160,7 +166,7 @@ Page {
             delegate: SectionHeader {
                 // The per-day total is computed by SQLite now. It used to re-scan the
                 // whole model inside this binding, once per section, on every update.
-                text: Utils.formatValue(page.dayTotals[section]) + " " + page.metricUnit
+                text: Utils.formatValue(page.dayTotals[section]) + page.unitSuffix
                       + " · " + Utils.formatDate(section)
             }
         }
@@ -204,7 +210,7 @@ Page {
                 Label {
                     width: parent.width
                     truncationMode: TruncationMode.Fade
-                    text: Utils.formatValue(model.value) + " " + page.metricUnit
+                    text: Utils.formatValue(model.value) + page.unitSuffix
                     color: listItem.highlighted ? Theme.highlightColor : Theme.primaryColor
                 }
 

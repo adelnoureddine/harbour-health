@@ -23,13 +23,13 @@ Page {
 
             Button {
                 anchors.horizontalCenter: parent.horizontalCenter
-                text: qsTr("New Session")
+                text: qsTr("New session")
                 onClicked: pageStack.animatorPush(Qt.resolvedUrl("NewSession.qml"), {profileId: page.profileId})
             }
 
             Button {
                 anchors.horizontalCenter: parent.horizontalCenter
-                text: qsTr("Session History")
+                text: qsTr("Session history")
                 onClicked: pageStack.animatorPush(Qt.resolvedUrl("History.qml"), {profileId: page.profileId})
             }
         }

@@ -16,7 +16,8 @@ Dialog {
     canAccept: profile !== null
 
     function load() {
-        profile = DataManager.getProfile(profileId);
+        // getProfile() returns undefined when nothing matches, which `!== null` let through.
+        profile = DataManager.getProfile(profileId) || null;
     }
 
     onAccepted: {
@@ -41,7 +42,7 @@ Dialog {
             spacing: Theme.paddingLarge
 
             DialogHeader {
-                title: qsTr("Delete Profile")
+                title: qsTr("Delete profile")
                 acceptText: qsTr("Delete")
             }
 
@@ -63,7 +64,7 @@ Dialog {
             }
 
             SectionHeader {
-                text: qsTr("Profile to Delete")
+                text: qsTr("Profile to delete")
                 visible: profile !== null
             }
 

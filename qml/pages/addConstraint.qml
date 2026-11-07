@@ -28,25 +28,34 @@ Dialog {
         return maxField.text === "" ? null : parseFloat(maxField.text.replace(',', '.'));
     }
 
-    canAccept: labelField.text !== ""
+    canAccept: labelField.text.trim() !== ""
+               && minField.acceptableInput && maxField.acceptableInput
                && (minField.text !== "" || maxField.text !== "")
                && (parsedMin() === null || parsedMax() === null || parsedMin() < parsedMax())
 
     function load() {
-        labelField.text = labelText;
+        // Built-in labels are stored in English and shown translated in the list, so
+        // they are edited translated too (see savedLabel()).
+        labelField.text = Utils.constraintLabelDisplayName(labelText);
         // A threshold of exactly 0 is meaningful and must survive the round trip.
-        minField.text = (minValue === null || minValue === undefined) ? "" : Utils.formatValue(minValue);
-        maxField.text = (maxValue === null || maxValue === undefined) ? "" : Utils.formatValue(maxValue);
+        minField.text = (minValue === null || minValue === undefined) ? "" : Utils.formatValue(minValue, 3);
+        maxField.text = (maxValue === null || maxValue === undefined) ? "" : Utils.formatValue(maxValue, 3);
         var index = colorNames.indexOf(colorName);
         colorCombo.currentIndex = index >= 0 ? index : 0;
+    }
+
+    // An untouched built-in label keeps its English key, so it stays translatable.
+    function savedLabel() {
+        var label = labelField.text.trim();
+        return (editing && label === Utils.constraintLabelDisplayName(labelText)) ? labelText : label;
     }
 
     onAccepted: {
         var color = colorNames[colorCombo.currentIndex >= 0 ? colorCombo.currentIndex : 0];
         if (editing) {
-            DataManager.updateConstraint(constraintId, labelField.text, parsedMin(), parsedMax(), color);
+            DataManager.updateConstraint(constraintId, savedLabel(), parsedMin(), parsedMax(), color);
         } else {
-            DataManager.addConstraint(metricName, labelField.text, parsedMin(), parsedMax(), color);
+            DataManager.addConstraint(metricName, savedLabel(), parsedMin(), parsedMax(), color);
         }
     }
 
@@ -114,8 +123,9 @@ Dialog {
                 placeholderText: qsTr("Optional")
                 inputMethodHints: Qt.ImhFormattedNumbersOnly
                 validator: RegExpValidator { regExp: /^\d{1,6}([.,]\d{1,3})?$/ }
-                EnterKey.iconSource: "image://theme/icon-m-enter-close"
-                EnterKey.onClicked: focus = false
+                EnterKey.iconSource: "image://theme/icon-m-enter-accept"
+                EnterKey.enabled: dialog.canAccept
+                EnterKey.onClicked: dialog.accept()
             }
 
             Label {

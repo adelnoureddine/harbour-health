@@ -25,16 +25,16 @@ Page {
 
         header: PageHeader {
             width: listView.width
-            title: qsTr("Health Conditions")
+            title: qsTr("Health conditions")
         }
 
         PullDownMenu {
             MenuItem {
-                text: qsTr("Add Condition")
+                text: qsTr("Add condition")
                 onClicked: pageStack.animatorPush(Qt.resolvedUrl("AddAndEditIllness.qml"), {profileId: root.profileId})
             }
             MenuItem {
-                    text: qsTr("All Medications")
+                    text: qsTr("All medications")
                     onClicked: pageStack.animatorPush(Qt.resolvedUrl("AllMedications.qml"), {profileId: root.profileId})
             }
         }

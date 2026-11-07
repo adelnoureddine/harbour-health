@@ -17,11 +17,12 @@ Dialog {
 
     readonly property bool knownVaccine: knownVaccineId >= 0
 
-    canAccept: profileId >= 0 && (knownVaccine || vaccineName.text !== "")
+    canAccept: profileId >= 0 && (knownVaccine || vaccineName.text.trim() !== "")
 
     onAccepted: {
         var vaccineId = knownVaccine ? knownVaccineId
-                                     : DataManager.getOrCreateVaccine(vaccineName.text, false);
+                                     // Trimmed: "Tetanus " used to become a second vaccine.
+                                     : DataManager.getOrCreateVaccine(vaccineName.text.trim(), false);
         DataManager.addVaccineLog(profileId, vaccineId,
                                   Utils.toLocalDateString(injectionDate), notesField.text);
     }
@@ -36,7 +37,7 @@ Dialog {
             spacing: Theme.paddingLarge
 
             DialogHeader {
-                title: dialog.knownVaccine ? qsTr("Record Injection") : qsTr("Add Vaccine Record")
+                title: dialog.knownVaccine ? qsTr("Record injection") : qsTr("Add vaccine record")
                 acceptText: qsTr("Save")
             }
 
@@ -53,7 +54,7 @@ Dialog {
             TextField {
                 id: vaccineName
                 width: parent.width
-                label: qsTr("Vaccine Name")
+                label: qsTr("Vaccine name")
                 placeholderText: label
                 visible: !dialog.knownVaccine
                 focus: !dialog.knownVaccine
@@ -63,7 +64,7 @@ Dialog {
 
             ValueButton {
                 id: dateButton
-                label: qsTr("Injection Date")
+                label: qsTr("Injection date")
                 value: Qt.formatDate(dialog.injectionDate, Qt.DefaultLocaleShortDate)
                 onClicked: {
                     var dateDialog = pageStack.push("Sailfish.Silica.DatePickerDialog", {

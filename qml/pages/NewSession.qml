@@ -5,9 +5,11 @@ import "../js/DataManager.js" as DataManager
 Page {
     id: page
     allowedOrientations: Orientation.All
+    // Swiping back used to throw a running session away without a word. Pause first.
+    backNavigation: !running
 
     property int profileId: -1
-    property string sessionName: qsTr("Meditation Session")
+    property string sessionName: qsTr("Meditation session")
 
     /*
      * Elapsed time comes from the wall clock, not from counting Timer ticks. A
@@ -53,6 +55,10 @@ Page {
         return minutes + ":" + (remainder < 10 ? "0" : "") + remainder;
     }
 
+    RemorsePopup {
+        id: resetRemorse
+    }
+
     Timer {
         id: ticker
         interval: 500
@@ -70,13 +76,13 @@ Page {
             spacing: Theme.paddingLarge
 
             PageHeader {
-                title: qsTr("New Session")
+                title: qsTr("New session")
             }
 
             TextField {
                 id: nameField
                 width: parent.width
-                label: qsTr("Session Name")
+                label: qsTr("Session name")
                 text: sessionName
                 onTextChanged: sessionName = text
                 EnterKey.iconSource: "image://theme/icon-m-enter-close"
@@ -106,14 +112,19 @@ Page {
                 Button {
                     text: qsTr("Reset")
                     enabled: page.elapsed > 0 || page.running
-                    onClicked: page.reset()
+                    onClicked: resetRemorse.execute(qsTr("Resetting timer"), function() {
+                        page.reset();
+                    })
                 }
             }
 
             Button {
                 anchors.horizontalCenter: parent.horizontalCenter
-                text: qsTr("Save and Finish")
-                enabled: page.profileId >= 0 && page.currentElapsed() > 0
+                text: qsTr("Save and finish")
+                // `elapsed` is what the ticker updates. currentElapsed() read the clock,
+                // which a binding never re-evaluates, so the button stayed disabled
+                // through the whole first run.
+                enabled: page.profileId >= 0 && page.elapsed > 0
                 onClicked: {
                     page.pause();
                     // Stored in seconds: rounding up to whole minutes turned a

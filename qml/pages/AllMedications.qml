@@ -22,12 +22,13 @@ Page {
 
         header: PageHeader {
             width: listView.width
-            title: qsTr("All Medications")
+            title: qsTr("All medications")
         }
 
         model: listModel
 
         delegate: ListItem {
+            id: medicationItem
             contentHeight: Theme.itemSizeMedium
 
             onClicked: pageStack.animatorPush(Qt.resolvedUrl("ConsultMedication.qml"), {
@@ -45,7 +46,7 @@ Page {
                     width: parent.width
                     truncationMode: TruncationMode.Fade
                     text: model.name
-                    color: Theme.primaryColor
+                    color: medicationItem.highlighted ? Theme.highlightColor : Theme.primaryColor
                 }
             }
         }

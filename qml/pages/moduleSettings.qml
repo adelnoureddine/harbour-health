@@ -40,33 +40,29 @@ Page {
             delegate: SectionHeader { text: Utils.categoryDisplayName(section) }
         }
 
-        delegate: ListItem {
-            contentHeight: Theme.itemSizeMedium
+        /*
+         * The switch is the delegate itself. It used to sit inside a ListItem, which
+         * drew a second highlight and left dead strips either side of the switch.
+         *
+         * automaticCheck/onClicked rather than onCheckedChanged: the latter also fired
+         * while the delegate was being built and again while the model was being
+         * cleared, so simply opening this page rewrote every row -- and leaving it
+         * could silently switch modules back off.
+         */
+        delegate: TextSwitch {
+            width: ListView.view.width
+            text: Utils.moduleDisplayName(model.name)
+            checked: model.is_on
+            automaticCheck: false
 
-            /*
-             * automaticCheck/onClicked rather than onCheckedChanged: the latter also
-             * fired while the delegate was being built and again while the model was
-             * being cleared, so simply opening this page rewrote every row -- and
-             * leaving it could silently switch modules back off.
-             */
-            TextSwitch {
-                anchors.verticalCenter: parent.verticalCenter
-                x: Theme.horizontalPageMargin
-                width: parent.width - 2 * Theme.horizontalPageMargin
-
-                text: Utils.moduleDisplayName(model.name)
-                checked: model.is_on
-                automaticCheck: false
-
-                onClicked: {
-                    var enabled = !checked;
-                    if (enabled) {
-                        DataManager.addProfileModule(root.profileId, model.id);
-                    } else {
-                        DataManager.removeProfileModule(root.profileId, model.id);
-                    }
-                    modelModules.setProperty(index, "is_on", enabled ? 1 : 0);
+            onClicked: {
+                var enabled = !checked;
+                if (enabled) {
+                    DataManager.addProfileModule(root.profileId, model.id);
+                } else {
+                    DataManager.removeProfileModule(root.profileId, model.id);
                 }
+                modelModules.setProperty(index, "is_on", enabled ? 1 : 0);
             }
         }
 

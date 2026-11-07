@@ -22,7 +22,7 @@ Page {
             spacing: Theme.paddingLarge
 
             PageHeader {
-                title: qsTr("Cycle Details")
+                title: qsTr("Cycle details")
             }
 
             SectionHeader {
@@ -30,23 +30,23 @@ Page {
             }
 
             DetailItem {
-                label: qsTr("Start Date")
+                label: qsTr("Start date")
                 value: Utils.formatDate(startDate)
             }
 
             DetailItem {
-                label: qsTr("End Date")
+                label: qsTr("End date")
                 value: endDate ? Utils.formatDate(endDate) : qsTr("Ongoing")
             }
 
             DetailItem {
                 label: qsTr("Note")
-                value: note || qsTr("None")
+                value: note
                 visible: note !== ""
             }
 
             SectionHeader {
-                text: qsTr("Daily Logs")
+                text: qsTr("Daily logs")
             }
 
             Repeater {
@@ -70,11 +70,27 @@ Page {
                         font.bold: true
                     }
 
-                    DetailItem { label: qsTr("Flow"); value: model.flow }
-                    DetailItem { label: qsTr("Pain"); value: model.pain }
-                    DetailItem { label: qsTr("Energy"); value: model.energy }
+                    DetailItem { label: qsTr("Flow"); value: Utils.flowDisplayName(model.flow) }
+                    DetailItem { label: qsTr("Pain"); value: Utils.painDisplayName(model.pain) }
+                    DetailItem { label: qsTr("Energy"); value: Utils.energyDisplayName(model.energy) }
                     DetailItem { label: qsTr("Sleep"); value: qsTr("%1 hours").arg(Utils.formatValue(model.sleepTime, 1)) }
+                    // The day's note was saved but never shown anywhere.
+                    DetailItem {
+                        label: qsTr("Note")
+                        value: model.note ? model.note : ""
+                        visible: value !== ""
+                    }
                 }
+            }
+
+            Label {
+                x: Theme.horizontalPageMargin
+                width: parent.width - 2 * Theme.horizontalPageMargin
+                wrapMode: Text.Wrap
+                font.pixelSize: Theme.fontSizeSmall
+                color: Theme.secondaryColor
+                visible: logsModel.count === 0
+                text: qsTr("No daily data recorded during this cycle.")
             }
         }
 

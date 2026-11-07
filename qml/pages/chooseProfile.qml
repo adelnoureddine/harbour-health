@@ -30,7 +30,7 @@ Page {
 
         PullDownMenu {
             MenuItem {
-                text: qsTr("Create New Profile")
+                text: qsTr("Create new profile")
                 onClicked: pageStack.animatorPush(Qt.resolvedUrl("createProfile.qml"))
             }
         }

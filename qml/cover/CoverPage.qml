@@ -12,19 +12,23 @@ CoverBackground {
     property string metric2: DataManager.METRIC_WATER
     property var value1: null
     property var value2: null
+    property string unit1: ""
+    property string unit2: ""
 
+    // Grouped metrics (water, calories) show today's total, like the dashboard.
     function metricValue(metricName) {
         if (DataManager.getMetricGrouped(metricName)) {
-            return DataManager.getLatestDayLogValue(profileId, metricName);
+            return DataManager.getTodayTotal(profileId, metricName);
         }
         return DataManager.getLatestLogValue(profileId, metricName);
     }
 
-    function displayFor(value, metricName) {
+    // Units are looked up once per refresh. This used to query the database from
+    // inside the label bindings.
+    function displayFor(value, metricName, unit) {
         if (value === null || value === undefined) {
             return "—";
         }
-        var unit = DataManager.getMetricUnit(metricName);
         return Utils.formatValue(value) + (unit ? " " + unit : "");
     }
 
@@ -38,6 +42,8 @@ CoverBackground {
         var metrics = DataManager.getCoverMetrics(profileId);
         metric1 = metrics.metric1;
         metric2 = metrics.metric2;
+        unit1 = DataManager.getMetricUnit(metric1) || "";
+        unit2 = DataManager.getMetricUnit(metric2) || "";
         value1 = metricValue(metric1);
         value2 = metricValue(metric2);
     }
@@ -111,8 +117,8 @@ CoverBackground {
                     width: parent.width
                     horizontalAlignment: Text.AlignHCenter
                     truncationMode: TruncationMode.Fade
-                    text: index === 0 ? cover.displayFor(cover.value1, cover.metric1)
-                                      : cover.displayFor(cover.value2, cover.metric2)
+                    text: index === 0 ? cover.displayFor(cover.value1, cover.metric1, cover.unit1)
+                                      : cover.displayFor(cover.value2, cover.metric2, cover.unit2)
                     font.pixelSize: Theme.fontSizeSmall
                     font.bold: true
                     color: Theme.primaryColor
@@ -133,7 +139,7 @@ CoverBackground {
                         // Pre-selects the first cover metric but still lets the
                         // type be changed. Opened from the cover the dialog used to
                         // have no metric at all, so Save could never be enabled.
-                        metricUnit: DataManager.getMetricUnit(cover.metric1)
+                        metricUnit: cover.unit1
                     });
                 }
                 appWindow.activate();

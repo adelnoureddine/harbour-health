@@ -10,6 +10,7 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QFileInfoList>
+#include <QSaveFile>
 #include <QStandardPaths>
 #include <QTextStream>
 
@@ -41,8 +42,10 @@ bool FileWriter::writeFile(const QString &path, const QString &content)
 {
     m_lastError.clear();
 
-    QFile file(path);
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text)) {
+    // Written to a temporary file and renamed into place on commit(), so a full disk
+    // or a crash mid-write can no longer leave a truncated backup behind.
+    QSaveFile file(path);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
         m_lastError = file.errorString();
         return false;
     }
@@ -54,11 +57,14 @@ bool FileWriter::writeFile(const QString &path, const QString &content)
 
     if (out.status() != QTextStream::Ok || file.error() != QFile::NoError) {
         m_lastError = file.errorString();
-        file.close();
+        file.cancelWriting();   // the temporary file is discarded, the old one kept
         return false;
     }
 
-    file.close();
+    if (!file.commit()) {
+        m_lastError = file.errorString();
+        return false;
+    }
     return true;
 }
 

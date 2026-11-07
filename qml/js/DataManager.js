@@ -145,6 +145,52 @@ function toTimestamp(value) {
             + ":" + _pad2(value.getSeconds());
 }
 
+/*
+ * Start of the day `date` (default: now) belongs to, with the DAY_START_TIME border:
+ * a glass of water at 01:00 still counts toward the evening before.
+ */
+function dayStart(date) {
+    var d = date ? new Date(date.getTime()) : new Date();
+    var parts = DAY_START_TIME.split(":");
+    var start = new Date(d.getFullYear(), d.getMonth(), d.getDate(),
+                         parseInt(parts[0], 10), parseInt(parts[1], 10), parseInt(parts[2], 10));
+    if (d < start) {
+        start.setDate(start.getDate() - 1);
+    }
+    return start;
+}
+
+/*
+ * First timestamp of a chart window of `days` days ending today, or null for all
+ * time. A week is today and the six days before it: counting back seven days from
+ * midnight made "Week" span eight calendar days. Daily series start on the same
+ * DAY_START_TIME border their per-day totals use, so the first bar is a whole day.
+ */
+function sinceForDays(days, daily) {
+    if (!days) {
+        return null;
+    }
+    var from = daily ? dayStart() : new Date();
+    if (!daily) {
+        from.setHours(0, 0, 0, 0);
+    }
+    from.setDate(from.getDate() - (days - 1));
+    return toTimestamp(from);
+}
+
+/*
+ * Rows written through this connection so far. The handle lives as long as the app,
+ * so the number moves on every insert, update or delete anywhere -- the dashboard
+ * compares it to skip rebuilding when nothing changed.
+ */
+function changeCount() {
+    var count = 0;
+    db().transaction(function (tx) {
+        count = tx.executeSql('SELECT total_changes() AS n').rows.item(0).n;
+    });
+    return count;
+}
+
 // Milliseconds since epoch for a stored timestamp or date, parsed as local time.
 function timestampToMs(s) {
     if (!s) {
@@ -355,7 +401,7 @@ function seedDefaultMetricsAndModules(tx) {
  */
 function seedDefaultConstraints(tx) {
     var defaults = {};
-    defaults["BMI"] = [
+    defaults[MODULE_BMI] = [
         ["Underweight", null, 18.5, "blue"],
         ["Normal", 18.5, 25.0, "green"],
         ["Overweight", 25.0, 30.0, "orange"],
@@ -484,6 +530,7 @@ function deleteProfile(id) {
             tx.executeSql('DELETE FROM ' + PROFILE_TABLES[i] + ' WHERE profileId=?', [id]);
         }
         tx.executeSql('DELETE FROM Profiles WHERE id=?', [id]);
+        deleteOrphanedMedications(tx);
     });
 }
 
@@ -603,22 +650,10 @@ function deleteLog(id) {
     });
 }
 
-function getLatestLog(profileId, metricName) {
-    var log = null;
-    db().transaction(function (tx) {
-        var rs = tx.executeSql('SELECT l.*, m.unit FROM HealthLogs l LEFT JOIN Metrics m ON l.metricId = m.id ' +
-            'WHERE l.profileId=? AND m.name=? ORDER BY l.timestamp DESC LIMIT 1', [profileId, metricName]);
-        if (rs.rows.length > 0) {
-            log = rs.rows.item(0);
-        }
-    });
-    return log;
-}
-
 function getLatestLogValue(profileId, metricName) {
     var value = null;
     db().transaction(function (tx) {
-        var rs = tx.executeSql('SELECT l.value FROM HealthLogs l LEFT JOIN Metrics m ON l.metricId = m.id ' +
+        var rs = tx.executeSql('SELECT l.value FROM HealthLogs l JOIN Metrics m ON l.metricId = m.id ' +
             'WHERE l.profileId=? AND m.name=? ORDER BY l.timestamp DESC LIMIT 1', [profileId, metricName]);
         if (rs.rows.length > 0) {
             value = rs.rows.item(0).value;
@@ -627,11 +662,22 @@ function getLatestLogValue(profileId, metricName) {
     return value;
 }
 
-function getLatestDayLogValue(profileId, metricName) {
+/*
+ * Today's total for a grouped metric (water, calories), or null when nothing has been
+ * logged today. This used to return the last day that had any entries, so water
+ * logged three days ago was shown on the dashboard as today's intake.
+ */
+function getTodayTotal(profileId, metricName) {
     var value = null;
+    var start = dayStart();
+    var end = new Date(start.getTime());
+    end.setDate(end.getDate() + 1);
     db().transaction(function (tx) {
-        var rs = tx.executeSql('SELECT SUM(l.value) AS total, date(l.timestamp, ?) AS day FROM HealthLogs l LEFT JOIN Metrics m ON l.metricId = m.id ' +
-            'WHERE l.profileId=? AND m.name=? GROUP BY day ORDER BY day DESC LIMIT 1', ["-" + DAY_START_TIME, profileId, metricName]);
+        // Bound as stored strings: SQLite's datetime() writes a space where the stored
+        // values have a "T", and the space sorts first.
+        var rs = tx.executeSql('SELECT SUM(l.value) AS total FROM HealthLogs l JOIN Metrics m ON l.metricId = m.id ' +
+            'WHERE l.profileId=? AND m.name=? AND l.timestamp >= ? AND l.timestamp < ?',
+            [profileId, metricName, toTimestamp(start), toTimestamp(end)]);
         if (rs.rows.length > 0) {
             value = rs.rows.item(0).total;
         }
@@ -654,13 +700,13 @@ function addLogsToModel(profileId, metricName, a_model, grouped) {
             rs = tx.executeSql('SELECT l.id, l.timestamp, l.value, l.note, DATE(l.timestamp, ?) AS day, ' +
                 '(SELECT SUM(l2.value) FROM HealthLogs l2 WHERE l2.profileId=l.profileId ' +
                 'AND l2.metricId=l.metricId AND DATE(l2.timestamp, ?)=DATE(l.timestamp, ?)) AS dayTotal ' +
-                'FROM HealthLogs AS l LEFT JOIN Metrics ON l.metricId=Metrics.id ' +
+                'FROM HealthLogs AS l JOIN Metrics ON l.metricId=Metrics.id ' +
                 'WHERE l.profileId=? AND Metrics.name=? ORDER BY l.timestamp DESC',
                 [border, border, border, profileId, metricName]);
         }
         else {
             rs = tx.executeSql('SELECT HealthLogs.id, timestamp, value, note FROM HealthLogs ' +
-                'LEFT JOIN Metrics ON HealthLogs.metricId=Metrics.id ' +
+                'JOIN Metrics ON HealthLogs.metricId=Metrics.id ' +
                 'WHERE profileId=? AND Metrics.name=? ORDER BY timestamp DESC', [profileId, metricName]);
         }
         for (var i = 0; i < rs.rows.length; i++) {
@@ -1007,9 +1053,21 @@ function updateTreatment(id, dosage, frequency, startDate, endDate, note) {
     });
 }
 
+/*
+ * Every treatment gets its own Medications row, and intake logs hang off that row.
+ * Removing the last treatment (directly, with its condition or with the profile)
+ * used to leave both behind, and they still went into every export.
+ */
+function deleteOrphanedMedications(tx) {
+    var used = 'SELECT medicationId FROM Treatments WHERE medicationId IS NOT NULL';
+    tx.executeSql('DELETE FROM MedicationLogs WHERE medicationId NOT IN (' + used + ')');
+    tx.executeSql('DELETE FROM Medications WHERE id NOT IN (' + used + ')');
+}
+
 function deleteTreatment(id) {
     db().transaction(function (tx) {
         tx.executeSql('DELETE FROM Treatments WHERE id=?', [id]);
+        deleteOrphanedMedications(tx);
     });
 }
 
@@ -1054,6 +1112,7 @@ function deleteCondition(id) {
         // Treatments hang off the condition and would otherwise be orphaned.
         tx.executeSql('DELETE FROM Treatments WHERE conditionId=?', [id]);
         tx.executeSql('DELETE FROM HealthConditions WHERE id=?', [id]);
+        deleteOrphanedMedications(tx);
     });
 }
 
@@ -1216,9 +1275,23 @@ function getMedicationLogsHistory(profileId, medicationId) {
 }
 
 // Module Settings
+/*
+ * Modules in display order: by category, then in the order they were defined, so
+ * related tiles sit together (Weight, Height, BMI, Waist, WHtR). Sorting on the stored
+ * English names put WHtR before Waist and made no sense once translated.
+ *
+ * unit and grouped come along for metric modules ('' and 0 otherwise, so the model
+ * roles keep one type) -- every tile used to look both up with queries of its own.
+ */
 function addModulesToModel(profileId, a_model, on_only) {
     db().transaction(function (tx) {
-        var rs = tx.executeSql('SELECT id,name,type,category,uses,icon,( SELECT ProfileModules.profileId FROM ProfileModules WHERE Modules.id=ProfileModules.moduleId AND ProfileModules.profileId=? ) IS NOT NULL AS is_on FROM Modules ' + (on_only ? 'WHERE is_on' : '') + ' ORDER BY category,name', [profileId]);
+        var rs = tx.executeSql('SELECT Modules.id, Modules.name, Modules.type, Modules.category, Modules.uses, Modules.icon, ' +
+            "COALESCE(Metrics.unit, '') AS unit, COALESCE(Metrics.grouped, 0) AS grouped, " +
+            '(SELECT ProfileModules.profileId FROM ProfileModules WHERE Modules.id=ProfileModules.moduleId AND ProfileModules.profileId=?) IS NOT NULL AS is_on ' +
+            'FROM Modules LEFT JOIN Metrics ON Modules.type=? AND Metrics.name=Modules.uses ' +
+            (on_only ? 'WHERE is_on ' : '') +
+            'ORDER BY CASE Modules.category WHEN ? THEN 0 WHEN ? THEN 1 WHEN ? THEN 2 ELSE 3 END, Modules.id',
+            [profileId, MODULE_TYPE_METRIC, CATEGORY_BODY, CATEGORY_NUTRITION, CATEGORY_BLOOD]);
         for (var i = 0; i < rs.rows.length; i++) {
             a_model.append(rs.rows.item(i));
         }

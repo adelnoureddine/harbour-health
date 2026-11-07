@@ -16,13 +16,20 @@ Row {
 
     // A plain array avoids a ListModel that has to be filled in Component.onCompleted
     // just so the labels can be translated.
-    readonly property var ranges: [7, 30, 365, 0]
+    // 90 days is also where the history pages switch to daily averages.
+    readonly property var ranges: [7, 30, 90, 365, 0]
 
     function labelFor(rangeDays) {
         switch (rangeDays) {
+        //: Chart range tab: the last 7 days. Keep it short, five tabs share one row.
         case 7:   return qsTr("Week");
+        //: Chart range tab: the last 30 days. Keep it short.
         case 30:  return qsTr("Month");
+        //: Chart range tab: the last 90 days. Keep it short.
+        case 90:  return qsTr("3 months");
+        //: Chart range tab: the last 365 days. Keep it short.
         case 365: return qsTr("Year");
+        //: Chart range tab: the whole history. Keep it short.
         default:  return qsTr("All");
         }
     }
@@ -62,7 +69,7 @@ Row {
                 anchors.bottom: parent.bottom
                 anchors.horizontalCenter: parent.horizontalCenter
                 width: rangeItem.width - Theme.paddingLarge
-                height: 2
+                height: Math.round(2 * Theme.pixelRatio)
                 color: Theme.highlightColor
                 visible: rangeItem.selected
             }

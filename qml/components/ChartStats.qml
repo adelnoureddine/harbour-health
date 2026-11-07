@@ -21,8 +21,11 @@ Row {
 
     function captionFor(field) {
         switch (field) {
+        //: Chart statistics caption: lowest value in the range. Short.
         case "min": return qsTr("Min");
+        //: Chart statistics caption: mean value in the range. Short.
         case "avg": return qsTr("Average");
+        //: Chart statistics caption: highest value in the range. Short.
         default:    return qsTr("Max");
         }
     }

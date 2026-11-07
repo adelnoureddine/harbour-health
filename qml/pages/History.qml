@@ -40,12 +40,14 @@ Page {
 
         header: PageHeader {
             width: listView.width
-            title: qsTr("Meditation History")
+            title: qsTr("Meditation history")
         }
 
         PullDownMenu {
+            // Nothing to clear on an empty list.
+            visible: listModel.count > 0
             MenuItem {
-                text: qsTr("Clear History")
+                text: qsTr("Clear history")
                 // Wiping every session used to happen on a single tap, with no undo.
                 onClicked: clearRemorse.execute(qsTr("Clearing history"), function() {
                     if (page.profileId >= 0) {
@@ -77,7 +79,7 @@ Page {
 
                 Label {
                     width: parent.width
-                    text: model.name ? model.name : qsTr("Meditation Session")
+                    text: model.name ? model.name : qsTr("Meditation session")
                     truncationMode: TruncationMode.Fade
                     color: sessionItem.highlighted ? Theme.highlightColor : Theme.primaryColor
                 }

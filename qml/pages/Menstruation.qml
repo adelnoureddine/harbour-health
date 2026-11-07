@@ -29,7 +29,9 @@ Page {
             var today = new Date();
             today.setHours(0, 0, 0, 0);
             dayOfCycle = start === null ? 0
-                       : Math.floor((today - start) / 86400000) + 1;
+                       // Rounded: across the spring clock change two local midnights
+                       // are an hour short of whole days, and floor lost a day.
+                       : Math.round((today - start) / 86400000) + 1;
         } else {
             lastCycle = null;
             dayOfCycle = 0;
@@ -56,7 +58,7 @@ Page {
 
         PullDownMenu {
             MenuItem {
-                text: qsTr("New Cycle")
+                text: qsTr("New cycle")
                 onClicked: pageStack.animatorPush(Qt.resolvedUrl("AddNewCycle.qml"), {profileId: page.profileId})
             }
             MenuItem {
@@ -69,7 +71,7 @@ Page {
                 onClicked: pageStack.animatorPush(Qt.resolvedUrl("HistoryOfAllCycle.qml"), {profileId: page.profileId})
             }
             MenuItem {
-                text: qsTr("Add Today's Data")
+                text: qsTr("Add today's data")
                 onClicked: pageStack.animatorPush(Qt.resolvedUrl("AddTodayInfo.qml"), {profileId: page.profileId})
             }
         }
@@ -80,11 +82,11 @@ Page {
             spacing: Theme.paddingLarge
 
             PageHeader {
-                title: qsTr("Menstrual Cycle")
+                title: qsTr("Menstrual cycle")
             }
 
             SectionHeader {
-                text: qsTr("Current Cycle")
+                text: qsTr("Current cycle")
             }
 
             Column {
@@ -140,7 +142,7 @@ Page {
             }
 
             SectionHeader {
-                text: qsTr("Today's Summary")
+                text: qsTr("Today's summary")
                 visible: todayLog !== null
             }
 
@@ -150,15 +152,15 @@ Page {
 
                 DetailItem {
                     label: qsTr("Flow")
-                    value: todayLog ? todayLog.flow : ""
+                    value: todayLog ? Utils.flowDisplayName(todayLog.flow) : ""
                 }
                 DetailItem {
                     label: qsTr("Pain")
-                    value: todayLog ? todayLog.pain : ""
+                    value: todayLog ? Utils.painDisplayName(todayLog.pain) : ""
                 }
                 DetailItem {
                     label: qsTr("Energy")
-                    value: todayLog ? todayLog.energy : ""
+                    value: todayLog ? Utils.energyDisplayName(todayLog.energy) : ""
                 }
                 DetailItem {
                     label: qsTr("Sleep")

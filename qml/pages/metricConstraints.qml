@@ -24,13 +24,16 @@ Page {
         var unit = page.metricUnit ? " " + page.metricUnit : "";
         // A threshold of exactly 0 is a real bound; it used to be treated as absent.
         if (hasMin && hasMax) {
+            //: Reference range from a minimum (%1) to a maximum (%2) value
             return qsTr("%1 to %2").arg(Utils.formatValue(minValue)).arg(Utils.formatValue(maxValue)) + unit;
         }
         if (hasMin) {
+            //: Reference range with only a minimum value (%1)
             return qsTr("%1 and above").arg(Utils.formatValue(minValue)) + unit;
         }
         if (hasMax) {
-            return qsTr("below %1").arg(Utils.formatValue(maxValue)) + unit;
+            //: Reference range with only a maximum value (%1)
+            return qsTr("Below %1").arg(Utils.formatValue(maxValue)) + unit;
         }
         return "";
     }
@@ -124,7 +127,7 @@ Page {
                     truncationMode: TruncationMode.Fade
                     text: page.rangeText(model.minValue, model.maxValue)
                     font.pixelSize: Theme.fontSizeExtraSmall
-                    color: Theme.secondaryColor
+                    color: constraintItem.highlighted ? Theme.secondaryHighlightColor : Theme.secondaryColor
                 }
             }
         }

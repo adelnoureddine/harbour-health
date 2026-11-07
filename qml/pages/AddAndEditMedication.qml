@@ -18,7 +18,7 @@ Dialog {
 
     readonly property bool editing: treatmentId >= 0
 
-    canAccept: profileId >= 0 && nameField.text !== "" && dosageField.text !== ""
+    canAccept: profileId >= 0 && nameField.text.trim() !== "" && dosageField.text.trim() !== ""
                && (!hasEndDate || endDate >= startDate)
 
     /*
@@ -57,7 +57,7 @@ Dialog {
     onAccepted: {
         var medId = medicationId;
         if (medId === -1) {
-            medId = DataManager.addMedication(nameField.text, "pill", "mg");
+            medId = DataManager.addMedication(nameField.text.trim(), "pill", "mg");
         }
         var startStr = Utils.toLocalDateString(startDate);
         var endStr = hasEndDate ? Utils.toLocalDateString(endDate) : null;
@@ -80,14 +80,14 @@ Dialog {
             spacing: Theme.paddingLarge
 
             DialogHeader {
-                title: dialog.editing ? qsTr("Edit Treatment") : qsTr("Add Treatment")
+                title: dialog.editing ? qsTr("Edit treatment") : qsTr("Add treatment")
                 acceptText: qsTr("Save")
             }
 
             TextField {
                 id: nameField
                 width: parent.width
-                label: qsTr("Medication Name")
+                label: qsTr("Medication name")
                 text: medicationName
                 placeholderText: label
                 // The medication itself is shared between treatments; renaming it
@@ -126,7 +126,7 @@ Dialog {
             }
 
             ValueButton {
-                label: qsTr("Start Date")
+                label: qsTr("Start date")
                 value: Qt.formatDate(dialog.startDate, Qt.DefaultLocaleShortDate)
                 onClicked: {
                     var dateDialog = pageStack.push("Sailfish.Silica.DatePickerDialog", {
@@ -147,7 +147,7 @@ Dialog {
             }
 
             ValueButton {
-                label: qsTr("End Date")
+                label: qsTr("End date")
                 value: Qt.formatDate(dialog.endDate, Qt.DefaultLocaleShortDate)
                 visible: dialog.hasEndDate
                 onClicked: {

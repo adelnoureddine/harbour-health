@@ -31,7 +31,8 @@ Page {
             spacing: Theme.paddingLarge
 
             PageHeader {
-                title: conditionName
+                // The stored name, so an edit made from this page shows on return.
+                title: conditionData.name || conditionName
             }
 
             DetailItem {
@@ -40,12 +41,12 @@ Page {
             }
 
             DetailItem {
-                label: qsTr("Start Date")
+                label: qsTr("Start date")
                 value: conditionData.startDate ? Utils.formatDate(conditionData.startDate) : ""
             }
 
             DetailItem {
-                label: qsTr("End Date")
+                label: qsTr("End date")
                 value: conditionData.endDate ? Utils.formatDate(conditionData.endDate)
                                              : qsTr("Ongoing")
             }
@@ -63,14 +64,14 @@ Page {
 
         PullDownMenu {
             MenuItem {
-                text: qsTr("Add Treatment")
+                text: qsTr("Add treatment")
                 onClicked: pageStack.animatorPush(Qt.resolvedUrl("AddAndEditMedication.qml"), {
                     profileId: profileId,
                     conditionId: conditionId
                 })
             }
             MenuItem {
-                text: qsTr("Edit Condition")
+                text: qsTr("Edit condition")
                 onClicked: pageStack.animatorPush(Qt.resolvedUrl("AddAndEditIllness.qml"), {
                     profileId: profileId,
                     conditionId: conditionId
@@ -99,7 +100,7 @@ Page {
                     text: model.frequency ? qsTr("%1 · %2").arg(model.dosage).arg(model.frequency)
                                           : model.dosage
                     font.pixelSize: Theme.fontSizeExtraSmall
-                    color: Theme.secondaryColor
+                    color: treatmentItem.highlighted ? Theme.secondaryHighlightColor : Theme.secondaryColor
                 }
             }
             onClicked: pageStack.animatorPush(Qt.resolvedUrl("ConsultMedication.qml"), {

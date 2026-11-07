@@ -42,7 +42,7 @@ Dialog {
         note = condition.note ? condition.note : "";
     }
 
-    canAccept: profileId >= 0 && nameField.text !== ""
+    canAccept: profileId >= 0 && nameField.text.trim() !== ""
                && (!hasEndDate || endDate >= startDate)
 
     onAccepted: {
@@ -50,9 +50,9 @@ Dialog {
         var endStr = hasEndDate ? Utils.toLocalDateString(endDate) : null;
         
         if (conditionId === -1) {
-            DataManager.addCondition(profileId, nameField.text, statusField.text, startStr, endStr, notesField.text);
+            DataManager.addCondition(profileId, nameField.text.trim(), statusField.text.trim(), startStr, endStr, notesField.text);
         } else {
-            DataManager.updateCondition(conditionId, nameField.text, statusField.text, startStr, endStr, notesField.text);
+            DataManager.updateCondition(conditionId, nameField.text.trim(), statusField.text.trim(), startStr, endStr, notesField.text);
         }
     }
 
@@ -66,17 +66,18 @@ Dialog {
             spacing: Theme.paddingLarge
 
             DialogHeader {
-                title: conditionId === -1 ? qsTr("Add Condition") : qsTr("Edit Condition")
+                title: conditionId === -1 ? qsTr("Add condition") : qsTr("Edit condition")
                 acceptText: qsTr("Save")
             }
 
             TextField {
                 id: nameField
                 width: parent.width
-                label: qsTr("Condition Name")
+                label: qsTr("Condition name")
                 text: conditionName
                 placeholderText: label
                 focus: true
+                EnterKey.iconSource: "image://theme/icon-m-enter-next"
                 EnterKey.onClicked: statusField.focus = true
             }
 
@@ -86,6 +87,7 @@ Dialog {
                 label: qsTr("Status")
                 text: conditionStatus
                 placeholderText: qsTr("e.g. Active, Recovered")
+                EnterKey.iconSource: "image://theme/icon-m-enter-next"
                 EnterKey.onClicked: notesField.focus = true
             }
 
@@ -95,10 +97,13 @@ Dialog {
                 label: qsTr("Notes")
                 text: note
                 placeholderText: qsTr("Optional notes")
+                EnterKey.iconSource: "image://theme/icon-m-enter-accept"
+                EnterKey.enabled: dialog.canAccept
+                EnterKey.onClicked: dialog.accept()
             }
 
             ValueButton {
-                label: qsTr("Start Date")
+                label: qsTr("Start date")
                 value: Qt.formatDate(startDate, Qt.DefaultLocaleShortDate)
                 onClicked: {
                     var dateDialog = pageStack.push("Sailfish.Silica.DatePickerDialog", {
@@ -119,7 +124,7 @@ Dialog {
             }
 
             ValueButton {
-                label: qsTr("End Date")
+                label: qsTr("End date")
                 value: Qt.formatDate(endDate, Qt.DefaultLocaleShortDate)
                 visible: hasEndDate
                 onClicked: {
@@ -142,6 +147,8 @@ Dialog {
                 text: qsTr("The end date is before the start date.")
             }
         }
+
+        VerticalScrollDecorator {}
     }
 
     Component.onCompleted: load()

@@ -28,12 +28,12 @@ Dialog {
             spacing: Theme.paddingLarge
 
             DialogHeader {
-                title: qsTr("Record New Cycle")
+                title: qsTr("Record new cycle")
                 acceptText: qsTr("Start")
             }
 
             ValueButton {
-                label: qsTr("Start Date")
+                label: qsTr("Start date")
                 value: Qt.formatDate(startDate, Qt.DefaultLocaleShortDate)
                 onClicked: {
                     var dateDialog = pageStack.push("Sailfish.Silica.DatePickerDialog", {
@@ -51,7 +51,12 @@ Dialog {
                 label: qsTr("Notes")
                 text: note
                 placeholderText: qsTr("Optional notes")
+                EnterKey.iconSource: "image://theme/icon-m-enter-accept"
+                EnterKey.enabled: dialog.canAccept
+                EnterKey.onClicked: dialog.accept()
             }
         }
+
+        VerticalScrollDecorator {}
     }
 }

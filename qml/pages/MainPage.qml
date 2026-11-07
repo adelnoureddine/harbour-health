@@ -17,21 +17,38 @@ Page {
     property int profileId: -1
     property var profile
 
+    /*
+     * What the tiles were last built from. Coming back to the dashboard used to destroy
+     * and rebuild every tile (a few dozen queries, and the scroll position was lost)
+     * even after just looking at a chart. Now it rebuilds only when something was
+     * written -- a reading, a module switched, another profile chosen, a restore -- or
+     * a new day has started for the water and calories tiles.
+     */
+    property string builtFrom: ""
+
+    function buildKey() {
+        return DataManager.changeCount() + "|" + DataManager.toTimestamp(DataManager.dayStart());
+    }
+
     function updateData() {
+        var key = buildKey();
+        if (key === builtFrom) {
+            return;
+        }
+
+        // Cleared before profileId changes, or every old tile would first refresh
+        // itself against the new profile just to be destroyed.
+        modelModules.clear();
         mainPage.profileCount = DataManager.countProfiles();
         mainPage.profileId = mainPage.profileCount > 0 ? DataManager.lastUsedProfileId() : -1;
         if (mainPage.profileId >= 0) {
             mainPage.profile = DataManager.getProfile(mainPage.profileId);
-            refreshModules();
+            DataManager.addModulesToModel(mainPage.profileId, modelModules, true);
         } else {
             mainPage.profile = undefined;
-            modelModules.clear();
         }
-    }
-
-    function refreshModules() {
-        modelModules.clear();
-        DataManager.addModulesToModel(mainPage.profileId, modelModules, true);
+        // Recorded last, so a build that failed half way is tried again next time.
+        builtFrom = key;
     }
 
     onStatusChanged: {
@@ -55,13 +72,13 @@ Page {
             spacing: Theme.paddingMedium
 
             PageHeader {
-                title: qsTr("My Health")
+                title: qsTr("My health")
             }
 
             Label {
                 x: Theme.horizontalPageMargin
                 width: parent.width - 2 * Theme.horizontalPageMargin
-                text: profile ? profile.firstName : qsTr("No Profile Selected")
+                text: profile ? profile.firstName : qsTr("No profile selected")
                 truncationMode: TruncationMode.Fade
                 font.pixelSize: Theme.fontSizeExtraLarge
                 color: Theme.highlightColor
@@ -112,6 +129,7 @@ Page {
             metricName: model.type == DataManager.MODULE_TYPE_METRIC ? model.uses : (model.name == DataManager.MODULE_BP ? DataManager.METRIC_BP_SYS : '')
             metricName2: model.name == DataManager.MODULE_BP ? DataManager.METRIC_BP_DIA : ''
             unit: model.unit ? model.unit : undefined
+            grouped: model.grouped ? true : false
             clickThrough: model.type == DataManager.MODULE_TYPE_SUMMARY ? model.uses : undefined
             calculate: model.type == DataManager.MODULE_TYPE_CALC ? model.uses : undefined
             invalidateSignal: mainPage.invalidateMetric
@@ -163,7 +181,8 @@ Page {
         }
     }
 
-    Component.onCompleted: updateData()
+    // No Component.onCompleted call: the page turning Active covers startup too, and
+    // the dashboard used to be built twice in a row on every launch.
 }
 
 // vim:et:ts=4:sw=4

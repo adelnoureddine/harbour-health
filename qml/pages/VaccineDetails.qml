@@ -30,7 +30,7 @@ Page {
 
         PullDownMenu {
             MenuItem {
-                text: qsTr("Record Injection")
+                text: qsTr("Record injection")
                 // The vaccine is already known here; this used to open a blank form
                 // and make the user retype the name they had just tapped.
                 onClicked: pageStack.animatorPush(Qt.resolvedUrl("AddVaccine.qml"), {

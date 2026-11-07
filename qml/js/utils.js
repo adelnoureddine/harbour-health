@@ -3,6 +3,10 @@
  *
  * Deliberately NOT a .pragma library: qsTr() only resolves in a JS resource that
  * runs in the importing component's scope, and metricDisplayName() needs it.
+ *
+ * It must also keep having no .import lines of its own: a script without imports
+ * borrows those of the page importing it, which is how Format and Formatter
+ * (Sailfish.Silica) are visible here.
  */
 
 function pad2(n) {
@@ -35,16 +39,6 @@ function fromLocalDateString(s) {
     return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
 }
 
-// Timestamps are stored as local "YYYY-MM-DDTHH:MM:SS" -- the format SQLite's
-// date()/datetime() functions understand, with no timezone suffix.
-function toLocalTimestamp(d) {
-    if (!d) {
-        return "";
-    }
-    return toLocalDateString(d) + "T" + pad2(d.getHours()) + ":" + pad2(d.getMinutes())
-            + ":" + pad2(d.getSeconds());
-}
-
 // Accepts both the "T" form we write and the " " form SQLite's CURRENT_TIMESTAMP wrote.
 function parseTimestamp(s) {
     if (!s) {
@@ -73,19 +67,28 @@ function formatDate(s) {
     return d === null ? "" : Qt.formatDate(d, Qt.DefaultLocaleShortDate);
 }
 
+// Silica's formatter follows the system 12/24-hour setting; Qt's own formats only
+// know the locale, and "hh:mm" knew neither.
 function formatTime(s) {
     var d = parseTimestamp(s);
-    return d === null ? "" : Qt.formatTime(d, "hh:mm");
+    return d === null ? "" : Format.formatDate(d, Formatter.TimeValue);
 }
 
 function formatDateTime(s) {
     var d = parseTimestamp(s);
-    return d === null ? "" : Qt.formatDateTime(d, Qt.DefaultLocaleShortDate);
+    return d === null ? "" : Qt.formatDate(d, Qt.DefaultLocaleShortDate) + " "
+                                + Format.formatDate(d, Formatter.TimeValue);
 }
+
+var _decimalPoint = Qt.locale().decimalPoint;
 
 /*
  * Trims binary floating point noise. SUM() over 0.5 + 0.6 + 0.7 yields
  * 1.7999999999999998, which was reaching the dashboard verbatim.
+ *
+ * Uses the locale's decimal separator ("72,5" in Swedish or French). Display only:
+ * every number field accepts either separator and converts back before parsing.
+ * No thousands separators, which those fields would not accept.
  */
 function formatValue(v, decimals) {
     if (v === null || v === undefined || v === "" || isNaN(v)) {
@@ -93,7 +96,27 @@ function formatValue(v, decimals) {
     }
     var d = (decimals === undefined || decimals === null) ? 2 : decimals;
     var factor = Math.pow(10, d);
-    return String(Math.round(Number(v) * factor) / factor);
+    return String(Math.round(Number(v) * factor) / factor).replace(".", _decimalPoint);
+}
+
+/*
+ * Decimals worth showing for a metric's chart axis, readout and statistics. Averages
+ * of whole numbers otherwise came out as "72.4 bpm", and 0.25 l of water as 0.3.
+ */
+function metricDecimals(name) {
+    switch (name) {
+    case "heartrate":
+    case "calories":
+    case "systolic blood pressure":
+    case "diastolic blood pressure":
+        return 0;
+    case "water":
+    case "whtr":
+    case "WHtR":
+        return 2;
+    default:
+        return 1;
+    }
 }
 
 function capitalize(s) {
@@ -193,6 +216,39 @@ function constraintLabelDisplayName(label) {
     case "0.5 to 0.6":   return qsTr("0.5 to 0.6");
     case "0.6 and above": return qsTr("0.6 and above");
     default:             return label ? label : "";
+    }
+}
+
+// Daily cycle entries are stored with English keys, like genders.
+function flowDisplayName(flow) {
+    switch (flow) {
+    case "None":      return qsTr("None");
+    case "Spotting":  return qsTr("Spotting");
+    case "Light":     return qsTr("Light");
+    case "Medium":    return qsTr("Medium");
+    case "Heavy":     return qsTr("Heavy");
+    default:          return flow ? flow : "";
+    }
+}
+
+function painDisplayName(pain) {
+    switch (pain) {
+    case "None":      return qsTr("None");
+    case "Mild":      return qsTr("Mild");
+    case "Moderate":  return qsTr("Moderate");
+    case "Severe":    return qsTr("Severe");
+    default:          return pain ? pain : "";
+    }
+}
+
+function energyDisplayName(energy) {
+    switch (energy) {
+    case "Exhausted": return qsTr("Exhausted");
+    case "Low":       return qsTr("Low");
+    case "Normal":    return qsTr("Normal");
+    case "High":      return qsTr("High");
+    case "Peak":      return qsTr("Peak");
+    default:          return energy ? energy : "";
     }
 }
 
