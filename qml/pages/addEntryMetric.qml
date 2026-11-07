@@ -34,7 +34,7 @@ Dialog {
                 dialog.metricUnit = log.unit;
                 // Three decimals, as many as the field accepts: rounding to two here
                 // silently changed 1.755 to 1.76 when only the time was edited.
-                metricValue.text = Utils.formatValue(log.value, 3);
+                metricValue.text = Utils.formatInput(log.value);
                 noteField.text = log.note ? log.note : "";
                 var parsed = Utils.parseTimestamp(log.timestamp);
                 if (parsed !== null) {

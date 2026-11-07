@@ -42,7 +42,7 @@ Dialog {
         var log1 = DataManager.getLog(logId1);
         var log2 = DataManager.getLog(logId2);
         if (log1) {
-            value1Field.text = Utils.formatValue(log1.value, 3);
+            value1Field.text = Utils.formatInput(log1.value);
             noteField.text = log1.note ? log1.note : "";
             var parsed = Utils.parseTimestamp(log1.timestamp);
             if (parsed !== null) {
@@ -50,7 +50,7 @@ Dialog {
             }
         }
         if (log2) {
-            value2Field.text = Utils.formatValue(log2.value, 3);
+            value2Field.text = Utils.formatInput(log2.value);
         }
     }
 

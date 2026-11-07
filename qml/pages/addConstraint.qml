@@ -38,8 +38,8 @@ Dialog {
         // they are edited translated too (see savedLabel()).
         labelField.text = Utils.constraintLabelDisplayName(labelText);
         // A threshold of exactly 0 is meaningful and must survive the round trip.
-        minField.text = (minValue === null || minValue === undefined) ? "" : Utils.formatValue(minValue, 3);
-        maxField.text = (maxValue === null || maxValue === undefined) ? "" : Utils.formatValue(maxValue, 3);
+        minField.text = (minValue === null || minValue === undefined) ? "" : Utils.formatInput(minValue);
+        maxField.text = (maxValue === null || maxValue === undefined) ? "" : Utils.formatInput(maxValue);
         var index = colorNames.indexOf(colorName);
         colorCombo.currentIndex = index >= 0 ? index : 0;
     }

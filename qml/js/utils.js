@@ -100,6 +100,22 @@ function formatValue(v, decimals) {
 }
 
 /*
+ * A stored number put back into a text field for editing (up to three decimals, as
+ * many as the fields accept). The fields take "." or "," and nothing else, so the
+ * locale's separator is only used when it is ","; a locale with another one (Arabic
+ * "٫") would otherwise pre-fill a value its own field refuses.
+ */
+function formatInput(v, decimals) {
+    if (v === null || v === undefined || v === "" || isNaN(v)) {
+        return "";
+    }
+    var d = (decimals === undefined || decimals === null) ? 3 : decimals;
+    var factor = Math.pow(10, d);
+    var s = String(Math.round(Number(v) * factor) / factor);
+    return _decimalPoint === "," ? s.replace(".", ",") : s;
+}
+
+/*
  * Decimals worth showing for a metric's chart axis, readout and statistics. Averages
  * of whole numbers otherwise came out as "72.4 bpm", and 0.25 l of water as 0.3.
  */
