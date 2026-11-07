@@ -17,6 +17,8 @@ Page {
     property int rangeDays: 30
     property var chartSeries: []
     property var chartBands: []
+    property var chartStats: null
+    property var chartStats2: null
 
     // The list holds every reading regardless of the chart range. With none at all the
     // chart and range tabs are hidden, so the placeholder has the page to itself instead
@@ -49,6 +51,9 @@ Page {
                 label: Utils.metricDisplayName(metricName2)
             }
         ];
+        // Min / average / max of each half, shown as pairs like the readings.
+        chartStats = DataManager.getSeriesStats(profileId, metricName1, since, mode);
+        chartStats2 = DataManager.getSeriesStats(profileId, metricName2, since, mode);
         // Systolic and diastolic share one axis, so both sets of bands are drawn.
         chartBands = DataManager.getConstraintsForMetric(metricName1)
                 .concat(DataManager.getConstraintsForMetric(metricName2));
@@ -61,6 +66,8 @@ Page {
      */
     function refresh() {
         var key = DataManager.dataKey();
+        // Rebuilding the list puts the view back at the top; keep the place instead.
+        var keepY = loaded ? listView.contentY : null;
         listModel.clear();
 
         var systolic = DataManager.getLogsAscending(profileId, metricName1, null);
@@ -118,6 +125,11 @@ Page {
         if (ordered.length > 0) {
             listModel.append(ordered);
         }
+        if (keepY !== null) {
+            listView.forceLayout();
+            listView.contentY = keepY;
+            listView.returnToBounds();
+        }
 
         loaded = true;
         refreshChart();
@@ -174,6 +186,16 @@ Page {
                 onDaysChanged: page.rangeDays = days
             }
 
+            // No visible override: ChartStats hides itself without data.
+            ChartStats {
+                width: parent.width - 2 * Theme.horizontalPageMargin
+                x: Theme.horizontalPageMargin
+                stats: page.chartStats
+                stats2: page.chartStats2
+                unit: page.metricUnit
+                decimals: 0
+            }
+
             Item { width: 1; height: Theme.paddingMedium }
         }
 
@@ -221,7 +243,9 @@ Page {
 
         delegate: ListItem {
             id: listItem
-            contentHeight: noteLabel.visible ? Theme.itemSizeMedium : Theme.itemSizeSmall
+            contentHeight: noteLabel.visible
+                           ? Math.max(Theme.itemSizeMedium, entryColumn.height + 2 * Theme.paddingMedium)
+                           : Theme.itemSizeSmall
 
             menu: ContextMenu {
                 MenuItem {
@@ -252,6 +276,7 @@ Page {
             }
 
             Column {
+                id: entryColumn
                 anchors.verticalCenter: parent.verticalCenter
                 x: Theme.horizontalPageMargin
                 width: parent.width - 2 * Theme.horizontalPageMargin - timeLabel.width - Theme.paddingMedium
@@ -272,7 +297,10 @@ Page {
                     width: parent.width
                     text: model.note ? model.note : ""
                     visible: text !== ""
-                    truncationMode: TruncationMode.Fade
+                    // Two lines before eliding: one faded line cut most notes short.
+                    wrapMode: Text.Wrap
+                    maximumLineCount: 2
+                    truncationMode: TruncationMode.Elide
                     font.pixelSize: Theme.fontSizeExtraSmall
                     color: listItem.highlighted ? Theme.secondaryHighlightColor : Theme.secondaryColor
                 }

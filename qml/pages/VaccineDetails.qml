@@ -10,7 +10,6 @@ Page {
     property int profileId: -1
     property int vaccineId: -1
     property string vaccineName
-    property bool isMandatory
 
     function refresh() {
         if (profileId >= 0) {

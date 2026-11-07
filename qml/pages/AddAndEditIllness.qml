@@ -11,6 +11,11 @@ Dialog {
     property int conditionId: -1
     property string conditionName
     property string conditionStatus: "Active"
+    // Statuses used to be typed freely, so every user got an English "Active" to
+    // overwrite. They are now picked from fixed keys, shown translated. A status an
+    // older version stored stays available as it is.
+    readonly property var statusKeys: ["Active", "Chronic", "Recovered"]
+    property var statusOptions: statusKeys
     property date startDate: new Date()
     property date endDate: new Date()
     property bool hasEndDate: false
@@ -27,7 +32,10 @@ Dialog {
             return;
         }
         conditionName = condition.name;
-        conditionStatus = condition.status;
+        conditionStatus = condition.status ? condition.status : "";
+        if (conditionStatus !== "" && statusKeys.indexOf(conditionStatus) < 0) {
+            statusOptions = statusKeys.concat([conditionStatus]);
+        }
         var start = Utils.fromLocalDateString(condition.startDate);
         if (start !== null) {
             startDate = start;
@@ -40,6 +48,7 @@ Dialog {
             hasEndDate = true;
         }
         note = condition.note ? condition.note : "";
+        statusBox.currentIndex = statusOptions.indexOf(conditionStatus);
     }
 
     canAccept: profileId >= 0 && nameField.text.trim() !== ""
@@ -50,9 +59,9 @@ Dialog {
         var endStr = hasEndDate ? Utils.toLocalDateString(endDate) : null;
         
         if (conditionId === -1) {
-            DataManager.addCondition(profileId, nameField.text.trim(), statusField.text.trim(), startStr, endStr, notesField.text);
+            DataManager.addCondition(profileId, nameField.text.trim(), conditionStatus, startStr, endStr, notesField.text);
         } else {
-            DataManager.updateCondition(conditionId, nameField.text.trim(), statusField.text.trim(), startStr, endStr, notesField.text);
+            DataManager.updateCondition(conditionId, nameField.text.trim(), conditionStatus, startStr, endStr, notesField.text);
         }
     }
 
@@ -78,17 +87,23 @@ Dialog {
                 placeholderText: label
                 focus: true
                 EnterKey.iconSource: "image://theme/icon-m-enter-next"
-                EnterKey.onClicked: statusField.focus = true
+                EnterKey.onClicked: notesField.focus = true
             }
 
-            TextField {
-                id: statusField
+            ComboBox {
+                id: statusBox
                 width: parent.width
                 label: qsTr("Status")
-                text: conditionStatus
-                placeholderText: qsTr("e.g. Active, Recovered")
-                EnterKey.iconSource: "image://theme/icon-m-enter-next"
-                EnterKey.onClicked: notesField.focus = true
+                currentIndex: dialog.statusOptions.indexOf(dialog.conditionStatus)
+                menu: ContextMenu {
+                    Repeater {
+                        model: dialog.statusOptions
+                        MenuItem {
+                            text: Utils.conditionStatusDisplayName(modelData)
+                            onClicked: dialog.conditionStatus = modelData
+                        }
+                    }
+                }
             }
 
             TextField {

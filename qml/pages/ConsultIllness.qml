@@ -37,7 +37,7 @@ Page {
 
             DetailItem {
                 label: qsTr("Status")
-                value: conditionData.status || ""
+                value: Utils.conditionStatusDisplayName(conditionData.status)
             }
 
             DetailItem {

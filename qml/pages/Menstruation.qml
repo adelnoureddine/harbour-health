@@ -116,7 +116,7 @@ Page {
 
                 DetailItem {
                     label: qsTr("Average cycle")
-                    value: averageCycleLength === null ? "" : qsTr("%1 days").arg(averageCycleLength)
+                    value: averageCycleLength === null ? "" : qsTr("%n day(s)", "", averageCycleLength)
                     visible: averageCycleLength !== null
                 }
 

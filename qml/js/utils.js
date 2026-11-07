@@ -235,6 +235,17 @@ function constraintLabelDisplayName(label) {
     }
 }
 
+// Condition statuses are stored as English keys. Statuses typed freely by older
+// versions are shown as they were written.
+function conditionStatusDisplayName(status) {
+    switch (status) {
+    case "Active":     return qsTr("Active");
+    case "Chronic":    return qsTr("Chronic");
+    case "Recovered":  return qsTr("Recovered");
+    default:           return status ? status : "";
+    }
+}
+
 // Daily cycle entries are stored with English keys, like genders.
 function flowDisplayName(flow) {
     switch (flow) {

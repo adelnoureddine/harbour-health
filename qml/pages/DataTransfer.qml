@@ -71,7 +71,8 @@ Page {
     function restore(path) {
         var content = fileWriter.readFile(path);
         if (content === "") {
-            report(fileWriter.lastError(), true);
+            // An empty file reads without any error, which left the message blank.
+            report(fileWriter.lastError() || qsTr("This backup file is empty."), true);
             return;
         }
         try {

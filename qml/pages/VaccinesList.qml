@@ -33,31 +33,25 @@ Page {
         model: vaccineModel
 
         delegate: ListItem {
+            id: vaccineItem
             contentHeight: Theme.itemSizeSmall
             onClicked: {
                 pageStack.animatorPush(Qt.resolvedUrl("VaccineDetails.qml"), {
                     profileId: root.profileId,
                     vaccineId: model.id,
-                    vaccineName: model.name,
-                    isMandatory: model.isMandatory
+                    vaccineName: model.name
                 })
             }
 
+            // A "mandatory" highlight used to be drawn here, but no vaccine is ever
+            // marked mandatory, so it never showed.
             Label {
                 x: Theme.horizontalPageMargin
-                width: parent.width - 2 * Theme.horizontalPageMargin - Theme.iconSizeSmall
+                width: parent.width - 2 * Theme.horizontalPageMargin
                 anchors.verticalCenter: parent.verticalCenter
                 text: model.name
                 truncationMode: TruncationMode.Fade
-                color: model.isMandatory ? Theme.highlightColor : Theme.primaryColor
-            }
-
-            Icon {
-                anchors.right: parent.right
-                anchors.rightMargin: Theme.horizontalPageMargin
-                anchors.verticalCenter: parent.verticalCenter
-                source: "image://theme/icon-m-acknowledge"
-                visible: model.isMandatory
+                color: vaccineItem.highlighted ? Theme.highlightColor : Theme.primaryColor
             }
         }
 

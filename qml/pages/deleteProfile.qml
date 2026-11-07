@@ -15,20 +15,22 @@ Dialog {
     // than the one named in this dialog.
     canAccept: profile !== null
 
+    // Where accepting leads is decided up front and left to the dialog. Pushing or
+    // popping pages from onAccepted raced the dialog closing itself.
+    property bool lastProfile: false
+    acceptDestination: lastProfile ? Qt.resolvedUrl("createProfile.qml") : null
+    acceptDestinationAction: PageStackAction.Replace
+
     function load() {
         // getProfile() returns undefined when nothing matches, which `!== null` let through.
         profile = DataManager.getProfile(profileId) || null;
+        // Deleting the last profile goes straight on to creating a new one.
+        lastProfile = profile !== null && DataManager.countProfiles() === 1;
     }
 
     onAccepted: {
-        if (!profile) {
-            return;
-        }
-        DataManager.deleteProfile(profile.id);
-        if (DataManager.countProfiles() === 0) {
-            pageStack.replace(Qt.resolvedUrl("createProfile.qml"));
-        } else {
-            pageStack.pop();
+        if (profile) {
+            DataManager.deleteProfile(profile.id);
         }
     }
 

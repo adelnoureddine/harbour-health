@@ -24,8 +24,33 @@ Dialog {
                && metricValue.acceptableInput
                && !isNaN(parseFloat(metricValue.text.replace(',', '.')))
 
+    /*
+     * Systolic and diastolic are one reading, logged together in the blood pressure
+     * dialog. Offered here on their own (the cover's "+" opens this picker), either
+     * half could be saved alone and showed up as "120 / —". Sorted by translated name:
+     * the stored English names made the order look random once translated.
+     */
+    function loadMetricTypes() {
+        var metrics = DataManager.getMetrics().filter(function (m) {
+            return m.name !== DataManager.METRIC_BP_SYS && m.name !== DataManager.METRIC_BP_DIA;
+        });
+        metrics.sort(function (a, b) {
+            return Utils.metricDisplayName(a.name).localeCompare(Utils.metricDisplayName(b.name));
+        });
+        metricTypeModel.clear();
+        if (metrics.length > 0) {
+            metricTypeModel.append(metrics);
+        }
+    }
+
     function load() {
-        DataManager.getMetricsToModel(metricTypeModel);
+        loadMetricTypes();
+        if (!lockMetric && !editing && (dialog.metricName === DataManager.METRIC_BP_SYS
+                                        || dialog.metricName === DataManager.METRIC_BP_DIA)) {
+            // Never preselect half a pair: the type has to be picked.
+            dialog.metricName = "";
+            dialog.metricUnit = "";
+        }
 
         if (editing) {
             var log = DataManager.getLog(logId);

@@ -64,6 +64,9 @@ Page {
 
     function refresh() {
         var key = DataManager.dataKey();
+        // Rebuilding the list puts the view back at the top. After editing or deleting
+        // an entry further down, the user was thrown back there.
+        var keepY = loaded ? listView.contentY : null;
         listModel.clear();
         DataManager.addLogsToModel(profileId, metricName, listModel, page.grouped);
         var totals = {};
@@ -74,6 +77,11 @@ Page {
             }
         }
         dayTotals = totals;
+        if (keepY !== null) {
+            listView.forceLayout();
+            listView.contentY = keepY;
+            listView.returnToBounds();
+        }
         loaded = true;
         refreshChart();
         // Someone whose last reading is older than the default month used to get
@@ -178,7 +186,9 @@ Page {
 
         delegate: ListItem {
             id: listItem
-            contentHeight: noteLabel.visible ? Theme.itemSizeMedium : Theme.itemSizeSmall
+            contentHeight: noteLabel.visible
+                           ? Math.max(Theme.itemSizeMedium, entryColumn.height + 2 * Theme.paddingMedium)
+                           : Theme.itemSizeSmall
 
             function remove() {
                 listItem.remorseDelete(function() {
@@ -207,6 +217,7 @@ Page {
             }
 
             Column {
+                id: entryColumn
                 anchors.verticalCenter: parent.verticalCenter
                 x: Theme.horizontalPageMargin
                 width: parent.width - 2 * Theme.horizontalPageMargin - timeLabel.width - Theme.paddingMedium
@@ -224,7 +235,10 @@ Page {
                     width: parent.width
                     text: model.note ? model.note : ""
                     visible: text !== ""
-                    truncationMode: TruncationMode.Fade
+                    // Two lines before eliding: one faded line cut most notes short.
+                    wrapMode: Text.Wrap
+                    maximumLineCount: 2
+                    truncationMode: TruncationMode.Elide
                     font.pixelSize: Theme.fontSizeExtraSmall
                     color: listItem.highlighted ? Theme.secondaryHighlightColor : Theme.secondaryColor
                 }

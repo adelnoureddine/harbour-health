@@ -66,7 +66,7 @@ Page {
                 Label {
                     width: parent.width
                     truncationMode: TruncationMode.Fade
-                    text: qsTr("Status: %1").arg(model.status)
+                    text: qsTr("Status: %1").arg(Utils.conditionStatusDisplayName(model.status))
                     font.pixelSize: Theme.fontSizeExtraSmall
                     color: Theme.secondaryColor
                 }

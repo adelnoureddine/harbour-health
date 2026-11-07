@@ -4,12 +4,14 @@ import "../js/utils.js" as Utils
 
 /*
  * Minimum / average / maximum summary shown under a chart.
- * `stats` is the object returned by DataManager.getSeriesStats().
+ * `stats` is the object returned by DataManager.getSeriesStats(). With `stats2` as
+ * well (blood pressure), each value is shown as a pair: "121/79".
  */
 Row {
     id: root
 
     property var stats: null
+    property var stats2: null
     property string unit: ""
     // Ratios such as waist-to-height (0.47) need two.
     property int decimals: 1
@@ -54,6 +56,7 @@ Row {
                 truncationMode: TruncationMode.Fade
                 text: root.stats === null ? ""
                       : Utils.formatValue(root.stats[modelData], root.decimals)
+                        + (root.stats2 ? "/" + Utils.formatValue(root.stats2[modelData], root.decimals) : "")
                         + (root.unit ? " " + root.unit : "")
                 font.pixelSize: Theme.fontSizeExtraSmall
                 color: Theme.highlightColor

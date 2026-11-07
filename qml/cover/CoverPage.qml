@@ -132,7 +132,16 @@ CoverBackground {
         CoverAction {
             iconSource: "image://theme/icon-cover-new"
             onTriggered: {
-                if (cover.profileId >= 0) {
+                if (cover.profileId >= 0 && (cover.metric1 === DataManager.METRIC_BP_SYS
+                                             || cover.metric1 === DataManager.METRIC_BP_DIA)) {
+                    // A blood pressure half on the cover opens the dialog for the pair.
+                    pageStack.animatorPush(Qt.resolvedUrl("../pages/addEntryMultiMetric.qml"), {
+                        profileId: cover.profileId,
+                        metricName1: DataManager.METRIC_BP_SYS,
+                        metricName2: DataManager.METRIC_BP_DIA,
+                        metricUnit: cover.unit1
+                    });
+                } else if (cover.profileId >= 0) {
                     pageStack.animatorPush(Qt.resolvedUrl("../pages/addEntryMetric.qml"), {
                         profileId: cover.profileId,
                         metricName: cover.metric1,
