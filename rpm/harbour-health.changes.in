@@ -13,6 +13,7 @@
 # - Summary of changes
 
 * Sat Nov 07 2026 Adel Noureddine 1.1-1
+- New waist circumference measurement and waist-to-height ratio (WHtR), a complement to BMI that reflects abdominal fat. Off by default for existing profiles; enable them in Settings > Modules.
 - Dashboard tiles, module names, categories and default reference range labels can now be translated.
 - Blood pressure on the dashboard is coloured by its systolic and diastolic reference ranges.
 - Diastolic reference ranges can be edited from the blood pressure page.

@@ -86,6 +86,8 @@ DISTFILES += \
     qml/icons/needle.png \
     qml/icons/scale.png \
     qml/icons/water.png \
-    qml/icons/blood-pressure.svg
+    qml/icons/blood-pressure.svg \
+    qml/icons/waist.svg \
+    qml/icons/whtr.svg
 
 SAILFISHAPP_ICONS = 86x86 108x108 128x128 172x172

@@ -6,8 +6,9 @@ import "../components"
 
 /*
  * History for a derived metric -- one computed from other measurements rather than
- * logged directly. Currently that means BMI, whose card was previously inert: tapping
- * it did nothing, so neither its history nor its reference bands were reachable.
+ * logged directly: BMI (weight and height) and the waist-to-height ratio (waist and
+ * height). The BMI card was previously inert: tapping it did nothing, so neither its
+ * history nor its reference bands were reachable.
  */
 Page {
     id: page
@@ -39,7 +40,15 @@ Page {
     // dashboard card. The fallback only matters if the page is opened from elsewhere.
     property string constraintKey: ""
     readonly property string bandKey: constraintKey !== "" ? constraintKey
-                                    : (calculate === "bmi" ? DataManager.MODULE_BMI : calculate)
+                                    : (isWHtR ? DataManager.MODULE_WHTR : DataManager.MODULE_BMI)
+
+    // What differs between the derived metrics. Both are computed from height and one
+    // other measurement, logged from this page's pull-down menu.
+    readonly property bool isBMI: calculate === DataManager.CALC_BMI
+    readonly property bool isWHtR: calculate === DataManager.CALC_WHTR
+    readonly property string inputMetric: isWHtR ? DataManager.METRIC_WAIST : DataManager.METRIC_WEIGHT
+    // A ratio around 0.5 is meaningless at one decimal.
+    readonly property int decimals: isWHtR ? 2 : 1
 
     function sinceTimestamp() {
         if (rangeDays === 0) {
@@ -56,13 +65,16 @@ Page {
             return;
         }
 
-        var points = calculate === "bmi" ? DataManager.getBMISeries(profileId, sinceTimestamp()) : [];
+        var since = sinceTimestamp();
+        var points = isWHtR ? DataManager.getWHtRSeries(profileId, since)
+                   : isBMI ? DataManager.getBMISeries(profileId, since)
+                   : [];
         chartSeries = [{
             points: points,
             color: Theme.highlightColor,
             label: page.title
         }];
-        // BMI has no table of its own, so its statistics come from the series.
+        // A derived metric has no table of its own, so its statistics come from the series.
         chartStats = DataManager.statsFromPoints(points);
         chartBands = DataManager.getConstraintsForMetric(bandKey);
 
@@ -99,7 +111,7 @@ Page {
 
                 Label {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    text: page.currentValue === null ? "—" : Utils.formatValue(page.currentValue, 1)
+                    text: page.currentValue === null ? "—" : Utils.formatValue(page.currentValue, page.decimals)
                     font.pixelSize: Theme.fontSizeHuge
                     color: page.currentColor !== "" ? page.currentColor : Theme.primaryColor
                 }
@@ -120,10 +132,24 @@ Page {
                 horizontalAlignment: Text.AlignHCenter
                 font.pixelSize: Theme.fontSizeExtraSmall
                 color: Theme.secondaryColor
-                visible: page.calculate === "bmi" && page.hasData
-                text: page.currentValue === null
-                      ? qsTr("Record a weight and a height to see your BMI.")
-                      : qsTr("Calculated from your weight and the height recorded at the time.")
+                visible: (page.isBMI || page.isWHtR) && page.hasData
+                text: page.isWHtR
+                      ? qsTr("Calculated from your waist and the height recorded at the time. An estimate, not a diagnosis: a common rule of thumb is to keep your waist below half your height, and cut-offs vary with age and ethnicity.")
+                      : page.currentValue === null
+                        ? qsTr("Record a weight and a height to see your BMI.")
+                        : qsTr("Calculated from your weight and the height recorded at the time.")
+            }
+
+            // Where to measure: readings taken at different spots are not comparable.
+            Label {
+                x: Theme.horizontalPageMargin
+                width: parent.width - 2 * Theme.horizontalPageMargin
+                wrapMode: Text.Wrap
+                horizontalAlignment: Text.AlignHCenter
+                font.pixelSize: Theme.fontSizeExtraSmall
+                color: Theme.secondaryColor
+                visible: page.isWHtR && page.hasData
+                text: Utils.metricHint(DataManager.METRIC_WAIST)
             }
 
             MetricChart {
@@ -133,6 +159,7 @@ Page {
                 series: page.chartSeries
                 bands: page.chartBands
                 unit: page.metricUnit
+                decimals: page.decimals
                 emptyText: qsTr("No data in this period")
             }
 
@@ -151,6 +178,7 @@ Page {
                 x: Theme.horizontalPageMargin
                 stats: page.chartStats
                 unit: page.metricUnit
+                decimals: page.decimals
             }
 
             Item { width: 1; height: Theme.paddingMedium }
@@ -166,7 +194,7 @@ Page {
             }
             MenuItem {
                 text: qsTr("Add height")
-                visible: page.calculate === "bmi"
+                visible: page.isBMI || page.isWHtR
                 onClicked: pageStack.animatorPush(Qt.resolvedUrl("addEntryMetric.qml"), {
                     profileId: page.profileId,
                     metricName: DataManager.METRIC_HEIGHT,
@@ -176,12 +204,12 @@ Page {
                 })
             }
             MenuItem {
-                text: qsTr("Add weight")
-                visible: page.calculate === "bmi"
+                text: page.isWHtR ? qsTr("Add waist") : qsTr("Add weight")
+                visible: page.isBMI || page.isWHtR
                 onClicked: pageStack.animatorPush(Qt.resolvedUrl("addEntryMetric.qml"), {
                     profileId: page.profileId,
-                    metricName: DataManager.METRIC_WEIGHT,
-                    metricUnit: DataManager.getMetricUnit(DataManager.METRIC_WEIGHT),
+                    metricName: page.inputMetric,
+                    metricUnit: DataManager.getMetricUnit(page.inputMetric),
                     lockMetric: true,
                     invalidateSignal: page.invalidateSignal
                 })
@@ -198,7 +226,7 @@ Page {
                 anchors.verticalCenter: parent.verticalCenter
                 width: parent.width / 2 - Theme.horizontalPageMargin
                 truncationMode: TruncationMode.Fade
-                text: Utils.formatValue(model.v, 1)
+                text: Utils.formatValue(model.v, page.decimals)
                 color: highlighted ? Theme.highlightColor : Theme.primaryColor
             }
 
@@ -218,7 +246,8 @@ Page {
         ViewPlaceholder {
             enabled: !page.hasData
             text: qsTr("Nothing to calculate yet")
-            hintText: qsTr("Pull down to record a height and a weight")
+            hintText: page.isWHtR ? qsTr("Pull down to record a height and a waist measurement")
+                                  : qsTr("Pull down to record a height and a weight")
         }
 
         VerticalScrollDecorator {}

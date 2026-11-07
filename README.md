@@ -7,7 +7,7 @@ Health is not medical advice and must not be used for diagnosis or treatment dec
 # Features
 
 - Multiple profiles, each with its own data and its own dashboard
-- Track weight, height, BMI, water, calories, heart rate, blood pressure and glucose
+- Track weight, height, BMI, waist circumference, waist-to-height ratio, water, calories, heart rate, blood pressure and glucose
 - History graphs for every metric, with editable reference ranges shaded behind them
 - Health conditions, treatments and medication intake logs
 - Vaccination records, meditation sessions and menstrual cycle tracking

@@ -20,6 +20,8 @@ Item {
     property string unit: ""
     property bool showAverage: true
     property string emptyText: qsTr("Not enough data yet")
+    // Decimals on the value axis. Ratios such as waist-to-height (0.47) need two.
+    property int decimals: 1
 
     // Point nearest the finger while the chart is being touched, or null.
     property var highlightedPoint: null
@@ -92,9 +94,13 @@ Item {
             b.xMax += 43200000;
         }
         if (b.yMax === b.yMin) {
+            // The minimum room scales with the precision shown: 0.5 at one decimal,
+            // 0.05 at two, so a flat ratio series (0.47) gets an axis of 0.42 to 0.52
+            // rather than one running from below zero to nearly one.
+            var minSpread = 5 * Math.pow(10, -root.decimals);
             var spread = Math.abs(b.yMax) * 0.1;
-            if (spread < 0.5) {
-                spread = 0.5;
+            if (spread < minSpread) {
+                spread = minSpread;
             }
             b.yMin -= spread;
             b.yMax += spread;
@@ -175,7 +181,7 @@ Item {
                 ctx.moveTo(px, y);
                 ctx.lineTo(px + pw, y);
                 ctx.stroke();
-                ctx.fillText(Utils.formatValue(value, 1), px - Theme.paddingSmall, y);
+                ctx.fillText(Utils.formatValue(value, root.decimals), px - Theme.paddingSmall, y);
             }
 
             // --- date labels -----------------------------------------------------

@@ -24,6 +24,7 @@ var METRIC_HEARTRATE = "heartrate";
 var METRIC_BP_SYS = "systolic blood pressure";
 var METRIC_BP_DIA = "diastolic blood pressure";
 var METRIC_GLUCOSE = "glucose";
+var METRIC_WAIST = "waist";
 
 // Modules
 var MODULE_WEIGHT = "Weight";
@@ -38,11 +39,54 @@ var MODULE_CONDITION = "Health Condition";
 var MODULE_VACCINATION = "Vaccination";
 var MODULE_MEDITATION = "Meditation";
 var MODULE_MENSTRUATION = "Menstruation";
+var MODULE_WAIST = "Waist";
+var MODULE_WHTR = "WHtR";
 
 // Module Types
 var MODULE_TYPE_METRIC = "Metric";
 var MODULE_TYPE_CALC = "Calc";
 var MODULE_TYPE_SUMMARY = "Summary";
+
+// Calculated (derived) values, used as Modules.uses for MODULE_TYPE_CALC
+var CALC_BMI = "bmi";
+var CALC_BP = "blood-pressure";
+var CALC_WHTR = "whtr";
+
+/*
+ * Built-in metrics and dashboard modules, seeded by name on every launch (see
+ * seedDefaultMetricsAndModules), so a row added in a later release also reaches
+ * existing databases. Append new rows at the end.
+ */
+// [name, unit, grouped, category]
+var DEFAULT_METRICS = [
+    [METRIC_WEIGHT, "kg", false, CATEGORY_BODY],
+    [METRIC_HEIGHT, "cm", false, CATEGORY_BODY],
+    [METRIC_CALORIES, "kcal", true, CATEGORY_NUTRITION],
+    [METRIC_WATER, "L", true, CATEGORY_NUTRITION],
+    [METRIC_HEARTRATE, "bpm", false, CATEGORY_BLOOD],
+    [METRIC_BP_SYS, "mmHg", false, CATEGORY_BLOOD],
+    [METRIC_BP_DIA, "mmHg", false, CATEGORY_BLOOD],
+    [METRIC_GLUCOSE, "mg/dL", false, CATEGORY_BLOOD],
+    [METRIC_WAIST, "cm", false, CATEGORY_BODY]
+];
+
+// [name, type, uses, bydefault, category, icon]
+var DEFAULT_MODULES = [
+    [MODULE_WEIGHT, MODULE_TYPE_METRIC, METRIC_WEIGHT, true, CATEGORY_BODY, "scale.png"],
+    [MODULE_HEIGHT, MODULE_TYPE_METRIC, METRIC_HEIGHT, true, CATEGORY_BODY, "height.png"],
+    [MODULE_BMI, MODULE_TYPE_CALC, CALC_BMI, true, CATEGORY_BODY, "gauge.png"],
+    [MODULE_CALORIES, MODULE_TYPE_METRIC, METRIC_CALORIES, true, CATEGORY_NUTRITION, "fire.png"],
+    [MODULE_WATER, MODULE_TYPE_METRIC, METRIC_WATER, true, CATEGORY_NUTRITION, "water.png"],
+    [MODULE_HEARTRATE, MODULE_TYPE_METRIC, METRIC_HEARTRATE, true, CATEGORY_BLOOD, "heart-pulse.png"],
+    [MODULE_BP, MODULE_TYPE_CALC, CALC_BP, true, CATEGORY_BLOOD, "blood-pressure.svg"],
+    [MODULE_GLUCOSE, MODULE_TYPE_METRIC, METRIC_GLUCOSE, true, CATEGORY_BLOOD, "diabetes.png"],
+    [MODULE_CONDITION, MODULE_TYPE_SUMMARY, "MainHealthCondition", true, CATEGORY_OTHER, "medical-bag.png"],
+    [MODULE_VACCINATION, MODULE_TYPE_SUMMARY, "VaccinesList", true, CATEGORY_OTHER, "needle.png"],
+    [MODULE_MEDITATION, MODULE_TYPE_SUMMARY, "MeditationMenu", true, CATEGORY_OTHER, "meditation.png"],
+    [MODULE_MENSTRUATION, MODULE_TYPE_SUMMARY, "Menstruation", true, CATEGORY_OTHER, "calendar-heart.png"],
+    [MODULE_WAIST, MODULE_TYPE_METRIC, METRIC_WAIST, true, CATEGORY_BODY, "waist.svg"],
+    [MODULE_WHTR, MODULE_TYPE_CALC, CALC_WHTR, true, CATEGORY_BODY, "whtr.svg"]
+];
 
 // local time day border -> 04:00:00
 var DAY_START_TIME = "04:00:00";
@@ -260,42 +304,44 @@ function init() {
             '(SELECT MAX(id) FROM MenstrualLogs GROUP BY profileId, date)');
         tx.executeSql('CREATE UNIQUE INDEX IF NOT EXISTS idx_menstruallogs_day ON MenstrualLogs(profileId, date)');
 
-        // Seed default metrics if empty
-        var rsMetrics = tx.executeSql('SELECT count(*) as count FROM Metrics');
-        if (rsMetrics.rows.item(0).count === 0) {
-            tx.executeSql('INSERT INTO Metrics (name, unit, grouped, category) VALUES (?,?,?,?)', [METRIC_WEIGHT, "kg", false, CATEGORY_BODY]);
-            tx.executeSql('INSERT INTO Metrics (name, unit, grouped, category) VALUES (?,?,?,?)', [METRIC_HEIGHT, "cm", false, CATEGORY_BODY]);
-            tx.executeSql('INSERT INTO Metrics (name, unit, grouped, category) VALUES (?,?,?,?)', [METRIC_CALORIES, "kcal", true, CATEGORY_NUTRITION]);
-            tx.executeSql('INSERT INTO Metrics (name, unit, grouped, category) VALUES (?,?,?,?)', [METRIC_WATER, "L", true, CATEGORY_NUTRITION]);
-            tx.executeSql('INSERT INTO Metrics (name, unit, grouped, category) VALUES (?,?,?,?)', [METRIC_HEARTRATE, "bpm", false, CATEGORY_BLOOD]);
-            tx.executeSql('INSERT INTO Metrics (name, unit, grouped, category) VALUES (?,?,?,?)', [METRIC_BP_SYS, "mmHg", false, CATEGORY_BLOOD]);
-            tx.executeSql('INSERT INTO Metrics (name, unit, grouped, category) VALUES (?,?,?,?)', [METRIC_BP_DIA, "mmHg", false, CATEGORY_BLOOD]);
-            tx.executeSql('INSERT INTO Metrics (name, unit, grouped, category) VALUES (?,?,?,?)', [METRIC_GLUCOSE, "mg/dL", false, CATEGORY_BLOOD]);
-        }
-
-        // Seed default modules if empty
-        var rsModules = tx.executeSql('SELECT count(*) as count FROM Modules');
-        if (rsModules.rows.item(0).count === 0) {
-            tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category, icon) VALUES (?,?,?,?,?,?)', [MODULE_WEIGHT, MODULE_TYPE_METRIC, METRIC_WEIGHT, true, CATEGORY_BODY, "scale.png"]);
-            tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category, icon) VALUES (?,?,?,?,?,?)', [MODULE_HEIGHT, MODULE_TYPE_METRIC, METRIC_HEIGHT, true, CATEGORY_BODY, "height.png"]);
-            tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category, icon) VALUES (?,?,?,?,?,?)', [MODULE_BMI, MODULE_TYPE_CALC, "bmi", true, CATEGORY_BODY, "gauge.png"]);
-            tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category, icon) VALUES (?,?,?,?,?,?)', [MODULE_CALORIES, MODULE_TYPE_METRIC, METRIC_CALORIES, true, CATEGORY_NUTRITION, "fire.png"]);
-            tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category, icon) VALUES (?,?,?,?,?,?)', [MODULE_WATER, MODULE_TYPE_METRIC, METRIC_WATER, true, CATEGORY_NUTRITION, "water.png"]);
-            tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category, icon) VALUES (?,?,?,?,?,?)', [MODULE_HEARTRATE, MODULE_TYPE_METRIC, METRIC_HEARTRATE, true, CATEGORY_BLOOD, "heart-pulse.png"]);
-            tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category, icon) VALUES (?,?,?,?,?,?)', [MODULE_BP, MODULE_TYPE_CALC, "blood-pressure", true, CATEGORY_BLOOD, "blood-pressure.svg"]);
-            tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category, icon) VALUES (?,?,?,?,?,?)', [MODULE_GLUCOSE, MODULE_TYPE_METRIC, METRIC_GLUCOSE, true, CATEGORY_BLOOD, "diabetes.png"]);
-            tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category, icon) VALUES (?,?,?,?,?,?)', [MODULE_CONDITION, MODULE_TYPE_SUMMARY, "MainHealthCondition", true, CATEGORY_OTHER, "medical-bag.png"]);
-            tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category, icon) VALUES (?,?,?,?,?,?)', [MODULE_VACCINATION, MODULE_TYPE_SUMMARY, "VaccinesList", true, CATEGORY_OTHER, "needle.png"]);
-            tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category, icon) VALUES (?,?,?,?,?,?)', [MODULE_MEDITATION, MODULE_TYPE_SUMMARY, "MeditationMenu", true, CATEGORY_OTHER, "meditation.png"]);
-            tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category, icon) VALUES (?,?,?,?,?,?)', [MODULE_MENSTRUATION, MODULE_TYPE_SUMMARY, "Menstruation", true, CATEGORY_OTHER, "calendar-heart.png"]);
-        }
-
+        seedDefaultMetricsAndModules(tx);
         seedDefaultConstraints(tx);
 
         if (!hasSchemaVersion) {
             tx.executeSql('INSERT INTO SchemaInfo (version) VALUES (?)', [DB_SCHEMA_VERSION]);
         }
     });
+}
+
+/*
+ * Inserts any built-in metric or module that is missing, matched by name.
+ *
+ * These used to be seeded only into empty tables, so nothing added in a later
+ * release (waist, WHtR) could reach an existing database. Missing rows are added
+ * here on every launch and after a restore, which would otherwise wipe them when the
+ * backup predates them.
+ *
+ * A module added to an existing database is deliberately not switched on for the
+ * existing profiles, so an update never rearranges anyone's dashboard. New profiles
+ * get every module flagged bydefault (addProfile).
+ */
+function seedDefaultMetricsAndModules(tx) {
+    var i;
+    var rs;
+    for (i = 0; i < DEFAULT_METRICS.length; i++) {
+        var metricRow = DEFAULT_METRICS[i];
+        rs = tx.executeSql('SELECT count(*) AS count FROM Metrics WHERE name=?', [metricRow[0]]);
+        if (rs.rows.item(0).count === 0) {
+            tx.executeSql('INSERT INTO Metrics (name, unit, grouped, category) VALUES (?,?,?,?)', metricRow);
+        }
+    }
+    for (i = 0; i < DEFAULT_MODULES.length; i++) {
+        var moduleRow = DEFAULT_MODULES[i];
+        rs = tx.executeSql('SELECT count(*) AS count FROM Modules WHERE name=?', [moduleRow[0]]);
+        if (rs.rows.item(0).count === 0) {
+            tx.executeSql('INSERT INTO Modules (name, type, uses, bydefault, category, icon) VALUES (?,?,?,?,?,?)', moduleRow);
+        }
+    }
 }
 
 /*
@@ -331,6 +377,14 @@ function seedDefaultConstraints(tx) {
         ["Low", null, 50, "blue"],
         ["Normal", 50, 100, "green"],
         ["High", 100, null, "orange"]
+    ];
+    // Waist-to-height ratio. 0.5 ("keep your waist below half your height") is the
+    // commonly used cut-off, with a higher band from 0.6. Population-level figures that
+    // vary with age and ethnicity, hence the neutral labels.
+    defaults[MODULE_WHTR] = [
+        ["Below 0.5", null, 0.5, "green"],
+        ["0.5 to 0.6", 0.5, 0.6, "orange"],
+        ["0.6 and above", 0.6, null, "red"]
     ];
 
     for (var metric in defaults) {
@@ -490,11 +544,15 @@ function getMetricsToModel(a_model) {
 }
 
 function calculateMetrics(profileId, calculate) {
-    if (calculate === "bmi") {
+    if (calculate === CALC_BMI) {
         var bmi = calcBMI(profileId);
         return bmi === null ? null : Math.round(bmi * 10) / 10;
     }
-    if (calculate === "blood-pressure") {
+    if (calculate === CALC_WHTR) {
+        var whtr = calcWHtR(profileId);
+        return whtr === null ? null : Math.round(whtr * 100) / 100;
+    }
+    if (calculate === CALC_BP) {
         var systolic = getLatestLogValue(profileId, METRIC_BP_SYS);
         var diastolic = getLatestLogValue(profileId, METRIC_BP_DIA);
         if (systolic === null || diastolic === null) {
@@ -756,36 +814,67 @@ function calcBMI(profileId) {
 }
 
 /*
- * BMI history: one point per weight reading, using the height that was current at
- * that moment. Both series arrive sorted, so a single merge pass is enough.
+ * Waist-to-height ratio from the latest waist and height, both in cm. An estimate
+ * of abdominal fat that, unlike BMI, does not count muscle. Null until both exist,
+ * which keeps the ratio hidden until it means something.
  */
-function getBMISeries(profileId, sinceIso) {
+function calcWHtR(profileId) {
+    var height = getLatestLogValue(profileId, METRIC_HEIGHT);
+    var waist = getLatestLogValue(profileId, METRIC_WAIST);
+    if (!height || !waist) {
+        return null;
+    }
+    return waist / height;
+}
+
+/*
+ * History of a value derived from another metric and height: one point per reading
+ * of metricName, using the height that was current at that moment. Both series
+ * arrive sorted, so a single merge pass is enough.
+ * compute(value, heightCm) returns the derived value; decimals rounds it.
+ */
+function getHeightBasedSeries(profileId, sinceIso, metricName, compute, decimals) {
     // Height changes rarely, so the whole height history is needed even for a short
     // window -- the applicable height may have been recorded long before it.
     var heights = getLogsAscending(profileId, METRIC_HEIGHT, null);
-    var weights = getLogsAscending(profileId, METRIC_WEIGHT, sinceIso);
+    var readings = getLogsAscending(profileId, metricName, sinceIso);
     var points = [];
     if (heights.length === 0) {
         return points;
     }
 
+    var factor = Math.pow(10, decimals);
     var hIndex = 0;
     // Before the first height reading there is nothing better to use than the first one.
     var currentHeight = heights[0].value;
-    for (var i = 0; i < weights.length; i++) {
-        var w = weights[i];
-        var wMs = timestampToMs(w.timestamp);
-        while (hIndex < heights.length && timestampToMs(heights[hIndex].timestamp) <= wMs) {
+    for (var i = 0; i < readings.length; i++) {
+        var r = readings[i];
+        var rMs = timestampToMs(r.timestamp);
+        while (hIndex < heights.length && timestampToMs(heights[hIndex].timestamp) <= rMs) {
             currentHeight = heights[hIndex].value;
             hIndex++;
         }
-        if (!currentHeight || !w.value) {
+        if (!currentHeight || !r.value) {
             continue;
         }
-        var metres = currentHeight / 100;
-        points.push({ t: wMs, v: Math.round((w.value / (metres * metres)) * 10) / 10 });
+        points.push({ t: rMs, v: Math.round(compute(r.value, currentHeight) * factor) / factor });
     }
     return points;
+}
+
+// BMI history: one point per weight reading.
+function getBMISeries(profileId, sinceIso) {
+    return getHeightBasedSeries(profileId, sinceIso, METRIC_WEIGHT, function (weight, heightCm) {
+        var metres = heightCm / 100;
+        return weight / (metres * metres);
+    }, 1);
+}
+
+// Waist-to-height history: one point per waist reading.
+function getWHtRSeries(profileId, sinceIso) {
+    return getHeightBasedSeries(profileId, sinceIso, METRIC_WAIST, function (waist, heightCm) {
+        return waist / heightCm;
+    }, 2);
 }
 
 // Vaccine Operations
@@ -1327,6 +1416,13 @@ function restoreAll(dump) {
                     ') VALUES (' + placeholders.join(",") + ')', values);
             }
         }
+
+        // A backup from an older release lacks anything added since (the waist metric,
+        // the WHtR module and its bands). Re-add what is missing right away, rather
+        // than leaving the dashboard without them until the next launch's init().
+        // Restored rows win; only missing ones are added.
+        seedDefaultMetricsAndModules(tx);
+        seedDefaultConstraints(tx);
     });
 }
 

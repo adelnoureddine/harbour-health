@@ -118,10 +118,26 @@ function metricDisplayName(name) {
     case "systolic blood pressure":   return qsTr("Systolic");
     case "diastolic blood pressure":  return qsTr("Diastolic");
     case "glucose":                   return qsTr("Glucose");
+    case "waist":                     return qsTr("Waist");
     case "bmi":
     case "BMI":                       return qsTr("BMI");
+    case "whtr":
+    case "WHtR":                      return qsTr("Waist-to-height ratio");
     case "blood-pressure":            return qsTr("Blood pressure");
     default:                          return capitalize(name);
+    }
+}
+
+/*
+ * One-line guidance shown when logging a metric, where how it is measured changes
+ * the reading enough to matter. Empty for everything else.
+ */
+function metricHint(name) {
+    switch (name) {
+    case "waist":
+        return qsTr("Measure midway between your lowest rib and the top of your hip bone, after breathing out normally. Use the same spot every time.");
+    default:
+        return "";
     }
 }
 
@@ -144,6 +160,8 @@ function moduleDisplayName(name) {
     case "Vaccination":       return qsTr("Vaccination");
     case "Meditation":        return qsTr("Meditation");
     case "Menstruation":      return qsTr("Menstruation");
+    case "Waist":             return qsTr("Waist");
+    case "WHtR":              return qsTr("Waist-to-height ratio");
     default:                  return name ? name : "";
     }
 }
@@ -171,6 +189,9 @@ function constraintLabelDisplayName(label) {
     case "Low":          return qsTr("Low");
     case "Elevated":     return qsTr("Elevated");
     case "High":         return qsTr("High");
+    case "Below 0.5":    return qsTr("Below 0.5");
+    case "0.5 to 0.6":   return qsTr("0.5 to 0.6");
+    case "0.6 and above": return qsTr("0.6 and above");
     default:             return label ? label : "";
     }
 }

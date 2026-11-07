@@ -11,6 +11,8 @@ Row {
 
     property var stats: null
     property string unit: ""
+    // Ratios such as waist-to-height (0.47) need two.
+    property int decimals: 1
 
     visible: stats !== null && stats.count > 0
     height: visible ? implicitHeight : 0
@@ -48,7 +50,7 @@ Row {
                 horizontalAlignment: Text.AlignHCenter
                 truncationMode: TruncationMode.Fade
                 text: root.stats === null ? ""
-                      : Utils.formatValue(root.stats[modelData], 1)
+                      : Utils.formatValue(root.stats[modelData], root.decimals)
                         + (root.unit ? " " + root.unit : "")
                 font.pixelSize: Theme.fontSizeExtraSmall
                 color: Theme.highlightColor

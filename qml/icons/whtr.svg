@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Waist-to-height ratio: a figure measured at the waist, next to a height arrow.
+     Monochrome: HighlightImage recolours it to the theme. -->
+<svg width="800px" height="800px" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M11 4L15.5 10H12.25V38H15.5L11 44L6.5 38H9.75V10H6.5Z" fill="#333333"/>
+<path d="M25.5 9a4.5 4.5 0 1 0 9 0a4.5 4.5 0 1 0-9 0Z" fill="#333333"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M27 15h6a3 3 0 0 1 3 3v13H24V18a3 3 0 0 1 3-3ZM24 22.5h12v2H24Z" fill="#333333"/>
+<path d="M20 22.5h3v2h-3ZM37 22.5h3v2h-3Z" fill="#333333"/>
+<path d="M24.5 32h5v12h-5ZM30.5 32h5v12h-5Z" fill="#333333"/>
+</svg>

@@ -116,6 +116,18 @@ Dialog {
                 EnterKey.onClicked: noteField.focus = true
             }
 
+            // Where to measure, for metrics whose reading depends on it (waist).
+            // Follows the type picker, so it appears and disappears with the metric.
+            Label {
+                x: Theme.horizontalPageMargin
+                width: parent.width - 2 * Theme.horizontalPageMargin
+                text: Utils.metricHint(dialog.metricName)
+                visible: text !== ""
+                wrapMode: Text.Wrap
+                font.pixelSize: Theme.fontSizeExtraSmall
+                color: Theme.secondaryHighlightColor
+            }
+
             ValueButton {
                 id: dateButton
                 label: qsTr("Date")

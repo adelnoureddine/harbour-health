@@ -401,47 +401,62 @@
 <context>
     <name>CalcMetricDetails</name>
     <message>
-        <location filename="../qml/pages/CalcMetricDetails.qml" line="18"/>
+        <location filename="../qml/pages/CalcMetricDetails.qml" line="19"/>
         <source>BMI</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/CalcMetricDetails.qml" line="125"/>
+        <location filename="../qml/pages/CalcMetricDetails.qml" line="137"/>
+        <source>Calculated from your waist and the height recorded at the time. An estimate, not a diagnosis: a common rule of thumb is to keep your waist below half your height, and cut-offs vary with age and ethnicity.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/CalcMetricDetails.qml" line="139"/>
         <source>Record a weight and a height to see your BMI.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/CalcMetricDetails.qml" line="126"/>
+        <location filename="../qml/pages/CalcMetricDetails.qml" line="140"/>
         <source>Calculated from your weight and the height recorded at the time.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/CalcMetricDetails.qml" line="136"/>
+        <location filename="../qml/pages/CalcMetricDetails.qml" line="163"/>
         <source>No data in this period</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/CalcMetricDetails.qml" line="160"/>
+        <location filename="../qml/pages/CalcMetricDetails.qml" line="189"/>
         <source>Reference ranges</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/CalcMetricDetails.qml" line="167"/>
+        <location filename="../qml/pages/CalcMetricDetails.qml" line="196"/>
         <source>Add height</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/CalcMetricDetails.qml" line="178"/>
+        <location filename="../qml/pages/CalcMetricDetails.qml" line="207"/>
         <source>Add weight</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/CalcMetricDetails.qml" line="219"/>
+        <location filename="../qml/pages/CalcMetricDetails.qml" line="207"/>
+        <source>Add waist</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/CalcMetricDetails.qml" line="248"/>
         <source>Nothing to calculate yet</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/CalcMetricDetails.qml" line="220"/>
+        <location filename="../qml/pages/CalcMetricDetails.qml" line="249"/>
+        <source>Pull down to record a height and a waist measurement</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/CalcMetricDetails.qml" line="250"/>
         <source>Pull down to record a height and a weight</source>
         <translation type="unfinished"></translation>
     </message>
@@ -472,17 +487,17 @@
 <context>
     <name>ChartStats</name>
     <message>
-        <location filename="../qml/components/ChartStats.qml" line="22"/>
+        <location filename="../qml/components/ChartStats.qml" line="24"/>
         <source>Min</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/components/ChartStats.qml" line="23"/>
+        <location filename="../qml/components/ChartStats.qml" line="25"/>
         <source>Average</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/components/ChartStats.qml" line="24"/>
+        <location filename="../qml/components/ChartStats.qml" line="26"/>
         <source>Max</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1128,32 +1143,32 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MetricDetails.qml" line="133"/>
+        <location filename="../qml/pages/MetricDetails.qml" line="134"/>
         <source>Reference ranges</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MetricDetails.qml" line="140"/>
+        <location filename="../qml/pages/MetricDetails.qml" line="141"/>
         <source>Add Entry</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MetricDetails.qml" line="181"/>
+        <location filename="../qml/pages/MetricDetails.qml" line="182"/>
         <source>Edit</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MetricDetails.qml" line="192"/>
+        <location filename="../qml/pages/MetricDetails.qml" line="193"/>
         <source>Delete</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MetricDetails.qml" line="236"/>
+        <location filename="../qml/pages/MetricDetails.qml" line="237"/>
         <source>No data points recorded</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MetricDetails.qml" line="237"/>
+        <location filename="../qml/pages/MetricDetails.qml" line="238"/>
         <source>Pull down to add the first entry</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1427,22 +1442,22 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/addEntryMetric.qml" line="121"/>
+        <location filename="../qml/pages/addEntryMetric.qml" line="133"/>
         <source>Date</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/addEntryMetric.qml" line="139"/>
+        <location filename="../qml/pages/addEntryMetric.qml" line="151"/>
         <source>Time</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/addEntryMetric.qml" line="160"/>
+        <location filename="../qml/pages/addEntryMetric.qml" line="172"/>
         <source>Note</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/addEntryMetric.qml" line="161"/>
+        <location filename="../qml/pages/addEntryMetric.qml" line="173"/>
         <source>Optional</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1825,31 +1840,31 @@
     <name>utils</name>
     <message>
         <location filename="../qml/js/utils.js" line="113"/>
-        <location filename="../qml/js/utils.js" line="135"/>
+        <location filename="../qml/js/utils.js" line="151"/>
         <source>Weight</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../qml/js/utils.js" line="114"/>
-        <location filename="../qml/js/utils.js" line="136"/>
+        <location filename="../qml/js/utils.js" line="152"/>
         <source>Height</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../qml/js/utils.js" line="115"/>
-        <location filename="../qml/js/utils.js" line="139"/>
+        <location filename="../qml/js/utils.js" line="155"/>
         <source>Water</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../qml/js/utils.js" line="116"/>
-        <location filename="../qml/js/utils.js" line="138"/>
+        <location filename="../qml/js/utils.js" line="154"/>
         <source>Calories</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../qml/js/utils.js" line="117"/>
-        <location filename="../qml/js/utils.js" line="140"/>
+        <location filename="../qml/js/utils.js" line="156"/>
         <source>Heart rate</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1865,105 +1880,137 @@
     </message>
     <message>
         <location filename="../qml/js/utils.js" line="120"/>
-        <location filename="../qml/js/utils.js" line="142"/>
+        <location filename="../qml/js/utils.js" line="158"/>
         <source>Glucose</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="122"/>
-        <location filename="../qml/js/utils.js" line="137"/>
-        <source>BMI</source>
+        <location filename="../qml/js/utils.js" line="121"/>
+        <location filename="../qml/js/utils.js" line="163"/>
+        <source>Waist</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../qml/js/utils.js" line="123"/>
-        <location filename="../qml/js/utils.js" line="141"/>
+        <location filename="../qml/js/utils.js" line="153"/>
+        <source>BMI</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/js/utils.js" line="125"/>
+        <location filename="../qml/js/utils.js" line="164"/>
+        <source>Waist-to-height ratio</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/js/utils.js" line="126"/>
+        <location filename="../qml/js/utils.js" line="157"/>
         <source>Blood pressure</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="143"/>
+        <location filename="../qml/js/utils.js" line="138"/>
+        <source>Measure midway between your lowest rib and the top of your hip bone, after breathing out normally. Use the same spot every time.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/js/utils.js" line="159"/>
         <source>Health condition</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="144"/>
+        <location filename="../qml/js/utils.js" line="160"/>
         <source>Vaccination</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="145"/>
+        <location filename="../qml/js/utils.js" line="161"/>
         <source>Meditation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="146"/>
+        <location filename="../qml/js/utils.js" line="162"/>
         <source>Menstruation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="153"/>
+        <location filename="../qml/js/utils.js" line="171"/>
         <source>Body</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="154"/>
+        <location filename="../qml/js/utils.js" line="172"/>
         <source>Nutrition</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="155"/>
+        <location filename="../qml/js/utils.js" line="173"/>
         <source>Blood</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="167"/>
+        <location filename="../qml/js/utils.js" line="185"/>
         <source>Underweight</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="168"/>
+        <location filename="../qml/js/utils.js" line="186"/>
         <source>Normal</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="169"/>
+        <location filename="../qml/js/utils.js" line="187"/>
         <source>Overweight</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="170"/>
+        <location filename="../qml/js/utils.js" line="188"/>
         <source>Obese</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="171"/>
+        <location filename="../qml/js/utils.js" line="189"/>
         <source>Low</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="172"/>
+        <location filename="../qml/js/utils.js" line="190"/>
         <source>Elevated</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="173"/>
+        <location filename="../qml/js/utils.js" line="191"/>
         <source>High</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="180"/>
+        <location filename="../qml/js/utils.js" line="192"/>
+        <source>Below 0.5</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/js/utils.js" line="193"/>
+        <source>0.5 to 0.6</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/js/utils.js" line="194"/>
+        <source>0.6 and above</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/js/utils.js" line="201"/>
         <source>Female</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="181"/>
+        <location filename="../qml/js/utils.js" line="202"/>
         <source>Male</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="156"/>
-        <location filename="../qml/js/utils.js" line="182"/>
+        <location filename="../qml/js/utils.js" line="174"/>
+        <location filename="../qml/js/utils.js" line="203"/>
         <source>Other</source>
         <translation type="unfinished"></translation>
     </message>
