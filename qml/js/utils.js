@@ -125,6 +125,56 @@ function metricDisplayName(name) {
     }
 }
 
+/*
+ * Module and category names are stored in the database in English and double as
+ * identifiers (dashboard wiring, reference-band keys, sort order), so the stored
+ * value never changes. Only what reaches the screen is translated, here.
+ */
+function moduleDisplayName(name) {
+    switch (name) {
+    case "Weight":            return qsTr("Weight");
+    case "Height":            return qsTr("Height");
+    case "BMI":               return qsTr("BMI");
+    case "Calories":          return qsTr("Calories");
+    case "Water":             return qsTr("Water");
+    case "Heartrate":         return qsTr("Heart rate");
+    case "Blood Pressure":    return qsTr("Blood pressure");
+    case "Glucose":           return qsTr("Glucose");
+    case "Health Condition":  return qsTr("Health condition");
+    case "Vaccination":       return qsTr("Vaccination");
+    case "Meditation":        return qsTr("Meditation");
+    case "Menstruation":      return qsTr("Menstruation");
+    default:                  return name ? name : "";
+    }
+}
+
+function categoryDisplayName(category) {
+    switch (category) {
+    case "Body":       return qsTr("Body");
+    case "Nutrition":  return qsTr("Nutrition");
+    case "Blood":      return qsTr("Blood");
+    case "Other":      return qsTr("Other");
+    default:           return category ? category : "";
+    }
+}
+
+/*
+ * Reference band labels are user data: they can be renamed freely. Only the
+ * labels seeded by default are translated; anything the user typed is shown as is.
+ */
+function constraintLabelDisplayName(label) {
+    switch (label) {
+    case "Underweight":  return qsTr("Underweight");
+    case "Normal":       return qsTr("Normal");
+    case "Overweight":   return qsTr("Overweight");
+    case "Obese":        return qsTr("Obese");
+    case "Low":          return qsTr("Low");
+    case "Elevated":     return qsTr("Elevated");
+    case "High":         return qsTr("High");
+    default:             return label ? label : "";
+    }
+}
+
 function genderDisplayName(gender) {
     switch (gender) {
     case "female": return qsTr("Female");

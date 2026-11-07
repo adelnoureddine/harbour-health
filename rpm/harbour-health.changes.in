@@ -12,6 +12,13 @@
 # * date Author's Name <author's email> version-release
 # - Summary of changes
 
+* Sat Nov 07 2026 Adel Noureddine 1.1-1
+- Dashboard tiles, module names, categories and default reference range labels can now be translated.
+- Blood pressure on the dashboard is coloured by its systolic and diastolic reference ranges.
+- Diastolic reference ranges can be edited from the blood pressure page.
+- Fixed day headers being cut off on the water, calories and blood pressure pages.
+- Fixed the empty-page message overlapping the chart on metric pages with no entries.
+
 * Mon Aug 19 2026 Adel Noureddine 1.0-1
 - First stable release.
 - History graphs for every metric, with editable reference ranges.

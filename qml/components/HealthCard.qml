@@ -10,6 +10,9 @@ GridItem {
     property string metricName
     property string metricName2: ""
     property string title
+    // Untranslated key the reference bands of a derived card are stored under ("BMI").
+    // The title is translated for display, so it can no longer double as this key.
+    property string constraintKey: ""
     property string icon
     property bool grouped: false
     property var value
@@ -37,13 +40,25 @@ GridItem {
     function updateConstraintColor() {
         constraintColor = "";
         constraintLabel = "";
-        if (root.value === undefined || root.value === null || isNaN(root.value)) {
+        if (root.value === undefined || root.value === null || root.value === "") {
             return;
         }
-        var name = root.metricName !== "" ? root.metricName : root.title;
-        var match = DataManager.matchConstraint(name, root.value);
+        var match = null;
+        if (root.metricName2 !== "") {
+            // A paired reading (blood pressure, shown as "120/80") is judged on both
+            // halves against their own bands, and the more concerning one wins.
+            match = DataManager.matchWorstConstraint([
+                { metricName: root.metricName,
+                  value: DataManager.getLatestLogValue(root.profileId, root.metricName) },
+                { metricName: root.metricName2,
+                  value: DataManager.getLatestLogValue(root.profileId, root.metricName2) }
+            ]);
+        } else if (!isNaN(root.value)) {
+            var name = root.metricName !== "" ? root.metricName : root.constraintKey;
+            match = DataManager.matchConstraint(name, root.value);
+        }
         if (match !== null) {
-            constraintLabel = match.label;
+            constraintLabel = Utils.constraintLabelDisplayName(match.label);
             constraintColor = Utils.constraintColor(match.color);
         }
     }
@@ -182,6 +197,7 @@ GridItem {
                 profileId: root.profileId,
                 calculate: root.calculate,
                 title: root.title,
+                constraintKey: root.constraintKey,
                 metricUnit: root.unit ? root.unit : "",
                 invalidateSignal: root.invalidateSignal
             });
@@ -199,12 +215,23 @@ GridItem {
         }
     }
 
-    onProfileIdChanged: refreshValue();
+    // QML gives no guarantee about the order a delegate's bindings are applied in, so
+    // the first refresh waits until every property (constraintKey, metricName2,
+    // calculate...) is set rather than running whenever profileId happens to land.
+    property bool _completed: false
+
+    onProfileIdChanged: {
+        if (_completed) {
+            refreshValue();
+        }
+    }
 
     Component.onCompleted: {
         if (root.invalidateSignal && root.invalidateSignal.connect) {
             root.invalidateSignal.connect(root.invalidateMetric);
         }
+        _completed = true;
+        refreshValue();
     }
 
     Component.onDestruction: {

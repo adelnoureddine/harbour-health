@@ -18,6 +18,13 @@ Page {
     property var chartSeries: []
     property var chartBands: []
 
+    // The list holds every reading regardless of the chart range. With none at all the
+    // chart and range tabs are hidden, so the placeholder has the page to itself instead
+    // of being drawn over them. Until the first refresh the page assumes there is data,
+    // so the common case does not collapse and re-expand while it is being pushed.
+    property bool loaded: false
+    readonly property bool hasData: !loaded || listModel.count > 0
+
     function sinceTimestamp() {
         if (rangeDays === 0) {
             return null;
@@ -111,6 +118,7 @@ Page {
             listModel.append(rows[k]);
         }
 
+        loaded = true;
         refreshChart();
     }
 
@@ -139,6 +147,7 @@ Page {
             MetricChart {
                 width: parent.width - 2 * Theme.horizontalPageMargin
                 x: Theme.horizontalPageMargin
+                visible: page.hasData
                 series: page.chartSeries
                 bands: page.chartBands
                 unit: page.metricUnit
@@ -148,6 +157,7 @@ Page {
             ChartRangeSelector {
                 width: parent.width - 2 * Theme.horizontalPageMargin
                 x: Theme.horizontalPageMargin
+                visible: page.hasData
                 days: page.rangeDays
                 onDaysChanged: page.rangeDays = days
             }
@@ -156,10 +166,19 @@ Page {
         }
 
         PullDownMenu {
+            // Systolic and diastolic have separate bands; both used to be drawn on the
+            // chart while only the systolic set could be opened for editing.
             MenuItem {
-                text: qsTr("Reference ranges")
+                text: qsTr("Systolic reference ranges")
                 onClicked: pageStack.animatorPush(Qt.resolvedUrl("metricConstraints.qml"), {
                     metricName: page.metricName1,
+                    metricUnit: page.metricUnit
+                })
+            }
+            MenuItem {
+                text: qsTr("Diastolic reference ranges")
+                onClicked: pageStack.animatorPush(Qt.resolvedUrl("metricConstraints.qml"), {
+                    metricName: page.metricName2,
                     metricUnit: page.metricUnit
                 })
             }
@@ -180,8 +199,10 @@ Page {
         section {
             property: "day"
             criteria: ViewSection.FullString
+            // No width override: SectionHeader already spans the view minus both page
+            // margins. Setting the full view width pushed the right-aligned text one
+            // margin off-screen and clipped the date.
             delegate: SectionHeader {
-                width: ListView.view.width
                 text: Utils.formatDate(section)
             }
         }
@@ -257,7 +278,7 @@ Page {
         }
 
         ViewPlaceholder {
-            enabled: listModel.count === 0
+            enabled: !page.hasData
             text: qsTr("No blood pressure recorded")
             hintText: qsTr("Pull down to add an entry")
         }

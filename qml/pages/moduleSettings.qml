@@ -1,6 +1,7 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
 import "../js/DataManager.js" as DataManager
+import "../js/utils.js" as Utils
 
 Page {
     id: root
@@ -36,7 +37,7 @@ Page {
         section {
             property: "category"
             criteria: ViewSection.FullString
-            delegate: SectionHeader { text: section }
+            delegate: SectionHeader { text: Utils.categoryDisplayName(section) }
         }
 
         delegate: ListItem {
@@ -53,7 +54,7 @@ Page {
                 x: Theme.horizontalPageMargin
                 width: parent.width - 2 * Theme.horizontalPageMargin
 
-                text: model.name
+                text: Utils.moduleDisplayName(model.name)
                 checked: model.is_on
                 automaticCheck: false
 

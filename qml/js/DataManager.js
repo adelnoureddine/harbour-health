@@ -1181,6 +1181,32 @@ function matchConstraint(metricName, value) {
     return null;
 }
 
+// How concerning a band colour is, for picking one band out of several readings.
+var CONSTRAINT_SEVERITY = { "green": 0, "blue": 1, "orange": 2, "red": 3 };
+
+/*
+ * The most concerning band across several readings, as {label, color}, or null.
+ * Used for paired readings such as blood pressure, where systolic and diastolic each
+ * have their own bands: 120/95 is judged by its diastolic half.
+ * pairs: [{ metricName, value }, ...]
+ */
+function matchWorstConstraint(pairs) {
+    var worst = null;
+    var worstRank = -1;
+    for (var i = 0; i < pairs.length; i++) {
+        var match = matchConstraint(pairs[i].metricName, pairs[i].value);
+        if (match === null) {
+            continue;
+        }
+        var rank = CONSTRAINT_SEVERITY.hasOwnProperty(match.color) ? CONSTRAINT_SEVERITY[match.color] : 0;
+        if (rank > worstRank) {
+            worst = match;
+            worstRank = rank;
+        }
+    }
+    return worst;
+}
+
 function addConstraint(metricName, label, minValue, maxValue, color) {
     db().transaction(function (tx) {
         tx.executeSql('INSERT INTO MetricConstraints (metricName, label, minValue, maxValue, color) VALUES (?,?,?,?,?)',

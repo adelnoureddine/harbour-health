@@ -27,8 +27,19 @@ Page {
     property string currentLabel: ""
     property string currentColor: ""
 
-    // The name reference bands are stored under. Modules use the display name here.
-    readonly property string constraintKey: calculate === "bmi" ? "BMI" : calculate
+    // The history list follows the chart range, so it cannot tell "nothing in this
+    // period" from "nothing at all"; the current value can. With nothing to calculate
+    // the chart, range tabs and stats are hidden so the placeholder is not drawn over
+    // them. Until the first refresh the page assumes there is data, so the common case
+    // does not collapse and re-expand while it is being pushed.
+    property bool loaded: false
+    readonly property bool hasData: !loaded || currentValue !== null
+
+    // The untranslated module name reference bands are stored under, passed in by the
+    // dashboard card. The fallback only matters if the page is opened from elsewhere.
+    property string constraintKey: ""
+    readonly property string bandKey: constraintKey !== "" ? constraintKey
+                                    : (calculate === "bmi" ? DataManager.MODULE_BMI : calculate)
 
     function sinceTimestamp() {
         if (rangeDays === 0) {
@@ -53,17 +64,18 @@ Page {
         }];
         // BMI has no table of its own, so its statistics come from the series.
         chartStats = DataManager.statsFromPoints(points);
-        chartBands = DataManager.getConstraintsForMetric(constraintKey);
+        chartBands = DataManager.getConstraintsForMetric(bandKey);
 
         currentValue = DataManager.calculateMetrics(profileId, calculate);
-        var match = DataManager.matchConstraint(constraintKey, currentValue);
-        currentLabel = match === null ? "" : match.label;
+        var match = DataManager.matchConstraint(bandKey, currentValue);
+        currentLabel = match === null ? "" : Utils.constraintLabelDisplayName(match.label);
         currentColor = match === null ? "" : Utils.constraintColor(match.color);
 
         historyModel.clear();
         for (var i = points.length - 1; i >= 0; i--) {
             historyModel.append({ t: points[i].t, v: points[i].v });
         }
+        loaded = true;
     }
 
     onRangeDaysChanged: refresh()
@@ -83,6 +95,7 @@ Page {
             Column {
                 width: parent.width
                 spacing: 0
+                visible: page.hasData
 
                 Label {
                     anchors.horizontalCenter: parent.horizontalCenter
@@ -107,7 +120,7 @@ Page {
                 horizontalAlignment: Text.AlignHCenter
                 font.pixelSize: Theme.fontSizeExtraSmall
                 color: Theme.secondaryColor
-                visible: page.calculate === "bmi"
+                visible: page.calculate === "bmi" && page.hasData
                 text: page.currentValue === null
                       ? qsTr("Record a weight and a height to see your BMI.")
                       : qsTr("Calculated from your weight and the height recorded at the time.")
@@ -116,6 +129,7 @@ Page {
             MetricChart {
                 width: parent.width - 2 * Theme.horizontalPageMargin
                 x: Theme.horizontalPageMargin
+                visible: page.hasData
                 series: page.chartSeries
                 bands: page.chartBands
                 unit: page.metricUnit
@@ -125,10 +139,13 @@ Page {
             ChartRangeSelector {
                 width: parent.width - 2 * Theme.horizontalPageMargin
                 x: Theme.horizontalPageMargin
+                visible: page.hasData
                 days: page.rangeDays
                 onDaysChanged: page.rangeDays = days
             }
 
+            // No visible override: ChartStats already hides itself without data, and
+            // setting visible here would replace that binding.
             ChartStats {
                 width: parent.width - 2 * Theme.horizontalPageMargin
                 x: Theme.horizontalPageMargin
@@ -143,7 +160,7 @@ Page {
             MenuItem {
                 text: qsTr("Reference ranges")
                 onClicked: pageStack.animatorPush(Qt.resolvedUrl("metricConstraints.qml"), {
-                    metricName: page.constraintKey,
+                    metricName: page.bandKey,
                     metricUnit: page.metricUnit
                 })
             }
@@ -199,7 +216,7 @@ Page {
         }
 
         ViewPlaceholder {
-            enabled: historyModel.count === 0
+            enabled: !page.hasData
             text: qsTr("Nothing to calculate yet")
             hintText: qsTr("Pull down to record a height and a weight")
         }

@@ -1,6 +1,7 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
 import "../js/DataManager.js" as DataManager
+import "../js/utils.js" as Utils
 import "../components"
 
 Page {
@@ -104,7 +105,9 @@ Page {
             width: dashboardGrid.cellWidth
             height: dashboardGrid.cellHeight
             icon: model.icon ? Qt.resolvedUrl("../icons/" + model.icon) : "image://theme/icon-m-health"
-            title: model.name
+            title: Utils.moduleDisplayName(model.name)
+            // The stored (English) module name is the key reference bands are saved under.
+            constraintKey: model.name
             profileId: mainPage.profileId
             metricName: model.type == DataManager.MODULE_TYPE_METRIC ? model.uses : (model.name == DataManager.MODULE_BP ? DataManager.METRIC_BP_SYS : '')
             metricName2: model.name == DataManager.MODULE_BP ? DataManager.METRIC_BP_DIA : ''

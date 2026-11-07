@@ -115,7 +115,7 @@ Page {
 
                 Label {
                     width: parent.width
-                    text: model.label ? model.label : qsTr("Unnamed range")
+                    text: model.label ? Utils.constraintLabelDisplayName(model.label) : qsTr("Unnamed range")
                     truncationMode: TruncationMode.Fade
                     color: constraintItem.highlighted ? Theme.highlightColor : Theme.primaryColor
                 }

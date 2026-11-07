@@ -22,6 +22,13 @@ Page {
     // day -> total, built once per refresh so section headers are a hash lookup.
     property var dayTotals: ({})
 
+    // The list holds every entry regardless of the chart range. With none at all the
+    // chart, range tabs and stats are hidden, so the placeholder has the page to itself
+    // instead of being drawn over them. Until the first refresh the page assumes there
+    // is data, so the common case does not collapse and re-expand while being pushed.
+    property bool loaded: false
+    readonly property bool hasData: !loaded || listModel.count > 0
+
     // Long windows are averaged per day so the canvas never plots thousands of points.
     function seriesMode() {
         if (page.grouped) {
@@ -67,6 +74,7 @@ Page {
             }
         }
         dayTotals = totals;
+        loaded = true;
         refreshChart();
     }
 
@@ -94,6 +102,7 @@ Page {
             MetricChart {
                 width: parent.width - 2 * Theme.horizontalPageMargin
                 x: Theme.horizontalPageMargin
+                visible: page.hasData
                 series: page.chartSeries
                 bands: page.chartBands
                 unit: page.metricUnit
@@ -103,10 +112,13 @@ Page {
             ChartRangeSelector {
                 width: parent.width - 2 * Theme.horizontalPageMargin
                 x: Theme.horizontalPageMargin
+                visible: page.hasData
                 days: page.rangeDays
                 onDaysChanged: page.rangeDays = days
             }
 
+            // No visible override: ChartStats already hides itself without data, and
+            // setting visible here would replace that binding.
             ChartStats {
                 width: parent.width - 2 * Theme.horizontalPageMargin
                 x: Theme.horizontalPageMargin
@@ -142,8 +154,10 @@ Page {
         section {
             property: "day"
             criteria: ViewSection.FullString
+            // No width override: SectionHeader already spans the view minus both page
+            // margins. Setting the full view width pushed the right-aligned text one
+            // margin off-screen and clipped the date.
             delegate: SectionHeader {
-                width: ListView.view.width
                 // The per-day total is computed by SQLite now. It used to re-scan the
                 // whole model inside this binding, once per section, on every update.
                 text: Utils.formatValue(page.dayTotals[section]) + " " + page.metricUnit
@@ -219,7 +233,7 @@ Page {
         }
 
         ViewPlaceholder {
-            enabled: listModel.count === 0
+            enabled: !page.hasData
             text: qsTr("No data points recorded")
             hintText: qsTr("Pull down to add the first entry")
         }
