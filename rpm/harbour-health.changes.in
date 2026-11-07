@@ -13,12 +13,8 @@
 # - Summary of changes
 
 * Sat Nov 07 2026 Adel Noureddine 1.1-1
-- New waist circumference measurement and waist-to-height ratio (WHtR), a complement to BMI that reflects abdominal fat. Off by default for existing profiles; enable them in Settings > Modules.
-- Dashboard tiles, module names, categories and default reference range labels can now be translated.
-- Blood pressure on the dashboard is coloured by its systolic and diastolic reference ranges.
-- Diastolic reference ranges can be edited from the blood pressure page.
-- Fixed day headers being cut off on the water, calories and blood pressure pages.
-- Fixed the empty-page message overlapping the chart on metric pages with no entries.
+- Add waist circumference measurement and waist-to-height ratio (WHtR).
+- Fix translation and visual glitches
 
 * Mon Aug 19 2026 Adel Noureddine 1.0-1
 - First stable release.
