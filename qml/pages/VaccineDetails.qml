@@ -46,13 +46,17 @@ Page {
             id: injectionItem
             contentHeight: Theme.itemSizeSmall
 
-            menu: ContextMenu {
-                MenuItem {
-                    text: qsTr("Delete")
-                    onClicked: injectionItem.remorseDelete(function() {
-                        DataManager.deleteVaccineLog(model.id);
-                        vaccinesDetailModel.remove(index);
-                    })
+            // Built when first opened. Created with every row, the menu made each
+            // row about ten times slower to build, which showed while scrolling.
+            menu: Component {
+                ContextMenu {
+                    MenuItem {
+                        text: qsTr("Delete")
+                        onClicked: injectionItem.remorseDelete(function() {
+                            DataManager.deleteVaccineLog(model.id);
+                            vaccinesDetailModel.remove(index);
+                        })
+                    }
                 }
             }
 

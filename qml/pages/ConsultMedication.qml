@@ -11,7 +11,13 @@ Page {
     property int medicationId
     property string medicationName
 
+    // What the page last loaded (see DataManager.dataKey). It loads when created, so
+    // the content is there as the page slides in, and used to load all over again
+    // as soon as it became active.
+    property string loadedFrom: ""
+
     function refresh() {
+        loadedFrom = DataManager.dataKey();
         todayModel.clear();
         historyModel.clear();
         var today = DataManager.getMedicationLogsToday(profileId, medicationId);
@@ -54,13 +60,17 @@ Page {
                     id: todayItem
                     contentHeight: Theme.itemSizeSmall
                     // A mistaken intake could not be removed at all.
-                    menu: ContextMenu {
-                        MenuItem {
-                            text: qsTr("Delete")
-                            onClicked: todayItem.remorseDelete(function() {
-                                DataManager.deleteMedicationLog(model.id);
-                                page.refresh();
-                            })
+                    // Built when first opened. Created with every row, the menu made each
+                    // row about ten times slower to build, which showed while scrolling.
+                    menu: Component {
+                        ContextMenu {
+                            MenuItem {
+                                text: qsTr("Delete")
+                                onClicked: todayItem.remorseDelete(function() {
+                                    DataManager.deleteMedicationLog(model.id);
+                                    page.refresh();
+                                })
+                            }
                         }
                     }
                     Column {
@@ -104,13 +114,17 @@ Page {
                 delegate: ListItem {
                     id: historyItem
                     contentHeight: Theme.itemSizeSmall
-                    menu: ContextMenu {
-                        MenuItem {
-                            text: qsTr("Delete")
-                            onClicked: historyItem.remorseDelete(function() {
-                                DataManager.deleteMedicationLog(model.id);
-                                page.refresh();
-                            })
+                    // Built when first opened. Created with every row, the menu made each
+                    // row about ten times slower to build, which showed while scrolling.
+                    menu: Component {
+                        ContextMenu {
+                            MenuItem {
+                                text: qsTr("Delete")
+                                onClicked: historyItem.remorseDelete(function() {
+                                    DataManager.deleteMedicationLog(model.id);
+                                    page.refresh();
+                                })
+                            }
                         }
                     }
                     Column {
@@ -153,7 +167,7 @@ Page {
     ListModel { id: historyModel }
 
     onStatusChanged: {
-        if (status === PageStatus.Active) refresh();
+        if (status === PageStatus.Active && DataManager.dataKey() !== loadedFrom) refresh();
     }
 
     Component.onCompleted: refresh()

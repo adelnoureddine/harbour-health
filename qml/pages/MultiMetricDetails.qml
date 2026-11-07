@@ -247,30 +247,34 @@ Page {
                            ? Math.max(Theme.itemSizeMedium, entryColumn.height + 2 * Theme.paddingMedium)
                            : Theme.itemSizeSmall
 
-            menu: ContextMenu {
-                MenuItem {
-                    text: qsTr("Edit")
-                    // Editing only makes sense for a complete pair.
-                    enabled: model.id1 >= 0 && model.id2 >= 0
-                    onClicked: pageStack.animatorPush(Qt.resolvedUrl("addEntryMultiMetric.qml"), {
-                        profileId: page.profileId,
-                        metricName1: page.metricName1,
-                        metricName2: page.metricName2,
-                        metricUnit: page.metricUnit,
-                        logId1: model.id1,
-                        logId2: model.id2,
-                        invalidateSignal: page.invalidateSignal
-                    })
-                }
-                MenuItem {
-                    text: qsTr("Delete")
-                    onClicked: {
-                        listItem.remorseDelete(function() {
-                            // Both halves in one transaction; a missing half is -1.
-                            DataManager.deleteLogs([model.id1, model.id2]);
-                            page.refresh();
-                            page.notifyChanged();
+            // Built when first opened. Created with every row, the menu made each
+            // row about ten times slower to build, which showed while scrolling.
+            menu: Component {
+                ContextMenu {
+                    MenuItem {
+                        text: qsTr("Edit")
+                        // Editing only makes sense for a complete pair.
+                        enabled: model.id1 >= 0 && model.id2 >= 0
+                        onClicked: pageStack.animatorPush(Qt.resolvedUrl("addEntryMultiMetric.qml"), {
+                            profileId: page.profileId,
+                            metricName1: page.metricName1,
+                            metricName2: page.metricName2,
+                            metricUnit: page.metricUnit,
+                            logId1: model.id1,
+                            logId2: model.id2,
+                            invalidateSignal: page.invalidateSignal
                         })
+                    }
+                    MenuItem {
+                        text: qsTr("Delete")
+                        onClicked: {
+                            listItem.remorseDelete(function() {
+                                // Both halves in one transaction; a missing half is -1.
+                                DataManager.deleteLogs([model.id1, model.id2]);
+                                page.refresh();
+                                page.notifyChanged();
+                            })
+                        }
                     }
                 }
             }

@@ -9,7 +9,13 @@ Page {
 
     property int profileId: -1
 
+    // What the page last loaded (see DataManager.dataKey). It loads when created, so
+    // the content is there as the page slides in, and used to load all over again
+    // as soon as it became active.
+    property string loadedFrom: ""
+
     function refresh() {
+        loadedFrom = DataManager.dataKey();
         listModel.clear();
         if (profileId >= 0) {
             var conditions = DataManager.getConditions(profileId);
@@ -80,21 +86,25 @@ Page {
                 }
             }
 
-            menu: ContextMenu {
-                MenuItem {
-                    text: qsTr("Edit")
-                    onClicked: pageStack.animatorPush(Qt.resolvedUrl("AddAndEditIllness.qml"), {
-                        profileId: root.profileId,
-                        conditionId: model.id
-                    })
-                }
-                MenuItem {
-                    text: qsTr("Delete")
-                    onClicked: conditionItem.remorseDelete(function() {
-                        // Removes the condition together with its treatments.
-                        DataManager.deleteCondition(model.id);
-                        listModel.remove(index);
-                    })
+            // Built when first opened. Created with every row, the menu made each
+            // row about ten times slower to build, which showed while scrolling.
+            menu: Component {
+                ContextMenu {
+                    MenuItem {
+                        text: qsTr("Edit")
+                        onClicked: pageStack.animatorPush(Qt.resolvedUrl("AddAndEditIllness.qml"), {
+                            profileId: root.profileId,
+                            conditionId: model.id
+                        })
+                    }
+                    MenuItem {
+                        text: qsTr("Delete")
+                        onClicked: conditionItem.remorseDelete(function() {
+                            // Removes the condition together with its treatments.
+                            DataManager.deleteCondition(model.id);
+                            listModel.remove(index);
+                        })
+                    }
                 }
             }
         }
@@ -113,7 +123,7 @@ Page {
     }
 
     onStatusChanged: {
-        if (status === PageStatus.Active) {
+        if (status === PageStatus.Active && DataManager.dataKey() !== loadedFrom) {
             refresh();
         }
     }

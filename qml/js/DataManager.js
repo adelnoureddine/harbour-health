@@ -736,9 +736,13 @@ function getTodayTotal(profileId, metricName) {
  * For grouped metrics each row also carries `day` (the 04:00-border day it belongs
  * to) and `dayTotal`, so the section headers no longer have to re-sum the entire
  * model on every binding evaluation.
+ *
+ * Returns the day -> total map as well ({} when not grouped), so the page does not
+ * have to read every row back out of the model to rebuild it.
  */
 function addLogsToModel(profileId, metricName, a_model, grouped) {
     var rows = [];
+    var totals = {};
     db().transaction(function (tx) {
         var rs;
         var i;
@@ -747,7 +751,6 @@ function addLogsToModel(profileId, metricName, a_model, grouped) {
             // Day totals come from one grouped pass. They used to be a subquery run
             // for every row, each re-reading the metric's entire history: with two
             // years of water entries, opening the page took seconds.
-            var totals = {};
             rs = tx.executeSql('SELECT DATE(timestamp, ?) AS day, SUM(value) AS total FROM HealthLogs ' +
                 'WHERE profileId=? AND metricId=' + METRIC_ID + ' GROUP BY day',
                 [border, profileId, metricName]);
@@ -776,6 +779,7 @@ function addLogsToModel(profileId, metricName, a_model, grouped) {
     if (rows.length > 0) {
         a_model.append(rows);
     }
+    return totals;
 }
 
 // Timestamp-ordered logs (oldest first) as a plain array. Used for chart pairing.

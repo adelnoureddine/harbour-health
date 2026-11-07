@@ -67,26 +67,30 @@ Page {
             id: cycleItem
             contentHeight: Math.max(Theme.itemSizeMedium, cycleColumn.height + 2 * Theme.paddingMedium)
 
-            menu: ContextMenu {
-                // Past cycles could only be deleted, never corrected.
-                MenuItem {
-                    text: qsTr("Edit")
-                    onClicked: pageStack.animatorPush(Qt.resolvedUrl("AddNewCycle.qml"), {
-                        profileId: page.profileId,
-                        cycleId: model.id,
-                        initialStart: model.startDate,
-                        initialEnd: model.endDate,
-                        note: model.note
-                    })
-                }
-                MenuItem {
-                    text: qsTr("Delete")
-                    onClicked: cycleItem.remorseDelete(function() {
-                        DataManager.deleteMenstrualCycle(model.id);
-                        // Reloaded rather than removed: the neighbouring cycle's length
-                        // depends on this one.
-                        page.refresh();
-                    })
+            // Built when first opened. Created with every row, the menu made each
+            // row about ten times slower to build, which showed while scrolling.
+            menu: Component {
+                ContextMenu {
+                    // Past cycles could only be deleted, never corrected.
+                    MenuItem {
+                        text: qsTr("Edit")
+                        onClicked: pageStack.animatorPush(Qt.resolvedUrl("AddNewCycle.qml"), {
+                            profileId: page.profileId,
+                            cycleId: model.id,
+                            initialStart: model.startDate,
+                            initialEnd: model.endDate,
+                            note: model.note
+                        })
+                    }
+                    MenuItem {
+                        text: qsTr("Delete")
+                        onClicked: cycleItem.remorseDelete(function() {
+                            DataManager.deleteMenstrualCycle(model.id);
+                            // Reloaded rather than removed: the neighbouring cycle's length
+                            // depends on this one.
+                            page.refresh();
+                        })
+                    }
                 }
             }
 

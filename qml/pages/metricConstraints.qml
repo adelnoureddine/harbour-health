@@ -77,25 +77,29 @@ Page {
             id: constraintItem
             contentHeight: Theme.itemSizeMedium
 
-            menu: ContextMenu {
-                MenuItem {
-                    text: qsTr("Edit")
-                    onClicked: pageStack.animatorPush(Qt.resolvedUrl("addConstraint.qml"), {
-                        metricName: page.metricName,
-                        metricUnit: page.metricUnit,
-                        constraintId: model.id,
-                        labelText: model.label ? model.label : "",
-                        minValue: model.minValue,
-                        maxValue: model.maxValue,
-                        colorName: model.color
-                    })
-                }
-                MenuItem {
-                    text: qsTr("Delete")
-                    onClicked: constraintItem.remorseDelete(function() {
-                        DataManager.deleteConstraint(model.id);
-                        listModel.remove(index);
-                    })
+            // Built when first opened. Created with every row, the menu made each
+            // row about ten times slower to build, which showed while scrolling.
+            menu: Component {
+                ContextMenu {
+                    MenuItem {
+                        text: qsTr("Edit")
+                        onClicked: pageStack.animatorPush(Qt.resolvedUrl("addConstraint.qml"), {
+                            metricName: page.metricName,
+                            metricUnit: page.metricUnit,
+                            constraintId: model.id,
+                            labelText: model.label ? model.label : "",
+                            minValue: model.minValue,
+                            maxValue: model.maxValue,
+                            colorName: model.color
+                        })
+                    }
+                    MenuItem {
+                        text: qsTr("Delete")
+                        onClicked: constraintItem.remorseDelete(function() {
+                            DataManager.deleteConstraint(model.id);
+                            listModel.remove(index);
+                        })
+                    }
                 }
             }
 

@@ -8,7 +8,13 @@ Page {
 
     property int profileId: -1
 
+    // What the page last loaded (see DataManager.dataKey). It loads when created, so
+    // the content is there as the page slides in, and used to load all over again
+    // as soon as it became active.
+    property string loadedFrom: ""
+
     function refresh() {
+        loadedFrom = DataManager.dataKey();
         listModel.clear();
         var medications = DataManager.getMedications(profileId);
         medications.forEach(function(m) {
@@ -65,7 +71,7 @@ Page {
     }
 
     onStatusChanged: {
-        if (status === PageStatus.Active) refresh();
+        if (status === PageStatus.Active && DataManager.dataKey() !== loadedFrom) refresh();
     }
 
     Component.onCompleted: refresh()

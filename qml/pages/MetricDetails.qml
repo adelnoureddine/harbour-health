@@ -68,15 +68,9 @@ Page {
         // an entry further down, the user was thrown back there.
         var keepY = loaded ? listView.contentY : null;
         listModel.clear();
-        DataManager.addLogsToModel(profileId, metricName, listModel, page.grouped);
-        var totals = {};
-        for (var i = 0; i < listModel.count; i++) {
-            var item = listModel.get(i);
-            if (item.day !== undefined) {
-                totals[item.day] = item.dayTotal;
-            }
-        }
-        dayTotals = totals;
+        // The totals come back with the rows. They used to be collected by reading
+        // every row back out of the model, the slowest part of opening the page.
+        dayTotals = DataManager.addLogsToModel(profileId, metricName, listModel, page.grouped);
         if (keepY !== null) {
             listView.forceLayout();
             listView.contentY = keepY;
@@ -198,21 +192,25 @@ Page {
                 })
             }
 
-            menu: ContextMenu {
-                MenuItem {
-                    text: qsTr("Edit")
-                    onClicked: pageStack.animatorPush(Qt.resolvedUrl("addEntryMetric.qml"), {
-                        profileId: page.profileId,
-                        metricName: page.metricName,
-                        metricUnit: page.metricUnit,
-                        lockMetric: true,
-                        logId: model.id,
-                        invalidateSignal: page.invalidateSignal
-                    })
-                }
-                MenuItem {
-                    text: qsTr("Delete")
-                    onClicked: listItem.remove()
+            // Built when first opened. Created with every row, the menu made each
+            // row about ten times slower to build, which showed while scrolling.
+            menu: Component {
+                ContextMenu {
+                    MenuItem {
+                        text: qsTr("Edit")
+                        onClicked: pageStack.animatorPush(Qt.resolvedUrl("addEntryMetric.qml"), {
+                            profileId: page.profileId,
+                            metricName: page.metricName,
+                            metricUnit: page.metricUnit,
+                            lockMetric: true,
+                            logId: model.id,
+                            invalidateSignal: page.invalidateSignal
+                        })
+                    }
+                    MenuItem {
+                        text: qsTr("Delete")
+                        onClicked: listItem.remove()
+                    }
                 }
             }
 

@@ -8,7 +8,13 @@ Page {
 
     property int profileId: -1
 
+    // What the page last loaded (see DataManager.dataKey). It loads when created, so
+    // the content is there as the page slides in, and used to load all over again
+    // as soon as it became active.
+    property string loadedFrom: ""
+
     function refresh() {
+        loadedFrom = DataManager.dataKey();
         if (root.profileId >= 0) {
             DataManager.getVaccinesToModel(root.profileId, vaccineModel);
         }
@@ -69,7 +75,7 @@ Page {
     }
 
     onStatusChanged: {
-        if (status === PageStatus.Active) {
+        if (status === PageStatus.Active && DataManager.dataKey() !== loadedFrom) {
             refresh();
         }
     }

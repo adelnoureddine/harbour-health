@@ -12,7 +12,13 @@ Page {
     property string conditionName
     property var conditionData: ({})
 
+    // What the page last loaded (see DataManager.dataKey). It loads when created, so
+    // the content is there as the page slides in, and used to load all over again
+    // as soon as it became active.
+    property string loadedFrom: ""
+
     function refresh() {
+        loadedFrom = DataManager.dataKey();
         conditionData = DataManager.getCondition(conditionId) || {};
         listModel.clear();
         if (profileId >= 0) {
@@ -108,21 +114,25 @@ Page {
                 medicationId: model.medicationId,
                 medicationName: model.medicationName
             })
-            menu: ContextMenu {
-                MenuItem {
-                    text: qsTr("Edit")
-                    onClicked: pageStack.animatorPush(Qt.resolvedUrl("AddAndEditMedication.qml"), {
-                        profileId: profileId,
-                        conditionId: conditionId,
-                        treatmentId: model.id
-                    })
-                }
-                MenuItem {
-                    text: qsTr("Delete")
-                    onClicked: treatmentItem.remorseDelete(function() {
-                        DataManager.deleteTreatment(model.id);
-                        listModel.remove(index);
-                    })
+            // Built when first opened. Created with every row, the menu made each
+            // row about ten times slower to build, which showed while scrolling.
+            menu: Component {
+                ContextMenu {
+                    MenuItem {
+                        text: qsTr("Edit")
+                        onClicked: pageStack.animatorPush(Qt.resolvedUrl("AddAndEditMedication.qml"), {
+                            profileId: profileId,
+                            conditionId: conditionId,
+                            treatmentId: model.id
+                        })
+                    }
+                    MenuItem {
+                        text: qsTr("Delete")
+                        onClicked: treatmentItem.remorseDelete(function() {
+                            DataManager.deleteTreatment(model.id);
+                            listModel.remove(index);
+                        })
+                    }
                 }
             }
 
@@ -142,7 +152,7 @@ Page {
     }
 
     onStatusChanged: {
-        if (status === PageStatus.Active) {
+        if (status === PageStatus.Active && DataManager.dataKey() !== loadedFrom) {
             refresh();
         }
     }

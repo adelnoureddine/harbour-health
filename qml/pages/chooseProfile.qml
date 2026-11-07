@@ -76,18 +76,22 @@ Page {
                 visible: profileItem.isActive
             }
 
-            menu: ContextMenu {
-                MenuItem {
-                    text: qsTr("Edit")
-                    onClicked: pageStack.animatorPush(Qt.resolvedUrl("modifyProfile.qml"), {
-                        profileId: model.id
-                    })
-                }
-                MenuItem {
-                    text: qsTr("Delete")
-                    onClicked: pageStack.animatorPush(Qt.resolvedUrl("deleteProfile.qml"), {
-                        profileId: model.id
-                    })
+            // Built when first opened. Created with every row, the menu made each
+            // row about ten times slower to build, which showed while scrolling.
+            menu: Component {
+                ContextMenu {
+                    MenuItem {
+                        text: qsTr("Edit")
+                        onClicked: pageStack.animatorPush(Qt.resolvedUrl("modifyProfile.qml"), {
+                            profileId: model.id
+                        })
+                    }
+                    MenuItem {
+                        text: qsTr("Delete")
+                        onClicked: pageStack.animatorPush(Qt.resolvedUrl("deleteProfile.qml"), {
+                            profileId: model.id
+                        })
+                    }
                 }
             }
         }
