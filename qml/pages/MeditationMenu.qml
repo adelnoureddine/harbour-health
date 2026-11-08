@@ -74,6 +74,15 @@ Page {
         contentHeight: column.height + Theme.paddingLarge
 
         PullDownMenu {
+            // Minutes a day, shown on the Today page once set.
+            MenuItem {
+                text: qsTr("Daily goal")
+                onClicked: pageStack.animatorPush(Qt.resolvedUrl("setGoal.qml"), {
+                    profileId: page.profileId,
+                    metricName: DataManager.GOAL_MEDITATION,
+                    metricUnit: qsTr("min")
+                })
+            }
             MenuItem {
                 text: qsTr("History")
                 onClicked: page.openHistory()

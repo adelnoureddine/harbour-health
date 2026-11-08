@@ -3,7 +3,7 @@ import Sailfish.Silica 1.0
 import "../js/DataManager.js" as DataManager
 import "../js/utils.js" as Utils
 
-// Daily goal behind a dashboard ring (water, calories).
+// Daily goal behind a dashboard ring (water, calories), or the daily meditation goal.
 Dialog {
     id: dialog
     allowedOrientations: Orientation.All
@@ -11,6 +11,9 @@ Dialog {
     property int profileId: -1
     property string metricName
     property string metricUnit
+
+    // Minutes of meditation: not a measurement, and shown on the Today page only.
+    readonly property bool meditation: metricName === DataManager.GOAL_MEDITATION
 
     // What a day usually adds up to, to pick a goal against. Empty without readings.
     property string averageText: ""
@@ -22,6 +25,9 @@ Dialog {
 
     // Days with nothing logged are left out: they are gaps in the log, not zero days.
     function dailyAverageText() {
+        if (meditation) {
+            return "";
+        }
         var stats = DataManager.getSeriesStats(profileId, metricName, DataManager.sinceForDays(30, true),
                                                DataManager.SERIES_DAILY_SUM);
         if (!stats || stats.count === 0 || stats.avg === null) {
@@ -101,9 +107,13 @@ Dialog {
                 color: Theme.secondaryHighlightColor
                 // The day border in the user's own clock format: "4:00" read oddly in a
                 // 12-hour locale.
-                //: %1 is the time the day's total resets, e.g. "04:00" or "4:00 AM"
-                text: qsTr("Shown as a ring on the dashboard. The day's total starts again at %1.")
-                      .arg(Utils.formatTime(DataManager.dayStart()))
+                text: dialog.meditation
+                      //: %1 is the time a new day starts, e.g. "04:00" or "4:00 AM"
+                      ? qsTr("Shown on the Today page. A new day starts at %1.")
+                        .arg(Utils.formatTime(DataManager.dayStart()))
+                      //: %1 is the time the day's total resets, e.g. "04:00" or "4:00 AM"
+                      : qsTr("Shown as a ring on the dashboard. The day's total starts again at %1.")
+                        .arg(Utils.formatTime(DataManager.dayStart()))
             }
         }
 

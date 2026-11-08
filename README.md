@@ -7,11 +7,12 @@ Health is not medical advice and must not be used for diagnosis or treatment dec
 # Features
 
 - Multiple profiles, each with its own data and its own dashboard
-- Track weight, height, BMI, waist circumference, waist-to-height ratio, water, calories, heart rate, blood pressure and glucose
-- History graphs for every metric, with editable reference ranges shaded behind them
+- Track weight, height, BMI, waist circumference, waist-to-height ratio, water, calories eaten and burned, heart rate, blood pressure and glucose
+- History graphs for every metric, with editable reference ranges shaded behind them; daily totals as bars, by week or month over long ranges
+- A Today page with what is left for the day: daily goals, a meditation goal and the medications you are on
 - Health conditions, treatments and medication intake logs
 - Vaccination records, meditation sessions and menstrual cycle tracking
-- Configurable cover page showing two metrics at a glance
+- Configurable cover page showing two metrics, or the day's to-do list, at a glance
 - Backup and restore to a JSON file, plus CSV export of all measurements
 
 # Authors

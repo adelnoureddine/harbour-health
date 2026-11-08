@@ -5,8 +5,9 @@ import "../js/utils.js" as Utils
 import "../components"
 
 /*
- * The two metrics on the cover, with a preview drawn by the cover's own CoverMetric
- * at the cover's size. Each choice is saved as soon as it is picked.
+ * What the cover shows: two metrics, or the day's to-do list. A preview drawn by the
+ * cover's own components at the cover's size. Each choice is saved as soon as it is
+ * picked.
  */
 Page {
     id: page
@@ -16,8 +17,36 @@ Page {
     property string metric1: DataManager.METRIC_WEIGHT
     property string metric2: DataManager.METRIC_WATER
     property string profileName: ""
+    // The to-do list takes the first metric's place (DataManager.COVER_TODAY).
+    readonly property bool todayMode: metric1 === DataManager.COVER_TODAY
+    // The first metric before switching to the list, to switch back to it.
+    property string previousMetric1: DataManager.METRIC_WEIGHT
     readonly property bool waterShown: metric1 === DataManager.METRIC_WATER
                                        || metric2 === DataManager.METRIC_WATER
+
+    function setTodayMode(on) {
+        if (on === todayMode) {
+            return;
+        }
+        if (on) {
+            previousMetric1 = metric1;
+            metric1 = DataManager.COVER_TODAY;
+        } else {
+            metric1 = previousMetric1;
+            metric1Combo.currentIndex = indexOfMetric(metric1);
+        }
+        save();
+        refreshPreview();
+    }
+
+    function refreshPreview() {
+        if (todayMode) {
+            previewToday.refresh();
+        } else {
+            preview1.refresh();
+            preview2.refresh();
+        }
+    }
 
     // Elsewhere the blood pressure halves sit side by side as "Systolic" and
     // "Diastolic"; alone in this list they have to say what they belong to.
@@ -63,8 +92,8 @@ Page {
         // Set after the model is populated, otherwise there is nothing to select.
         metric1Combo.currentIndex = indexOfMetric(metric1);
         metric2Combo.currentIndex = indexOfMetric(metric2);
-        preview1.refresh();
-        preview2.refresh();
+        modeCombo.currentIndex = todayMode ? 1 : 0;
+        refreshPreview();
     }
 
     function save() {
@@ -85,12 +114,32 @@ Page {
                 description: page.profileName
             }
 
+            ComboBox {
+                id: modeCombo
+                width: parent.width
+                //: Cover page settings: what the cover shows
+                label: qsTr("Cover shows")
+                menu: ContextMenu {
+                    MenuItem {
+                        text: qsTr("Two metrics")
+                        onClicked: page.setTodayMode(false)
+                    }
+                    MenuItem {
+                        //: Cover page setting: the cover shows what is left to do today
+                        text: qsTr("Today's to-do list")
+                        onClicked: page.setTodayMode(true)
+                    }
+                }
+            }
+
             SectionHeader {
+                visible: !page.todayMode
                 text: qsTr("Metrics to display")
             }
 
             ComboBox {
                 id: metric1Combo
+                visible: !page.todayMode
                 width: parent.width
                 label: qsTr("First metric")
                 menu: ContextMenu {
@@ -110,6 +159,7 @@ Page {
 
             ComboBox {
                 id: metric2Combo
+                visible: !page.todayMode
                 width: parent.width
                 label: qsTr("Second metric")
                 menu: ContextMenu {
@@ -168,6 +218,7 @@ Page {
                         CoverMetric {
                             id: preview1
                             width: parent.width
+                            visible: !page.todayMode
                             profileId: page.profileId
                             metricName: page.metric1
                         }
@@ -175,15 +226,23 @@ Page {
                         CoverMetric {
                             id: preview2
                             width: parent.width
+                            visible: !page.todayMode
                             profileId: page.profileId
                             metricName: page.metric2
+                        }
+
+                        CoverToday {
+                            id: previewToday
+                            width: parent.width
+                            visible: page.todayMode
+                            profileId: page.profileId
                         }
                     }
                 }
 
                 Label {
                     width: parent.width
-                    visible: page.metric1 === page.metric2
+                    visible: !page.todayMode && page.metric1 === page.metric2
                     wrapMode: Text.Wrap
                     text: qsTr("Both slots show the same metric.")
                     font.pixelSize: Theme.fontSizeExtraSmall
@@ -192,7 +251,17 @@ Page {
 
                 Label {
                     width: parent.width
-                    visible: page.waterShown
+                    visible: page.todayMode
+                    wrapMode: Text.Wrap
+                    //: %1 is an amount in millilitres
+                    text: qsTr("One cover action opens the Today page. The other adds %1 ml of water when water is on the list, or a new measurement otherwise.").arg(250)
+                    font.pixelSize: Theme.fontSizeExtraSmall
+                    color: Theme.secondaryColor
+                }
+
+                Label {
+                    width: parent.width
+                    visible: !page.todayMode && page.waterShown
                     wrapMode: Text.Wrap
                     //: %1 is an amount in millilitres
                     text: qsTr("With water on the cover, a cover action adds %1 ml without opening the app.").arg(250)

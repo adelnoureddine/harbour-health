@@ -745,15 +745,46 @@
 <context>
     <name>CoverPage</name>
     <message>
-        <location filename="../qml/cover/CoverPage.qml" line="84"/>
+        <location filename="../qml/cover/CoverPage.qml" line="104"/>
         <source>Health</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/cover/CoverPage.qml" line="84"/>
+        <location filename="../qml/cover/CoverPage.qml" line="104"/>
         <source>Health · %1</source>
         <extracomment>Cover header: the app name and the profile&apos;s first name</extracomment>
         <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>CoverToday</name>
+    <message>
+        <location filename="../qml/components/CoverToday.qml" line="43"/>
+        <source>No daily goals yet</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/components/CoverToday.qml" line="44"/>
+        <source>All done for today</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../qml/components/CoverToday.qml" line="46"/>
+        <source>%n left today</source>
+        <extracomment>Cover: things still to do today</extracomment>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../qml/components/CoverToday.qml" line="96"/>
+        <source>+%n more</source>
+        <extracomment>Cover: open items of the Today list that did not fit</extracomment>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
     </message>
 </context>
 <context>
@@ -1235,117 +1266,117 @@
 <context>
     <name>MainPage</name>
     <message>
-        <location filename="../qml/pages/MainPage.qml" line="245"/>
+        <location filename="../qml/pages/MainPage.qml" line="255"/>
         <source>No profile selected</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MainPage.qml" line="157"/>
+        <location filename="../qml/pages/MainPage.qml" line="167"/>
         <source>About</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MainPage.qml" line="161"/>
+        <location filename="../qml/pages/MainPage.qml" line="171"/>
         <source>Profiles</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MainPage.qml" line="166"/>
+        <location filename="../qml/pages/MainPage.qml" line="176"/>
         <source>Create a new profile</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MainPage.qml" line="171"/>
+        <location filename="../qml/pages/MainPage.qml" line="181"/>
         <source>Backup and restore</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MainPage.qml" line="175"/>
+        <location filename="../qml/pages/MainPage.qml" line="185"/>
         <source>Cover page settings</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MainPage.qml" line="182"/>
+        <location filename="../qml/pages/MainPage.qml" line="192"/>
         <source>Arrange dashboard</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MainPage.qml" line="190"/>
+        <location filename="../qml/pages/MainPage.qml" line="200"/>
         <source>Add measurement</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MainPage.qml" line="269"/>
+        <location filename="../qml/pages/MainPage.qml" line="279"/>
         <source>Getting started</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MainPage.qml" line="276"/>
+        <location filename="../qml/pages/MainPage.qml" line="286"/>
         <source>Pull down and choose Add measurement to log your first reading. Tap a card to see its history, long-press it for quick actions, and use Arrange dashboard to choose what is shown.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MainPage.qml" line="380"/>
+        <location filename="../qml/pages/MainPage.qml" line="392"/>
         <source>Welcome to Health</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MainPage.qml" line="388"/>
+        <location filename="../qml/pages/MainPage.qml" line="400"/>
         <source>A private journal for your health: measurements, conditions, vaccines and more.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MainPage.qml" line="399"/>
+        <location filename="../qml/pages/MainPage.qml" line="411"/>
         <source>Weight, blood pressure, water and more on one dashboard</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MainPage.qml" line="400"/>
+        <location filename="../qml/pages/MainPage.qml" line="412"/>
         <source>See how each measurement changes over time</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MainPage.qml" line="401"/>
+        <location filename="../qml/pages/MainPage.qml" line="413"/>
         <source>No account and no internet: everything stays on this phone</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MainPage.qml" line="439"/>
+        <location filename="../qml/pages/MainPage.qml" line="451"/>
         <source>Create your profile</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MainPage.qml" line="440"/>
+        <location filename="../qml/pages/MainPage.qml" line="452"/>
         <source>Your name and birthday, to get started</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MainPage.qml" line="442"/>
+        <location filename="../qml/pages/MainPage.qml" line="454"/>
         <source>Restore a backup</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MainPage.qml" line="443"/>
+        <location filename="../qml/pages/MainPage.qml" line="455"/>
         <source>Bring back data exported from Health on another phone</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MainPage.qml" line="503"/>
+        <location filename="../qml/pages/MainPage.qml" line="515"/>
         <source>Health is not medical advice and must not be used for diagnosis or treatment decisions.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MainPage.qml" line="513"/>
+        <location filename="../qml/pages/MainPage.qml" line="525"/>
         <source>Pull down and choose Arrange dashboard to pick what to track</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MainPage.qml" line="512"/>
+        <location filename="../qml/pages/MainPage.qml" line="524"/>
         <source>No modules enabled</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MainPage.qml" line="552"/>
+        <location filename="../qml/pages/MainPage.qml" line="564"/>
         <source>Health could not open its database</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1353,60 +1384,70 @@
 <context>
     <name>MeditationMenu</name>
     <message>
-        <location filename="../qml/pages/MeditationMenu.qml" line="78"/>
+        <location filename="../qml/pages/MeditationMenu.qml" line="79"/>
+        <source>Daily goal</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/MeditationMenu.qml" line="83"/>
+        <source>min</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/MeditationMenu.qml" line="87"/>
         <source>History</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MeditationMenu.qml" line="93"/>
+        <location filename="../qml/pages/MeditationMenu.qml" line="102"/>
         <source>Meditation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MeditationMenu.qml" line="118"/>
+        <location filename="../qml/pages/MeditationMenu.qml" line="127"/>
         <source>This week</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MeditationMenu.qml" line="134"/>
+        <location filename="../qml/pages/MeditationMenu.qml" line="143"/>
         <source>Sessions</source>
         <extracomment>Caption over the number of meditation sessions this week</extracomment>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MeditationMenu.qml" line="152"/>
+        <location filename="../qml/pages/MeditationMenu.qml" line="161"/>
         <source>Minutes</source>
         <extracomment>Caption over the meditation minutes this week</extracomment>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MeditationMenu.qml" line="171"/>
+        <location filename="../qml/pages/MeditationMenu.qml" line="180"/>
         <source>Last session: %1 · %2</source>
         <extracomment>%1 is when the latest session was (&quot;Yesterday&quot;, &quot;Today, 07:40&quot;), %2 its length</extracomment>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MeditationMenu.qml" line="183"/>
+        <location filename="../qml/pages/MeditationMenu.qml" line="192"/>
         <source>Recent sessions</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MeditationMenu.qml" line="208"/>
+        <location filename="../qml/pages/MeditationMenu.qml" line="217"/>
         <source>Meditation session</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MeditationMenu.qml" line="230"/>
+        <location filename="../qml/pages/MeditationMenu.qml" line="239"/>
         <source>No sessions yet</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MeditationMenu.qml" line="231"/>
+        <location filename="../qml/pages/MeditationMenu.qml" line="240"/>
         <source>Pull down to start a new session</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MeditationMenu.qml" line="82"/>
+        <location filename="../qml/pages/MeditationMenu.qml" line="91"/>
         <source>New session</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1578,56 +1619,68 @@
 <context>
     <name>MetricChart</name>
     <message>
-        <location filename="../qml/components/MetricChart.qml" line="22"/>
+        <location filename="../qml/components/MetricChart.qml" line="26"/>
         <source>Not enough data yet</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/components/MetricChart.qml" line="70"/>
+        <source>Week of %1</source>
+        <extracomment>Chart readout for a weekly bar; %1 is the week&apos;s first day, e.g. &quot;3 Mar&quot;</extracomment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/components/MetricChart.qml" line="467"/>
+        <source>%1 a day</source>
+        <extracomment>Chart readout for a weekly or monthly bar: the average per day, e.g. &quot;1.8 L a day&quot;</extracomment>
         <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
     <name>MetricDetails</name>
     <message>
-        <location filename="../qml/pages/MetricDetails.qml" line="161"/>
+        <location filename="../qml/pages/MetricDetails.qml" line="187"/>
         <source>Today</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MetricDetails.qml" line="163"/>
+        <location filename="../qml/pages/MetricDetails.qml" line="189"/>
         <source>Goal %1</source>
         <extracomment>Daily goal under today&apos;s total, e.g. &quot;Goal 2 L&quot;</extracomment>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MetricDetails.qml" line="179"/>
+        <location filename="../qml/pages/MetricDetails.qml" line="205"/>
         <source>No data in this period</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MetricDetails.qml" line="205"/>
+        <location filename="../qml/pages/MetricDetails.qml" line="235"/>
         <source>Reference ranges</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MetricDetails.qml" line="212"/>
+        <location filename="../qml/pages/MetricDetails.qml" line="242"/>
         <source>Add entry</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MetricDetails.qml" line="257"/>
+        <location filename="../qml/pages/MetricDetails.qml" line="287"/>
         <source>Edit</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MetricDetails.qml" line="267"/>
+        <location filename="../qml/pages/MetricDetails.qml" line="297"/>
         <source>Delete</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MetricDetails.qml" line="315"/>
+        <location filename="../qml/pages/MetricDetails.qml" line="345"/>
         <source>No data points recorded</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MetricDetails.qml" line="316"/>
+        <location filename="../qml/pages/MetricDetails.qml" line="346"/>
         <source>Pull down to add the first entry</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1841,6 +1894,93 @@
     <message>
         <location filename="../qml/components/SummaryRow.qml" line="67"/>
         <source>next one due</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/components/SummaryRow.qml" line="76"/>
+        <source>No daily goals yet</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/components/SummaryRow.qml" line="79"/>
+        <source>All done for today</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../qml/components/SummaryRow.qml" line="83"/>
+        <source>%n left</source>
+        <extracomment>Things still to do today on the dashboard</extracomment>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+</context>
+<context>
+    <name>TodayPage</name>
+    <message>
+        <location filename="../qml/pages/TodayPage.qml" line="76"/>
+        <source>min</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/TodayPage.qml" line="90"/>
+        <source>Today</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../qml/pages/TodayPage.qml" line="100"/>
+        <source>%n left for today</source>
+        <extracomment>Things still to do today, at the top of the Today page</extracomment>
+        <translation type="unfinished">
+            <numerusform></numerusform>
+            <numerusform></numerusform>
+        </translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/TodayPage.qml" line="100"/>
+        <source>All done for today</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/TodayPage.qml" line="113"/>
+        <source>Done</source>
+        <extracomment>Today page sections: what is still open, and what is done</extracomment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/TodayPage.qml" line="113"/>
+        <source>To do</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/TodayPage.qml" line="127"/>
+        <source>Add entry</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/TodayPage.qml" line="137"/>
+        <source>New session</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/TodayPage.qml" line="144"/>
+        <source>Log intake</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/TodayPage.qml" line="149"/>
+        <source>Daily goal</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/TodayPage.qml" line="208"/>
+        <source>Nothing to track today</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/TodayPage.qml" line="209"/>
+        <source>Daily goals for water, calories eaten and burned, a meditation goal and the medications you are on show up here</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -2193,61 +2333,84 @@
 <context>
     <name>coverSettings</name>
     <message>
-        <location filename="../qml/pages/coverSettings.qml" line="27"/>
+        <location filename="../qml/pages/coverSettings.qml" line="56"/>
         <source>Blood pressure, systolic</source>
         <extracomment>Cover metric choice: the upper blood pressure value</extracomment>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/coverSettings.qml" line="31"/>
+        <location filename="../qml/pages/coverSettings.qml" line="60"/>
         <source>Blood pressure, diastolic</source>
         <extracomment>Cover metric choice: the lower blood pressure value</extracomment>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/coverSettings.qml" line="84"/>
+        <location filename="../qml/pages/coverSettings.qml" line="113"/>
         <source>Cover page settings</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/coverSettings.qml" line="89"/>
+        <location filename="../qml/pages/coverSettings.qml" line="121"/>
+        <source>Cover shows</source>
+        <extracomment>Cover page settings: what the cover shows</extracomment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/coverSettings.qml" line="124"/>
+        <source>Two metrics</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/coverSettings.qml" line="129"/>
+        <source>Today&apos;s to-do list</source>
+        <extracomment>Cover page setting: the cover shows what is left to do today</extracomment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/coverSettings.qml" line="137"/>
         <source>Metrics to display</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/coverSettings.qml" line="95"/>
+        <location filename="../qml/pages/coverSettings.qml" line="144"/>
         <source>First metric</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/coverSettings.qml" line="114"/>
+        <location filename="../qml/pages/coverSettings.qml" line="164"/>
         <source>Second metric</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/coverSettings.qml" line="131"/>
+        <location filename="../qml/pages/coverSettings.qml" line="181"/>
         <source>Preview</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/coverSettings.qml" line="163"/>
+        <location filename="../qml/pages/coverSettings.qml" line="213"/>
         <source>Health · %1</source>
         <extracomment>Cover header: the app name and the profile&apos;s first name</extracomment>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/coverSettings.qml" line="163"/>
+        <location filename="../qml/pages/coverSettings.qml" line="213"/>
         <source>Health</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/coverSettings.qml" line="198"/>
+        <location filename="../qml/pages/coverSettings.qml" line="257"/>
+        <source>One cover action opens the Today page. The other adds %1 ml of water when water is on the list, or a new measurement otherwise.</source>
+        <extracomment>%1 is an amount in millilitres</extracomment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/coverSettings.qml" line="267"/>
         <source>With water on the cover, a cover action adds %1 ml without opening the app.</source>
         <extracomment>%1 is an amount in millilitres</extracomment>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/coverSettings.qml" line="188"/>
+        <location filename="../qml/pages/coverSettings.qml" line="247"/>
         <source>Both slots show the same metric.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2511,41 +2674,51 @@
 <context>
     <name>moduleSettings</name>
     <message>
-        <location filename="../qml/pages/moduleSettings.qml" line="45"/>
+        <location filename="../qml/pages/moduleSettings.qml" line="49"/>
         <source>Arrange dashboard</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/moduleSettings.qml" line="46"/>
+        <location filename="../qml/pages/moduleSettings.qml" line="50"/>
         <source>Order the cards and choose which are shown</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/moduleSettings.qml" line="51"/>
+        <location filename="../qml/pages/moduleSettings.qml" line="57"/>
+        <source>Long-press a card to move it straight to the top.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/moduleSettings.qml" line="67"/>
         <source>Reset to default order</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/moduleSettings.qml" line="52"/>
+        <location filename="../qml/pages/moduleSettings.qml" line="68"/>
         <source>Resetting order</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/moduleSettings.qml" line="101"/>
+        <source>Move to top</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
     <name>pickMeasurement</name>
     <message>
-        <location filename="../qml/pages/pickMeasurement.qml" line="155"/>
+        <location filename="../qml/pages/pickMeasurement.qml" line="156"/>
         <source>Add measurement</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/pickMeasurement.qml" line="161"/>
+        <location filename="../qml/pages/pickMeasurement.qml" line="162"/>
         <source>Recent</source>
         <extracomment>Section of the Add measurement picker: the types logged most recently</extracomment>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/pickMeasurement.qml" line="229"/>
+        <location filename="../qml/pages/pickMeasurement.qml" line="230"/>
         <source>Everything</source>
         <extracomment>Section of the Add measurement picker that lists every measurement type</extracomment>
         <translation type="unfinished"></translation>
@@ -2554,38 +2727,44 @@
 <context>
     <name>setGoal</name>
     <message>
-        <location filename="../qml/pages/setGoal.qml" line="31"/>
+        <location filename="../qml/pages/setGoal.qml" line="37"/>
         <source>Your daily average over the last 30 days: %1</source>
         <extracomment>Under the goal field; %1 is an amount with its unit, e.g. &quot;1.6 L&quot;</extracomment>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/setGoal.qml" line="46"/>
+        <location filename="../qml/pages/setGoal.qml" line="52"/>
         <source>Daily goal</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/setGoal.qml" line="47"/>
+        <location filename="../qml/pages/setGoal.qml" line="53"/>
         <source>Save</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/setGoal.qml" line="66"/>
+        <location filename="../qml/pages/setGoal.qml" line="72"/>
         <source>Goal per day (%1)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/setGoal.qml" line="66"/>
+        <location filename="../qml/pages/setGoal.qml" line="72"/>
         <source>Goal per day</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/setGoal.qml" line="92"/>
+        <location filename="../qml/pages/setGoal.qml" line="98"/>
         <source>The goal must be more than zero.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/setGoal.qml" line="105"/>
+        <location filename="../qml/pages/setGoal.qml" line="112"/>
+        <source>Shown on the Today page. A new day starts at %1.</source>
+        <extracomment>%1 is the time a new day starts, e.g. &quot;04:00&quot; or &quot;4:00 AM&quot;</extracomment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/setGoal.qml" line="115"/>
         <source>Shown as a ring on the dashboard. The day&apos;s total starts again at %1.</source>
         <extracomment>%1 is the time the day&apos;s total resets, e.g. &quot;04:00&quot; or &quot;4:00 AM&quot;</extracomment>
         <translation type="unfinished"></translation>
@@ -2594,238 +2773,294 @@
 <context>
     <name>utils</name>
     <message>
-        <location filename="../qml/js/utils.js" line="173"/>
-        <location filename="../qml/js/utils.js" line="211"/>
+        <location filename="../qml/js/utils.js" line="174"/>
+        <location filename="../qml/js/utils.js" line="217"/>
         <source>Weight</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="174"/>
-        <location filename="../qml/js/utils.js" line="212"/>
+        <location filename="../qml/js/utils.js" line="175"/>
+        <location filename="../qml/js/utils.js" line="218"/>
         <source>Height</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="175"/>
-        <location filename="../qml/js/utils.js" line="215"/>
+        <location filename="../qml/js/utils.js" line="176"/>
+        <location filename="../qml/js/utils.js" line="223"/>
         <source>Water</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="176"/>
-        <location filename="../qml/js/utils.js" line="214"/>
-        <source>Calories</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../qml/js/utils.js" line="177"/>
-        <location filename="../qml/js/utils.js" line="216"/>
+        <location filename="../qml/js/utils.js" line="181"/>
+        <location filename="../qml/js/utils.js" line="224"/>
         <source>Heart rate</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="178"/>
+        <location filename="../qml/js/utils.js" line="182"/>
         <source>Systolic</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="179"/>
+        <location filename="../qml/js/utils.js" line="183"/>
         <source>Diastolic</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="180"/>
-        <location filename="../qml/js/utils.js" line="218"/>
+        <location filename="../qml/js/utils.js" line="184"/>
+        <location filename="../qml/js/utils.js" line="226"/>
         <source>Glucose</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="181"/>
-        <location filename="../qml/js/utils.js" line="223"/>
+        <location filename="../qml/js/utils.js" line="185"/>
+        <location filename="../qml/js/utils.js" line="231"/>
         <source>Waist</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="183"/>
-        <location filename="../qml/js/utils.js" line="213"/>
+        <location filename="../qml/js/utils.js" line="187"/>
+        <location filename="../qml/js/utils.js" line="219"/>
         <source>BMI</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="185"/>
-        <location filename="../qml/js/utils.js" line="224"/>
+        <location filename="../qml/js/utils.js" line="189"/>
+        <location filename="../qml/js/utils.js" line="232"/>
         <source>Waist-to-height ratio</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="186"/>
-        <location filename="../qml/js/utils.js" line="217"/>
+        <location filename="../qml/js/utils.js" line="190"/>
+        <location filename="../qml/js/utils.js" line="225"/>
         <source>Blood pressure</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="198"/>
+        <location filename="../qml/js/utils.js" line="202"/>
         <source>Measure midway between your lowest rib and the top of your hip bone, after breathing out normally. Use the same spot every time.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="219"/>
+        <location filename="../qml/js/utils.js" line="227"/>
         <source>Health condition</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="220"/>
+        <location filename="../qml/js/utils.js" line="228"/>
         <source>Vaccination</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="221"/>
+        <location filename="../qml/js/utils.js" line="180"/>
+        <location filename="../qml/js/utils.js" line="229"/>
+        <location filename="../qml/js/utils.js" line="590"/>
         <source>Meditation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="222"/>
+        <location filename="../qml/js/utils.js" line="178"/>
+        <location filename="../qml/js/utils.js" line="220"/>
+        <source>Calories eaten</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/js/utils.js" line="179"/>
+        <source>Calories burned</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/js/utils.js" line="204"/>
+        <source>Write what you did in the note, for example &quot;Cycling, 45 min&quot;.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/js/utils.js" line="221"/>
+        <source>Activity</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/js/utils.js" line="230"/>
         <source>Menstruation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="235"/>
+        <location filename="../qml/js/utils.js" line="243"/>
         <source>Underweight</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="236"/>
-        <location filename="../qml/js/utils.js" line="286"/>
+        <location filename="../qml/js/utils.js" line="244"/>
+        <location filename="../qml/js/utils.js" line="294"/>
         <source>Normal</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="237"/>
+        <location filename="../qml/js/utils.js" line="245"/>
         <source>Overweight</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="238"/>
+        <location filename="../qml/js/utils.js" line="246"/>
         <source>Obese</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="239"/>
-        <location filename="../qml/js/utils.js" line="285"/>
+        <location filename="../qml/js/utils.js" line="247"/>
+        <location filename="../qml/js/utils.js" line="293"/>
         <source>Low</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="240"/>
+        <location filename="../qml/js/utils.js" line="248"/>
         <source>Elevated</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="241"/>
-        <location filename="../qml/js/utils.js" line="287"/>
+        <location filename="../qml/js/utils.js" line="249"/>
+        <location filename="../qml/js/utils.js" line="295"/>
         <source>High</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="242"/>
+        <location filename="../qml/js/utils.js" line="250"/>
         <source>Below 0.5</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="243"/>
+        <location filename="../qml/js/utils.js" line="251"/>
         <source>0.5 to 0.6</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="244"/>
+        <location filename="../qml/js/utils.js" line="252"/>
         <source>0.6 and above</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="253"/>
+        <location filename="../qml/js/utils.js" line="261"/>
         <source>Active</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="254"/>
+        <location filename="../qml/js/utils.js" line="262"/>
         <source>Chronic</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="255"/>
+        <location filename="../qml/js/utils.js" line="263"/>
         <source>Recovered</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="263"/>
-        <location filename="../qml/js/utils.js" line="274"/>
+        <location filename="../qml/js/utils.js" line="271"/>
+        <location filename="../qml/js/utils.js" line="282"/>
         <source>None</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="264"/>
+        <location filename="../qml/js/utils.js" line="272"/>
         <source>Spotting</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="265"/>
+        <location filename="../qml/js/utils.js" line="273"/>
         <source>Light</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="266"/>
+        <location filename="../qml/js/utils.js" line="274"/>
         <source>Medium</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="267"/>
+        <location filename="../qml/js/utils.js" line="275"/>
         <source>Heavy</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="275"/>
+        <location filename="../qml/js/utils.js" line="283"/>
         <source>Mild</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="276"/>
+        <location filename="../qml/js/utils.js" line="284"/>
         <source>Moderate</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="277"/>
+        <location filename="../qml/js/utils.js" line="285"/>
         <source>Severe</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="284"/>
+        <location filename="../qml/js/utils.js" line="292"/>
         <source>Exhausted</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="288"/>
+        <location filename="../qml/js/utils.js" line="296"/>
         <source>Peak</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="337"/>
+        <location filename="../qml/js/utils.js" line="348"/>
         <source>Today, %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="337"/>
-        <location filename="../qml/js/utils.js" line="385"/>
+        <location filename="../qml/js/utils.js" line="602"/>
+        <source>%1 of %2 min</source>
+        <extracomment>Minutes meditated today against the daily goal, e.g. &quot;5 of 10 min&quot;</extracomment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/js/utils.js" line="606"/>
+        <source>%1 of %2</source>
+        <extracomment>Today&apos;s total against its daily goal, e.g. &quot;1.2 of 2 L&quot;</extracomment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../qml/js/utils.js" line="617"/>
+        <source>%n min</source>
+        <extracomment>Minutes still to meditate today</extracomment>
+        <translation type="unfinished">
+            <numerusform>%n min</numerusform>
+            <numerusform>%n min</numerusform>
+        </translation>
+    </message>
+    <message>
+        <location filename="../qml/js/utils.js" line="627"/>
+        <source>Done</source>
+        <extracomment>A daily goal or medication of the Today list that is done for today</extracomment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/js/utils.js" line="630"/>
+        <source>Not taken yet</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/js/utils.js" line="633"/>
+        <source>%1 left</source>
+        <extracomment>Amount still to reach today&apos;s goal, e.g. &quot;0.8 L left&quot;</extracomment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/js/utils.js" line="222"/>
+        <location filename="../qml/js/utils.js" line="348"/>
+        <location filename="../qml/js/utils.js" line="396"/>
         <source>Today</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="340"/>
-        <location filename="../qml/js/utils.js" line="388"/>
+        <location filename="../qml/js/utils.js" line="351"/>
+        <location filename="../qml/js/utils.js" line="399"/>
         <source>Yesterday</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location filename="../qml/js/utils.js" line="343"/>
+        <location filename="../qml/js/utils.js" line="354"/>
         <source>%n day(s) ago</source>
         <translation>
             <numerusform>%n day ago</numerusform>
@@ -2833,17 +3068,17 @@
         </translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="359"/>
+        <location filename="../qml/js/utils.js" line="370"/>
         <source>Measured today</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="362"/>
+        <location filename="../qml/js/utils.js" line="373"/>
         <source>Measured yesterday</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location filename="../qml/js/utils.js" line="365"/>
+        <location filename="../qml/js/utils.js" line="376"/>
         <source>Measured %n day(s) ago</source>
         <translation>
             <numerusform>Measured %n day ago</numerusform>
@@ -2851,40 +3086,40 @@
         </translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="368"/>
+        <location filename="../qml/js/utils.js" line="379"/>
         <source>Measured %1</source>
         <extracomment>%1 is a date, e.g. &quot;Measured 17 Aug&quot;</extracomment>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="396"/>
+        <location filename="../qml/js/utils.js" line="407"/>
         <source>Female</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="397"/>
+        <location filename="../qml/js/utils.js" line="408"/>
         <source>Male</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="398"/>
+        <location filename="../qml/js/utils.js" line="409"/>
         <source>Other</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="434"/>
+        <location filename="../qml/js/utils.js" line="445"/>
         <source>%1 since %2</source>
         <extracomment>Change of a measurement over the chart period, e.g. &quot;−0.8 kg since 9 Oct&quot;</extracomment>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="450"/>
+        <location filename="../qml/js/utils.js" line="461"/>
         <source>Last: %1, %2</source>
         <extracomment>The previous reading of a measurement: %1 is the value with its unit, %2 its date</extracomment>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location filename="../qml/js/utils.js" line="478"/>
+        <location filename="../qml/js/utils.js" line="489"/>
         <source>%n year(s)</source>
         <extracomment>A profile&apos;s age</extracomment>
         <translation>
@@ -2893,48 +3128,48 @@
         </translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="509"/>
+        <location filename="../qml/js/utils.js" line="520"/>
         <source>%1 to %2</source>
         <extracomment>Period of a health condition or treatment: start date to end date</extracomment>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="513"/>
+        <location filename="../qml/js/utils.js" line="524"/>
         <source>Since %1</source>
         <extracomment>Start of an ongoing health condition or treatment; %1 is a date</extracomment>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="517"/>
+        <location filename="../qml/js/utils.js" line="528"/>
         <source>Until %1</source>
         <extracomment>End of a health condition or treatment without a start date; %1 is a date</extracomment>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="544"/>
+        <location filename="../qml/js/utils.js" line="555"/>
         <source>%1 s</source>
         <extracomment>Meditation session length under a minute, in seconds</extracomment>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="549"/>
+        <location filename="../qml/js/utils.js" line="560"/>
         <source>%1 min</source>
         <extracomment>Meditation session length in whole minutes</extracomment>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="551"/>
+        <location filename="../qml/js/utils.js" line="562"/>
         <source>%1 min %2 s</source>
         <extracomment>Meditation session length, minutes and seconds</extracomment>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/js/utils.js" line="562"/>
+        <location filename="../qml/js/utils.js" line="573"/>
         <source>Not taken today</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location filename="../qml/js/utils.js" line="565"/>
+        <location filename="../qml/js/utils.js" line="576"/>
         <source>Taken %n time(s) today, last at %1</source>
         <extracomment>Medication intakes logged today; %1 is the time of the latest one</extracomment>
         <translation>

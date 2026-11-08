@@ -5,8 +5,9 @@ import "../js/utils.js" as Utils
 
 /*
  * Arrange dashboard: every card in the order the dashboard shows it, with a switch to
- * show or hide it and buttons to move it. The order is saved per profile as soon as
- * a card moves.
+ * show or hide it and buttons to move it. Long-pressing a card offers moving it to the
+ * top in one go, rather than a step at a time. The order is saved per profile as soon
+ * as a card moves.
  */
 Page {
     id: root
@@ -40,10 +41,25 @@ Page {
         anchors.fill: parent
         model: modelModules
 
-        header: PageHeader {
+        header: Column {
             width: listView.width
-            title: qsTr("Arrange dashboard")
-            description: qsTr("Order the cards and choose which are shown")
+            spacing: Theme.paddingSmall
+
+            PageHeader {
+                title: qsTr("Arrange dashboard")
+                description: qsTr("Order the cards and choose which are shown")
+            }
+
+            Label {
+                x: Theme.horizontalPageMargin
+                width: parent.width - 2 * Theme.horizontalPageMargin
+                wrapMode: Text.Wrap
+                text: qsTr("Long-press a card to move it straight to the top.")
+                font.pixelSize: Theme.fontSizeExtraSmall
+                color: Theme.secondaryHighlightColor
+            }
+
+            Item { width: 1; height: Theme.paddingMedium }
         }
 
         PullDownMenu {
@@ -63,10 +79,31 @@ Page {
             NumberAnimation { properties: "y"; duration: 150; easing.type: Easing.InOutQuad }
         }
 
-        delegate: Item {
+        delegate: ListItem {
             id: row
             width: listView.width
-            height: Math.max(Theme.itemSizeMedium, moduleSwitch.height)
+            contentHeight: Math.max(Theme.itemSizeMedium, moduleSwitch.height)
+
+            // Set from the menu and acted on once it has closed: moving the row while
+            // its menu is still open would move the open menu along with it.
+            property bool toTop: false
+
+            menu: Component {
+                ContextMenu {
+                    onClosed: {
+                        if (row.toTop) {
+                            row.toTop = false;
+                            root.move(index, 0);
+                            listView.positionViewAtBeginning();
+                        }
+                    }
+                    MenuItem {
+                        text: qsTr("Move to top")
+                        enabled: index > 0
+                        onClicked: row.toTop = true
+                    }
+                }
+            }
 
             /*
              * automaticCheck/onClicked rather than onCheckedChanged: the latter also fired
@@ -82,6 +119,8 @@ Page {
                 text: Utils.moduleDisplayName(model.name)
                 checked: model.is_on
                 automaticCheck: false
+                // The switch covers most of the row, so it opens the row's menu itself.
+                onPressAndHold: row.openMenu()
 
                 onClicked: {
                     var enabled = !checked;

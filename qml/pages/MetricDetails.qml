@@ -50,10 +50,32 @@ Page {
     property bool loaded: false
     readonly property bool hasData: !loaded || listModel.count > 0
 
+    // How long one bar of a daily total is: "day", "week" or "month" (see refreshChart).
+    property string bucket: "day"
+
+    /*
+     * Daily totals are bars. Up to three months that is a bar a day; a year is a bar a
+     * week; "All" depends on how far back the history goes, so a few weeks of water are
+     * still days and five years are months -- never more than about a hundred bars.
+     */
+    function bucketFor() {
+        if (!page.grouped || (rangeDays > 0 && rangeDays <= 90)) {
+            return "day";
+        }
+        if (rangeDays > 0) {
+            return "week";
+        }
+        var first = DataManager.getFirstLogTimestamp(profileId, metricName);
+        var days = first ? (Date.now() - DataManager.timestampToMs(first)) / 86400000 : 0;
+        return days <= 90 ? "day" : (days <= 730 ? "week" : "month");
+    }
+
     // Long windows are averaged per day so the canvas never plots thousands of points.
     function seriesMode() {
         if (page.grouped) {
-            return DataManager.SERIES_DAILY_SUM;
+            return page.bucket === "week" ? DataManager.SERIES_WEEKLY
+                 : page.bucket === "month" ? DataManager.SERIES_MONTHLY
+                 : DataManager.SERIES_DAILY_SUM;
         }
         return (rangeDays === 0 || rangeDays > 90) ? DataManager.SERIES_DAILY_AVG
                                                    : DataManager.SERIES_RAW;
@@ -64,6 +86,7 @@ Page {
         if (profileId < 0) {
             return;
         }
+        bucket = bucketFor();
         var mode = seriesMode();
         var since = DataManager.sinceForDays(rangeDays, mode !== DataManager.SERIES_RAW);
         var points = DataManager.getSeries(profileId, metricName, since, mode);
@@ -75,7 +98,10 @@ Page {
         // "−0.8 kg since 9 Oct" over the chart's range. It only means something for
         // single readings, not for daily totals.
         changeText = page.grouped ? "" : Utils.changeSinceText(points, page.metricUnit, page.decimals);
-        chartStats = DataManager.getSeriesStats(profileId, metricName, since, mode);
+        // Statistics of a daily total stay per day whatever the bars are: the average
+        // day, the best and the lowest.
+        chartStats = DataManager.getSeriesStats(profileId, metricName, since,
+                                                page.grouped ? DataManager.SERIES_DAILY_SUM : mode);
         chartBands = DataManager.getConstraintsForMetric(metricName);
     }
 
@@ -177,6 +203,10 @@ Page {
                 unit: page.metricUnit
                 decimals: page.decimals
                 emptyText: qsTr("No data in this period")
+                // Daily totals add up, so they are bars; readings stay a line.
+                bars: page.grouped
+                bucket: page.bucket
+                averageValue: page.grouped && page.chartStats ? page.chartStats.avg : null
             }
 
             ChartRangeSelector {

@@ -4,9 +4,9 @@ import "../js/DataManager.js" as DataManager
 import "../js/utils.js" as Utils
 
 /*
- * Dashboard row for a module that is a page of its own (conditions, vaccines,
- * meditation, cycle). It used to be a tile with only an icon and a name; the second
- * line now says where things stand.
+ * Dashboard row for a module that is a page of its own (today's list, conditions,
+ * vaccines, meditation, cycle). It used to be a tile with only an icon and a name; the
+ * second line now says where things stand.
  */
 ListItem {
     id: row
@@ -69,11 +69,26 @@ ListItem {
         return text;
     }
 
+    // "2 left · Water 0.8 L left": how much of the day's list is open, and the first of it.
+    function todayStatus() {
+        var plan = DataManager.getTodayPlan(profileId);
+        if (plan.items.length === 0) {
+            return qsTr("No daily goals yet");
+        }
+        if (plan.left === 0) {
+            return qsTr("All done for today");
+        }
+        var next = plan.items[0];
+        //: Things still to do today on the dashboard
+        return qsTr("%n left", "", plan.left) + " · " + Utils.todayItemTitle(next) + " " + Utils.todayItemLeft(next);
+    }
+
     function refresh() {
         if (profileId < 0) {
             return;
         }
         switch (moduleName) {
+        case DataManager.MODULE_TODAY:        status = todayStatus(); break;
         case DataManager.MODULE_CONDITION:    status = conditionStatus(); break;
         case DataManager.MODULE_VACCINATION:  status = vaccineStatus(); break;
         case DataManager.MODULE_MEDITATION:   status = meditationStatus(); break;

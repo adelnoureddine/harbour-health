@@ -25,12 +25,14 @@ HEADERS += \
     src/filewriter.h
 
 TRANSLATIONS += \
-    translations/harbour-health.ts
+    translations/harbour-health.ts \
+    translations/harbour-health-sv.ts
 
 DISTFILES += \
     qml/harbour-health.qml \
     qml/cover/CoverPage.qml \
     qml/components/ChartRangeSelector.qml \
+    qml/components/CoverToday.qml \
     qml/components/ChartStats.qml \
     qml/components/MetricChart.qml \
     qml/components/Card.qml \
@@ -82,6 +84,7 @@ DISTFILES += \
     qml/pages/moduleSettings.qml \
     qml/pages/pickMeasurement.qml \
     qml/pages/setGoal.qml \
+    qml/pages/TodayPage.qml \
     rpm/harbour-health.changes.in \
     rpm/harbour-health.changes.run.in \
     rpm/harbour-health.spec \
@@ -116,6 +119,9 @@ DISTFILES += \
     qml/icons/lock.svg \
     qml/icons/trend.svg \
     qml/icons/profile-add.svg \
-    qml/icons/restore.svg
+    qml/icons/restore.svg \
+    qml/icons/activity.svg \
+    qml/icons/today.svg \
+    qml/icons/cover-today.svg
 
 SAILFISHAPP_ICONS = 86x86 108x108 128x128 172x172

@@ -38,7 +38,8 @@ Page {
     // Body, then intake, then blood, as on the dashboard. Anything else follows by name.
     readonly property var typeOrder: [DataManager.METRIC_WEIGHT, DataManager.METRIC_HEIGHT,
                                       DataManager.METRIC_WAIST, DataManager.METRIC_WATER,
-                                      DataManager.METRIC_CALORIES, DataManager.METRIC_HEARTRATE,
+                                      DataManager.METRIC_CALORIES, DataManager.METRIC_CALORIES_BURNED,
+                                      DataManager.METRIC_HEARTRATE,
                                       bpKey, DataManager.METRIC_GLUCOSE]
 
     function iconSource(name) {

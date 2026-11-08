@@ -14,6 +14,9 @@ var CATEGORY_BODY = "Body";
 var CATEGORY_NUTRITION = "Nutrition";
 var CATEGORY_BLOOD = "Blood";
 var CATEGORY_OTHER = "Other";
+// The day's to-do list, first on the dashboard; activity sits after nutrition.
+var CATEGORY_DAILY = "Daily";
+var CATEGORY_ACTIVITY = "Activity";
 
 // Metrics
 var METRIC_WEIGHT = "weight";
@@ -25,6 +28,9 @@ var METRIC_BP_SYS = "systolic blood pressure";
 var METRIC_BP_DIA = "diastolic blood pressure";
 var METRIC_GLUCOSE = "glucose";
 var METRIC_WAIST = "waist";
+// Energy spent on sports and activities. Its own metric: calories eaten and burned
+// each add up per day, and one metric holding both would break the ring and the totals.
+var METRIC_CALORIES_BURNED = "calories burned";
 
 // Modules
 var MODULE_WEIGHT = "Weight";
@@ -41,6 +47,8 @@ var MODULE_MEDITATION = "Meditation";
 var MODULE_MENSTRUATION = "Menstruation";
 var MODULE_WAIST = "Waist";
 var MODULE_WHTR = "WHtR";
+var MODULE_ACTIVITY = "Activity";
+var MODULE_TODAY = "Today";
 
 // Module Types
 var MODULE_TYPE_METRIC = "Metric";
@@ -67,7 +75,8 @@ var DEFAULT_METRICS = [
     [METRIC_BP_SYS, "mmHg", false, CATEGORY_BLOOD],
     [METRIC_BP_DIA, "mmHg", false, CATEGORY_BLOOD],
     [METRIC_GLUCOSE, "mg/dL", false, CATEGORY_BLOOD],
-    [METRIC_WAIST, "cm", false, CATEGORY_BODY]
+    [METRIC_WAIST, "cm", false, CATEGORY_BODY],
+    [METRIC_CALORIES_BURNED, "kcal", true, CATEGORY_ACTIVITY]
 ];
 
 // [name, type, uses, bydefault, category, icon]
@@ -85,7 +94,10 @@ var DEFAULT_MODULES = [
     [MODULE_MEDITATION, MODULE_TYPE_SUMMARY, "MeditationMenu", true, CATEGORY_OTHER, "meditation.png"],
     [MODULE_MENSTRUATION, MODULE_TYPE_SUMMARY, "Menstruation", true, CATEGORY_OTHER, "calendar-heart.png"],
     [MODULE_WAIST, MODULE_TYPE_METRIC, METRIC_WAIST, true, CATEGORY_BODY, "waist.svg"],
-    [MODULE_WHTR, MODULE_TYPE_CALC, CALC_WHTR, true, CATEGORY_BODY, "whtr.svg"]
+    [MODULE_WHTR, MODULE_TYPE_CALC, CALC_WHTR, true, CATEGORY_BODY, "whtr.svg"],
+    [MODULE_ACTIVITY, MODULE_TYPE_METRIC, METRIC_CALORIES_BURNED, true, CATEGORY_ACTIVITY, "activity.svg"],
+    // `uses` is the page a summary row opens (pages/TodayPage.qml).
+    [MODULE_TODAY, MODULE_TYPE_SUMMARY, "TodayPage", true, CATEGORY_DAILY, "today.svg"]
 ];
 
 // local time day border -> 04:00:00
@@ -95,6 +107,10 @@ var DAY_START_TIME = "04:00:00";
 var SERIES_RAW = "raw";
 var SERIES_DAILY_SUM = "dailySum";
 var SERIES_DAILY_AVG = "dailyAvg";
+// Daily totals averaged per week (Monday first) or per calendar month: one bar per
+// week or month on long ranges, still in "per day" units like the goal and the stats.
+var SERIES_WEEKLY = "weekly";
+var SERIES_MONTHLY = "monthly";
 
 // Every profile-owned table. Used by deleteProfile() so the cascade cannot drift.
 var PROFILE_TABLES = ["HealthLogs", "Injections", "Treatments", "HealthConditions",
@@ -113,6 +129,15 @@ var ALL_TABLES = ["Profiles", "Metrics", "Modules", "ProfileModules", "MetricCon
 var DEFAULT_GOALS = {};
 DEFAULT_GOALS[METRIC_WATER] = 2;
 DEFAULT_GOALS[METRIC_CALORIES] = 2000;
+DEFAULT_GOALS[METRIC_CALORIES_BURNED] = 300;
+
+// Goals key for the daily meditation goal, in minutes. No default: it is only on the
+// Today page once the user sets one.
+var GOAL_MEDITATION = "meditation";
+
+// Stored in Profiles.coverMetric1 when the cover shows the day's to-do list instead of
+// two metrics. No metric has this name.
+var COVER_TODAY = "today";
 
 /*
  * openDatabaseSync() was previously called afresh by every single function. Returning
@@ -172,6 +197,20 @@ function dayStart(date) {
         start.setDate(start.getDate() - 1);
     }
     return start;
+}
+
+/*
+ * Today, with the DAY_START_TIME border, as the stored-string bounds [start, end) a
+ * timestamp column is compared against. Every "today" -- daily totals, medication
+ * intakes, meditation -- uses it, so they all start a new day at the same moment.
+ * Bound as stored strings: SQLite's datetime() writes a space where the stored values
+ * have a "T", and the space sorts first.
+ */
+function _todayRange() {
+    var start = dayStart();
+    var end = new Date(start.getTime());
+    end.setDate(end.getDate() + 1);
+    return [toTimestamp(start), toTimestamp(end)];
 }
 
 /*
@@ -537,6 +576,11 @@ function updateProfile(id, firstName, lastName, gender, birthDate) {
     });
 }
 
+/*
+ * The profile's cover choice: {metric1, metric2}. metric1 is COVER_TODAY when the
+ * cover shows the day's to-do list; metric2 then keeps the second metric for when the
+ * cover goes back to two metrics.
+ */
 function getCoverMetrics(profileId) {
     var metrics = { metric1: METRIC_WEIGHT, metric2: METRIC_WATER };
     db().transaction(function (tx) {
@@ -815,15 +859,11 @@ function getTrend(profileId, metricName) {
  */
 function getTodayTotal(profileId, metricName) {
     var value = null;
-    var start = dayStart();
-    var end = new Date(start.getTime());
-    end.setDate(end.getDate() + 1);
+    var today = _todayRange();
     db().transaction(function (tx) {
-        // Bound as stored strings: SQLite's datetime() writes a space where the stored
-        // values have a "T", and the space sorts first.
         var rs = tx.executeSql('SELECT SUM(value) AS total FROM HealthLogs WHERE profileId=? AND metricId=' +
             METRIC_ID + ' AND timestamp >= ? AND timestamp < ?',
-            [profileId, metricName, toTimestamp(start), toTimestamp(end)]);
+            [profileId, metricName, today[0], today[1]]);
         if (rs.rows.length > 0) {
             value = rs.rows.item(0).total;
         }
@@ -911,6 +951,12 @@ function getLogsAscending(profileId, metricName, sinceIso) {
  * mode is SERIES_RAW (every reading), SERIES_DAILY_SUM (grouped metrics such as water
  * and calories -- same 04:00 day border the dashboard uses) or SERIES_DAILY_AVG
  * (long ranges, so the canvas never has to plot thousands of points).
+ *
+ * SERIES_WEEKLY and SERIES_MONTHLY are for grouped metrics over long ranges: the daily
+ * totals averaged over the days logged in each week (Monday first) or month, so a year
+ * is 53 bars rather than 365. An average and not a sum, so the bars read against the
+ * daily goal and the per-day statistics, and a week only partly in the range, or with
+ * days nothing was logged, is not drawn as a low week. t is the period's first day.
  */
 function getSeries(profileId, metricName, sinceIso, mode) {
     var points = [];
@@ -920,7 +966,26 @@ function getSeries(profileId, metricName, sinceIso, mode) {
         var rs;
         var i;
 
-        if (mode === SERIES_DAILY_SUM || mode === SERIES_DAILY_AVG) {
+        if (mode === SERIES_WEEKLY || mode === SERIES_MONTHLY) {
+            // 'weekday 0' moves to the coming Sunday (a Sunday stays put); six days
+            // back from it is that week's Monday.
+            var period = (mode === SERIES_WEEKLY) ? "DATE(day, 'weekday 0', '-6 days')"
+                                                  : "DATE(day, 'start of month')";
+            var inner = 'SELECT DATE(timestamp, ?) AS day, SUM(value) AS total ' +
+                'FROM HealthLogs WHERE profileId=? AND metricId=' + METRIC_ID;
+            params = ["-" + DAY_START_TIME, profileId, metricName];
+            if (sinceIso) {
+                inner += ' AND timestamp >= ?';
+                params.push(sinceIso);
+            }
+            inner += ' GROUP BY day';
+            query = 'SELECT ' + period + ' AS period, AVG(total) AS v FROM (' + inner + ') ' +
+                'GROUP BY period ORDER BY period ASC';
+            rs = tx.executeSql(query, params);
+            for (i = 0; i < rs.rows.length; i++) {
+                points.push({ t: timestampToMs(rs.rows.item(i).period), v: rs.rows.item(i).v });
+            }
+        } else if (mode === SERIES_DAILY_SUM || mode === SERIES_DAILY_AVG) {
             var agg = (mode === SERIES_DAILY_SUM) ? "SUM" : "AVG";
             query = 'SELECT DATE(timestamp, ?) AS day, ' + agg + '(value) AS v ' +
                 'FROM HealthLogs WHERE profileId=? AND metricId=' + METRIC_ID;
@@ -950,6 +1015,19 @@ function getSeries(profileId, metricName, sinceIso, mode) {
         }
     });
     return points;
+}
+
+// The first reading's timestamp, or null: how far back "All" reaches.
+function getFirstLogTimestamp(profileId, metricName) {
+    var first = null;
+    db().transaction(function (tx) {
+        var rs = tx.executeSql('SELECT MIN(timestamp) AS first FROM HealthLogs WHERE profileId=? AND metricId=' +
+            METRIC_ID, [profileId, metricName]);
+        if (rs.rows.length > 0 && rs.rows.item(0).first) {
+            first = String(rs.rows.item(0).first);
+        }
+    });
+    return first;
 }
 
 // min / max / average / count over the same window, aggregated by SQLite.
@@ -1444,6 +1522,18 @@ function getMeditationSummary(profileId, weekStart, limit) {
     return summary;
 }
 
+// Seconds meditated today (the DAY_START_TIME day), for the daily meditation goal.
+function getMeditationSecondsToday(profileId) {
+    var seconds = 0;
+    var today = _todayRange();
+    db().transaction(function (tx) {
+        var rs = tx.executeSql('SELECT SUM(COALESCE(duration, 0)) AS seconds FROM MeditationSessions ' +
+            'WHERE profileId=? AND date >= ? AND date < ?', [profileId, today[0], today[1]]);
+        seconds = rs.rows.item(0).seconds || 0;
+    });
+    return seconds;
+}
+
 // duration is stored in seconds.
 function addMeditationSession(profileId, duration, name, date) {
     db().transaction(function (tx) {
@@ -1478,14 +1568,19 @@ function deleteMedicationLog(id) {
     });
 }
 
+/*
+ * Today's intakes. "Today" starts at DAY_START_TIME like the daily totals: it used to
+ * start at midnight, so between midnight and 04:00 the medications and the water of
+ * the same evening were counted for different days.
+ */
 function getMedicationLogsToday(profileId, medicationId) {
     var logs = [];
+    var today = _todayRange();
     db().transaction(function (tx) {
-        // Timestamps are local, so "today" has to be local too -- date('now') is UTC.
         var rs = tx.executeSql(
             "SELECT * FROM MedicationLogs WHERE profileId=? AND medicationId=? " +
-            "AND date(timestamp)=date('now','localtime') ORDER BY timestamp DESC",
-            [profileId, medicationId]);
+            "AND timestamp >= ? AND timestamp < ? ORDER BY timestamp DESC",
+            [profileId, medicationId, today[0], today[1]]);
         for (var i = 0; i < rs.rows.length; i++) {
             logs.push(rs.rows.item(i));
         }
@@ -1499,11 +1594,12 @@ function getMedicationLogsToday(profileId, medicationId) {
  */
 function getMedicationTodaySummary(profileId) {
     var summary = {};
+    var today = _todayRange();
     db().transaction(function (tx) {
         var rs = tx.executeSql(
             "SELECT medicationId, COUNT(*) AS count, MAX(timestamp) AS last FROM MedicationLogs " +
-            "WHERE profileId=? AND date(timestamp)=date('now','localtime') GROUP BY medicationId",
-            [profileId]);
+            "WHERE profileId=? AND timestamp >= ? AND timestamp < ? GROUP BY medicationId",
+            [profileId, today[0], today[1]]);
         for (var i = 0; i < rs.rows.length; i++) {
             var row = rs.rows.item(i);
             summary[row.medicationId] = { count: row.count, last: String(row.last) };
@@ -1523,6 +1619,31 @@ function getMedicationLogsHistory(profileId, medicationId) {
         }
     });
     return logs;
+}
+
+/*
+ * The medications the profile is on today, [{id, name}] by name: a treatment that has
+ * started and not ended (an empty date leaves that side open), for a condition that is
+ * not recovered or over. Two treatments with the same medication are one entry, as the
+ * intakes are logged per medication. Today is the DAY_START_TIME day.
+ */
+function getActiveMedicationsToday(profileId) {
+    var medications = [];
+    var today = toTimestamp(dayStart()).substring(0, 10);
+    db().transaction(function (tx) {
+        var rs = tx.executeSql('SELECT DISTINCT m.id AS id, m.name AS name FROM Treatments t ' +
+            'JOIN Medications m ON m.id = t.medicationId ' +
+            'LEFT JOIN HealthConditions c ON c.id = t.conditionId ' +
+            "WHERE t.profileId=? AND (t.startDate IS NULL OR t.startDate = '' OR t.startDate <= ?) " +
+            "AND (t.endDate IS NULL OR t.endDate = '' OR t.endDate >= ?) " +
+            "AND (c.id IS NULL OR (COALESCE(c.status, '') <> 'Recovered' " +
+            "AND (c.endDate IS NULL OR c.endDate = '' OR c.endDate >= ?))) ORDER BY m.name",
+            [profileId, today, today, today]);
+        for (var i = 0; i < rs.rows.length; i++) {
+            medications.push({ id: rs.rows.item(i).id, name: rs.rows.item(i).name ? String(rs.rows.item(i).name) : "" });
+        }
+    });
+    return medications;
 }
 
 // Module Settings
@@ -1553,10 +1674,12 @@ function getModules(profileId, on_only) {
             'WHEN Modules.uses=? THEN ? END ' +
             'LEFT JOIN ModuleOrder ON ModuleOrder.profileId=? AND ModuleOrder.moduleId=Modules.id ' +
             (on_only ? 'WHERE is_on ' : '') +
+            // The Today row heads the list; activity follows calories and water.
             'ORDER BY ModuleOrder.position IS NULL, ModuleOrder.position, ' +
-            'CASE Modules.category WHEN ? THEN 0 WHEN ? THEN 1 WHEN ? THEN 2 ELSE 3 END, Modules.id',
+            'CASE Modules.category WHEN ? THEN 0 WHEN ? THEN 1 WHEN ? THEN 2 WHEN ? THEN 3 WHEN ? THEN 4 ' +
+            'ELSE 5 END, Modules.id',
             [profileId, MODULE_TYPE_METRIC, CALC_BP, METRIC_BP_SYS, profileId,
-             CATEGORY_BODY, CATEGORY_NUTRITION, CATEGORY_BLOOD]);
+             CATEGORY_DAILY, CATEGORY_BODY, CATEGORY_NUTRITION, CATEGORY_ACTIVITY, CATEGORY_BLOOD]);
         for (var i = 0; i < rs.rows.length; i++) {
             modules.push(rs.rows.item(i));
         }
@@ -1648,6 +1771,67 @@ function getLatestMeditation(profileId) {
         }
     });
     return last;
+}
+
+/*
+ * The day's to-do list (Today page, its dashboard row and the cover): everything with
+ * a target for today, from the modules the profile has switched on.
+ *
+ *  - {kind: "goal", metricName, unit, total, goal, done}: each daily total with a goal
+ *    (water, calories eaten, calories burned);
+ *  - {kind: "meditation", seconds, goal (minutes), done}: once a meditation goal is set;
+ *  - {kind: "medication", medicationId, name, count, last, done}: each medication the
+ *    profile is on today. How often it is due is free text, so "done" means taken at
+ *    least once today.
+ *
+ * Returns {items, left}: what is still to do first, in that order, and how many.
+ */
+function getTodayPlan(profileId) {
+    var todo = [];
+    var done = [];
+    function add(item) {
+        (item.done ? done : todo).push(item);
+    }
+
+    var modules = getModules(profileId, true);
+    var meditationOn = false;
+    var conditionsOn = false;
+    for (var i = 0; i < modules.length; i++) {
+        var mod = modules[i];
+        if (mod.type === MODULE_TYPE_METRIC && mod.grouped) {
+            var goal = getGoal(profileId, mod.uses);
+            if (goal !== null && goal > 0) {
+                var total = getTodayTotal(profileId, mod.uses) || 0;
+                add({ kind: "goal", metricName: mod.uses, unit: mod.unit, total: total, goal: goal,
+                      done: total >= goal });
+            }
+        } else if (mod.name === MODULE_MEDITATION) {
+            meditationOn = true;
+        } else if (mod.name === MODULE_CONDITION) {
+            conditionsOn = true;
+        }
+    }
+
+    if (meditationOn) {
+        var minutes = getGoal(profileId, GOAL_MEDITATION);
+        if (minutes !== null && minutes > 0) {
+            var seconds = getMeditationSecondsToday(profileId);
+            add({ kind: "meditation", seconds: seconds, goal: minutes, done: seconds >= minutes * 60 });
+        }
+    }
+
+    if (conditionsOn) {
+        var medications = getActiveMedicationsToday(profileId);
+        var taken = medications.length > 0 ? getMedicationTodaySummary(profileId) : {};
+        for (var m = 0; m < medications.length; m++) {
+            var intake = taken[medications[m].id];
+            add({ kind: "medication", medicationId: medications[m].id, name: medications[m].name,
+                  count: intake ? intake.count : 0, last: intake ? intake.last : "",
+                  done: intake ? true : false });
+        }
+    }
+
+    return { items: todo.concat(done), left: todo.length };
 }
 
 function addProfileModule(profileId, moduleId) {

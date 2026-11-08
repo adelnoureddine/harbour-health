@@ -13,6 +13,9 @@ Item {
     property alias unit: chart.unit
     property alias decimals: chart.decimals
     property alias emptyText: chart.emptyText
+    property alias bars: chart.bars
+    property alias bucket: chart.bucket
+    property alias averageValue: chart.averageValue
 
     height: chart.height + 2 * Theme.paddingMedium
 

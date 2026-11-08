@@ -144,6 +144,7 @@ function metricDecimals(name) {
     switch (name) {
     case "heartrate":
     case "calories":
+    case "calories burned":
     case "systolic blood pressure":
     case "diastolic blood pressure":
         return 0;
@@ -173,7 +174,10 @@ function metricDisplayName(name) {
     case "weight":                    return qsTr("Weight");
     case "height":                    return qsTr("Height");
     case "water":                     return qsTr("Water");
-    case "calories":                  return qsTr("Calories");
+    // "Calories" alone became ambiguous next to the calories burned.
+    case "calories":                  return qsTr("Calories eaten");
+    case "calories burned":           return qsTr("Calories burned");
+    case "meditation":                return qsTr("Meditation");
     case "heartrate":                 return qsTr("Heart rate");
     case "systolic blood pressure":   return qsTr("Systolic");
     case "diastolic blood pressure":  return qsTr("Diastolic");
@@ -196,6 +200,8 @@ function metricHint(name) {
     switch (name) {
     case "waist":
         return qsTr("Measure midway between your lowest rib and the top of your hip bone, after breathing out normally. Use the same spot every time.");
+    case "calories burned":
+        return qsTr("Write what you did in the note, for example \"Cycling, 45 min\".");
     default:
         return "";
     }
@@ -211,7 +217,9 @@ function moduleDisplayName(name) {
     case "Weight":            return qsTr("Weight");
     case "Height":            return qsTr("Height");
     case "BMI":               return qsTr("BMI");
-    case "Calories":          return qsTr("Calories");
+    case "Calories":          return qsTr("Calories eaten");
+    case "Activity":          return qsTr("Activity");
+    case "Today":             return qsTr("Today");
     case "Water":             return qsTr("Water");
     case "Heartrate":         return qsTr("Heart rate");
     case "Blood Pressure":    return qsTr("Blood pressure");
@@ -306,6 +314,9 @@ function moduleIcon(name, storedIcon) {
     case "WHtR":              return "whtr.svg";
     case "Calories":
     case "calories":          return "calories.svg";
+    case "Activity":
+    case "calories burned":   return "activity.svg";
+    case "Today":             return "today.svg";
     case "Water":
     case "water":             return "water.svg";
     case "Heartrate":
@@ -563,6 +574,72 @@ function medicationTodayText(count, lastTimestamp) {
     }
     //: Medication intakes logged today; %1 is the time of the latest one
     return qsTr("Taken %n time(s) today, last at %1", "", count).arg(formatTime(lastTimestamp));
+}
+
+/*
+ * The day's to-do items (DataManager.getTodayPlan) as text, shared by the Today page,
+ * its dashboard row and the cover.
+ */
+
+// What an item is: "Water", "Meditation", or the medication's name.
+function todayItemTitle(item) {
+    if (item.kind === "medication") {
+        return item.name;
+    }
+    if (item.kind === "meditation") {
+        return qsTr("Meditation");
+    }
+    return metricDisplayName(item.metricName);
+}
+
+// Where it stands: "1.2 of 2 L", "5 of 10 min", "Taken 2 times today, last at 08:30".
+function todayItemProgress(item) {
+    if (item.kind === "medication") {
+        return medicationTodayText(item.count, item.last);
+    }
+    if (item.kind === "meditation") {
+        //: Minutes meditated today against the daily goal, e.g. "5 of 10 min"
+        return qsTr("%1 of %2 min").arg(Math.floor(item.seconds / 60)).arg(formatValue(item.goal, 1));
+    }
+    var decimals = metricDecimals(item.metricName);
+    //: Today's total against its daily goal, e.g. "1.2 of 2 L"
+    return qsTr("%1 of %2").arg(formatValue(item.total, decimals))
+            .arg(formatValue(item.goal, decimals) + (item.unit ? " " + item.unit : ""));
+}
+
+// The amount still to go for a goal: "0.8 L", "5 min"; "" for a medication.
+function todayItemRemaining(item) {
+    if (item.kind === "medication") {
+        return "";
+    }
+    if (item.kind === "meditation") {
+        //: Minutes still to meditate today
+        return qsTr("%n min", "", Math.max(1, Math.ceil(item.goal - item.seconds / 60)));
+    }
+    return formatValue(Math.max(0, item.goal - item.total), metricDecimals(item.metricName))
+            + (item.unit ? " " + item.unit : "");
+}
+
+// What is left: "0.8 L left", "Not taken yet", "Done".
+function todayItemLeft(item) {
+    if (item.done) {
+        //: A daily goal or medication of the Today list that is done for today
+        return qsTr("Done");
+    }
+    if (item.kind === "medication") {
+        return qsTr("Not taken yet");
+    }
+    //: Amount still to reach today's goal, e.g. "0.8 L left"
+    return qsTr("%1 left").arg(todayItemRemaining(item));
+}
+
+// How far along an item is, from 0 to 1.
+function todayItemFraction(item) {
+    if (item.kind === "medication") {
+        return item.done ? 1 : 0;
+    }
+    var have = item.kind === "meditation" ? item.seconds / 60 : item.total;
+    return item.goal > 0 ? Math.max(0, Math.min(1, have / item.goal)) : 0;
 }
 
 // vim:et:ts=4:sw=4

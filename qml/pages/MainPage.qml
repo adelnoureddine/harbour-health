@@ -140,6 +140,16 @@ Page {
         loaded = true;
     }
 
+    // The Today row, after a quick add on a goal card changed what is left.
+    function refreshToday() {
+        for (var i = 0; i < cardRepeater.count; i++) {
+            var slot = cardRepeater.itemAt(i);
+            if (slot && slot.item && slot.mod.name === DataManager.MODULE_TODAY) {
+                slot.item.refresh();
+            }
+        }
+    }
+
     onStatusChanged: {
         if (status === PageStatus.Active) {
             updateData();
@@ -321,13 +331,15 @@ Page {
                         }
 
                         // Only goal cards save anything themselves (quick add). The card
-                        // already shows it, and nothing else on the dashboard depends on
-                        // it, so the dashboard need not reload when shown again.
+                        // already shows it; of the rest only the Today row depends on it,
+                        // so that one is brought up to date and the dashboard need not
+                        // reload when shown again.
                         Connections {
                             target: slot.item
                             ignoreUnknownSignals: true
                             onSaved: {
                                 mainPage.hasReadings = true;
+                                mainPage.refreshToday();
                                 mainPage.builtFrom = DataManager.dataKey();
                             }
                         }
