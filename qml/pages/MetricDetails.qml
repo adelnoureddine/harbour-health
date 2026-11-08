@@ -66,7 +66,7 @@ Page {
             return "week";
         }
         var first = DataManager.getFirstLogTimestamp(profileId, metricName);
-        var days = first ? (Date.now() - DataManager.timestampToMs(first)) / 86400000 : 0;
+        var days = first ? Utils.daysBetween(first, new Date()) : 0;
         return days <= 90 ? "day" : (days <= 730 ? "week" : "month");
     }
 

@@ -314,9 +314,7 @@ function moduleIcon(name, storedIcon) {
     case "WHtR":              return "whtr.svg";
     case "Calories":
     case "calories":          return "calories.svg";
-    case "Activity":
     case "calories burned":   return "activity.svg";
-    case "Today":             return "today.svg";
     case "Water":
     case "water":             return "water.svg";
     case "Heartrate":
@@ -583,13 +581,7 @@ function medicationTodayText(count, lastTimestamp) {
 
 // What an item is: "Water", "Meditation", or the medication's name.
 function todayItemTitle(item) {
-    if (item.kind === "medication") {
-        return item.name;
-    }
-    if (item.kind === "meditation") {
-        return qsTr("Meditation");
-    }
-    return metricDisplayName(item.metricName);
+    return item.kind === "medication" ? item.name : metricDisplayName(item.metricName);
 }
 
 // Where it stands: "1.2 of 2 L", "5 of 10 min", "Taken 2 times today, last at 08:30".
@@ -599,7 +591,7 @@ function todayItemProgress(item) {
     }
     if (item.kind === "meditation") {
         //: Minutes meditated today against the daily goal, e.g. "5 of 10 min"
-        return qsTr("%1 of %2 min").arg(Math.floor(item.seconds / 60)).arg(formatValue(item.goal, 1));
+        return qsTr("%1 of %2 min").arg(Math.floor(item.total)).arg(formatValue(item.goal, 1));
     }
     var decimals = metricDecimals(item.metricName);
     //: Today's total against its daily goal, e.g. "1.2 of 2 L"
@@ -614,7 +606,7 @@ function todayItemRemaining(item) {
     }
     if (item.kind === "meditation") {
         //: Minutes still to meditate today
-        return qsTr("%n min", "", Math.max(1, Math.ceil(item.goal - item.seconds / 60)));
+        return qsTr("%n min", "", Math.max(1, Math.ceil(item.goal - item.total)));
     }
     return formatValue(Math.max(0, item.goal - item.total), metricDecimals(item.metricName))
             + (item.unit ? " " + item.unit : "");
@@ -638,8 +630,7 @@ function todayItemFraction(item) {
     if (item.kind === "medication") {
         return item.done ? 1 : 0;
     }
-    var have = item.kind === "meditation" ? item.seconds / 60 : item.total;
-    return item.goal > 0 ? Math.max(0, Math.min(1, have / item.goal)) : 0;
+    return item.goal > 0 ? Math.max(0, Math.min(1, item.total / item.goal)) : 0;
 }
 
 // vim:et:ts=4:sw=4

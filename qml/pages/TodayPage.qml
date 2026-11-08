@@ -2,7 +2,6 @@ import QtQuick 2.0
 import Sailfish.Silica 1.0
 import "../js/DataManager.js" as DataManager
 import "../js/utils.js" as Utils
-import "../components"
 
 /*
  * Today: everything with a target for the day, what is still to do first. Each daily
@@ -32,7 +31,6 @@ Page {
         var rows = plan.items.map(function (item) {
             return {
                 kind: item.kind,
-                group: item.done ? "done" : "todo",
                 metricName: item.metricName ? item.metricName : "",
                 unit: item.unit ? item.unit : "",
                 medicationId: item.medicationId !== undefined ? item.medicationId : -1,
@@ -72,7 +70,7 @@ Page {
     function openGoal(item) {
         pageStack.animatorPush(Qt.resolvedUrl("setGoal.qml"), {
             profileId: page.profileId,
-            metricName: item.kind === "meditation" ? DataManager.GOAL_MEDITATION : item.metricName,
+            metricName: item.metricName,
             metricUnit: item.kind === "meditation" ? qsTr("min") : item.unit
         });
     }
@@ -106,11 +104,10 @@ Page {
         }
 
         section {
-            property: "group"
-            criteria: ViewSection.FullString
+            property: "done"
             delegate: SectionHeader {
                 //: Today page sections: what is still open, and what is done
-                text: section === "done" ? qsTr("Done") : qsTr("To do")
+                text: section === "true" ? qsTr("Done") : qsTr("To do")
             }
         }
 

@@ -72,7 +72,7 @@ Item {
         if (bucket === "month") {
             return d.toLocaleDateString(Qt.locale(), "MMMM yyyy");
         }
-        return Qt.formatDate(d, Qt.DefaultLocaleShortDate);
+        return Utils.formatDate(d);
     }
 
     function pointCount() {
@@ -280,11 +280,15 @@ Item {
                     var slot = (root._bucketMs / (b.xMax - b.xMin)) * pw;
                     var barWidth = Math.max(Theme.pixelRatio, slot * 0.7);
                     var baseY = yAt(0);
-                    for (var r = 0; r < set.points.length; r++) {
+                    var lastBar = set.points.length - 1;
+                    ctx.fillStyle = Theme.rgba(lineColor, 0.55);
+                    for (var r = 0; r <= lastBar; r++) {
                         var barPoint = set.points[r];
                         var barTop = yAt(barPoint.v);
-                        // The latest period stands out, like the latest reading of a line.
-                        ctx.fillStyle = (r === set.points.length - 1) ? lineColor : Theme.rgba(lineColor, 0.55);
+                        if (r === lastBar) {
+                            // The latest period stands out, like the latest reading of a line.
+                            ctx.fillStyle = lineColor;
+                        }
                         ctx.fillRect(xAt(root._cx(barPoint.t)) - barWidth / 2, Math.min(barTop, baseY),
                                      barWidth, Math.abs(baseY - barTop));
                     }
@@ -403,6 +407,9 @@ Item {
                 return;
             }
             var t = b.xMin + ((mouseX - root._plotX) / root._plotWidth) * (b.xMax - b.xMin);
+            // A bar is drawn half a period after its start (_cx): shift the finger back
+            // once rather than every point.
+            var target = root.bars ? t - root._bucketMs / 2 : t;
             var best = null;
             var bestSeries = -1;
             var bestDistance = Number.MAX_VALUE;
@@ -412,7 +419,7 @@ Item {
                     continue;
                 }
                 for (var i = 0; i < points.length; i++) {
-                    var distance = Math.abs(root._cx(points[i].t) - t);
+                    var distance = Math.abs(points[i].t - target);
                     if (distance < bestDistance) {
                         bestDistance = distance;
                         best = points[i];

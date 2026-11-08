@@ -128,23 +128,18 @@ Page {
             mainPage.modules = modules;
             builtFor = signature;
         } else {
-            for (var c = 0; c < cardRepeater.count; c++) {
-                var slot = cardRepeater.itemAt(c);
-                if (slot && slot.item) {
-                    slot.item.refresh();
-                }
-            }
+            refreshCards("");
         }
         // Recorded last, so a build that failed half way is tried again next time.
         builtFrom = key;
         loaded = true;
     }
 
-    // The Today row, after a quick add on a goal card changed what is left.
-    function refreshToday() {
+    // Every card, or only the card of `moduleName`.
+    function refreshCards(moduleName) {
         for (var i = 0; i < cardRepeater.count; i++) {
             var slot = cardRepeater.itemAt(i);
-            if (slot && slot.item && slot.mod.name === DataManager.MODULE_TODAY) {
+            if (slot && slot.item && (!moduleName || slot.mod.name === moduleName)) {
                 slot.item.refresh();
             }
         }
@@ -339,7 +334,7 @@ Page {
                             ignoreUnknownSignals: true
                             onSaved: {
                                 mainPage.hasReadings = true;
-                                mainPage.refreshToday();
+                                mainPage.refreshCards(DataManager.MODULE_TODAY);
                                 mainPage.builtFrom = DataManager.dataKey();
                             }
                         }

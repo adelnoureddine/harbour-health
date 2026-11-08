@@ -49,6 +49,12 @@ CoverBackground {
         loadedFrom = key;
     }
 
+    // A glass of water, logged without opening the app.
+    function addGlass() {
+        DataManager.addLog(cover.profileId, DataManager.METRIC_WATER, 0.25, new Date(), "");
+        cover.refresh();
+    }
+
     function openToday() {
         if (cover.profileId < 0) {
             return;
@@ -136,10 +142,7 @@ CoverBackground {
         enabled: cover.profile !== null && !cover.todayMode && cover.waterShown
         CoverAction {
             iconSource: Qt.resolvedUrl("../icons/cover-water.svg")
-            onTriggered: {
-                DataManager.addLog(cover.profileId, DataManager.METRIC_WATER, 0.25, new Date(), "");
-                cover.refresh();
-            }
+            onTriggered: cover.addGlass()
         }
         CoverAction {
             iconSource: "image://theme/icon-cover-new"
@@ -160,10 +163,7 @@ CoverBackground {
         enabled: cover.profile !== null && cover.todayMode && today.hasWater
         CoverAction {
             iconSource: Qt.resolvedUrl("../icons/cover-water.svg")
-            onTriggered: {
-                DataManager.addLog(cover.profileId, DataManager.METRIC_WATER, 0.25, new Date(), "");
-                cover.refresh();
-            }
+            onTriggered: cover.addGlass()
         }
         CoverAction {
             iconSource: Qt.resolvedUrl("../icons/cover-today.svg")

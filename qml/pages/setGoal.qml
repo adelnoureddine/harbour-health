@@ -107,13 +107,12 @@ Dialog {
                 color: Theme.secondaryHighlightColor
                 // The day border in the user's own clock format: "4:00" read oddly in a
                 // 12-hour locale.
-                text: dialog.meditation
-                      //: %1 is the time a new day starts, e.g. "04:00" or "4:00 AM"
-                      ? qsTr("Shown on the Today page. A new day starts at %1.")
-                        .arg(Utils.formatTime(DataManager.dayStart()))
-                      //: %1 is the time the day's total resets, e.g. "04:00" or "4:00 AM"
-                      : qsTr("Shown as a ring on the dashboard. The day's total starts again at %1.")
-                        .arg(Utils.formatTime(DataManager.dayStart()))
+                text: (dialog.meditation
+                       //: %1 is the time a new day starts, e.g. "04:00" or "4:00 AM"
+                       ? qsTr("Shown on the Today page. A new day starts at %1.")
+                       //: %1 is the time the day's total resets, e.g. "04:00" or "4:00 AM"
+                       : qsTr("Shown as a ring on the dashboard. The day's total starts again at %1."))
+                      .arg(Utils.formatTime(DataManager.dayStart()))
             }
         }
 

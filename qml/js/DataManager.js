@@ -17,6 +17,8 @@ var CATEGORY_OTHER = "Other";
 // The day's to-do list, first on the dashboard; activity sits after nutrition.
 var CATEGORY_DAILY = "Daily";
 var CATEGORY_ACTIVITY = "Activity";
+// Dashboard order before the profile arranges it; any other category comes after.
+var CATEGORY_ORDER = [CATEGORY_DAILY, CATEGORY_BODY, CATEGORY_NUTRITION, CATEGORY_ACTIVITY, CATEGORY_BLOOD];
 
 // Metrics
 var METRIC_WEIGHT = "weight";
@@ -966,27 +968,11 @@ function getSeries(profileId, metricName, sinceIso, mode) {
         var rs;
         var i;
 
-        if (mode === SERIES_WEEKLY || mode === SERIES_MONTHLY) {
-            // 'weekday 0' moves to the coming Sunday (a Sunday stays put); six days
-            // back from it is that week's Monday.
-            var period = (mode === SERIES_WEEKLY) ? "DATE(day, 'weekday 0', '-6 days')"
-                                                  : "DATE(day, 'start of month')";
-            var inner = 'SELECT DATE(timestamp, ?) AS day, SUM(value) AS total ' +
-                'FROM HealthLogs WHERE profileId=? AND metricId=' + METRIC_ID;
-            params = ["-" + DAY_START_TIME, profileId, metricName];
-            if (sinceIso) {
-                inner += ' AND timestamp >= ?';
-                params.push(sinceIso);
-            }
-            inner += ' GROUP BY day';
-            query = 'SELECT ' + period + ' AS period, AVG(total) AS v FROM (' + inner + ') ' +
-                'GROUP BY period ORDER BY period ASC';
-            rs = tx.executeSql(query, params);
-            for (i = 0; i < rs.rows.length; i++) {
-                points.push({ t: timestampToMs(rs.rows.item(i).period), v: rs.rows.item(i).v });
-            }
-        } else if (mode === SERIES_DAILY_SUM || mode === SERIES_DAILY_AVG) {
-            var agg = (mode === SERIES_DAILY_SUM) ? "SUM" : "AVG";
+        if (mode === SERIES_DAILY_SUM || mode === SERIES_DAILY_AVG
+                || mode === SERIES_WEEKLY || mode === SERIES_MONTHLY) {
+            // One row per day; weekly and monthly bars then average the daily totals.
+            var agg = (mode === SERIES_DAILY_AVG) ? "AVG" : "SUM";
+            var key = "day";
             query = 'SELECT DATE(timestamp, ?) AS day, ' + agg + '(value) AS v ' +
                 'FROM HealthLogs WHERE profileId=? AND metricId=' + METRIC_ID;
             params = ["-" + DAY_START_TIME, profileId, metricName];
@@ -994,10 +980,19 @@ function getSeries(profileId, metricName, sinceIso, mode) {
                 query += ' AND timestamp >= ?';
                 params.push(sinceIso);
             }
-            query += ' GROUP BY day ORDER BY day ASC';
+            query += ' GROUP BY day';
+            if (mode === SERIES_WEEKLY || mode === SERIES_MONTHLY) {
+                // 'weekday 0' moves to the coming Sunday (a Sunday stays put); six days
+                // back from it is that week's Monday.
+                var period = (mode === SERIES_WEEKLY) ? "DATE(day, 'weekday 0', '-6 days')"
+                                                      : "DATE(day, 'start of month')";
+                key = "period";
+                query = 'SELECT ' + period + ' AS period, AVG(v) AS v FROM (' + query + ') GROUP BY period';
+            }
+            query += ' ORDER BY ' + key + ' ASC';
             rs = tx.executeSql(query, params);
             for (i = 0; i < rs.rows.length; i++) {
-                points.push({ t: timestampToMs(rs.rows.item(i).day), v: rs.rows.item(i).v });
+                points.push({ t: timestampToMs(rs.rows.item(i)[key]), v: rs.rows.item(i).v });
             }
         } else {
             query = 'SELECT timestamp AS ts, value AS v FROM HealthLogs ' +
@@ -1636,8 +1631,7 @@ function getActiveMedicationsToday(profileId) {
             'LEFT JOIN HealthConditions c ON c.id = t.conditionId ' +
             "WHERE t.profileId=? AND (t.startDate IS NULL OR t.startDate = '' OR t.startDate <= ?) " +
             "AND (t.endDate IS NULL OR t.endDate = '' OR t.endDate >= ?) " +
-            "AND (c.id IS NULL OR (COALESCE(c.status, '') <> 'Recovered' " +
-            "AND (c.endDate IS NULL OR c.endDate = '' OR c.endDate >= ?))) ORDER BY m.name",
+            'AND (c.id IS NULL OR (' + _ongoingConditionSql("c.") + ')) ORDER BY m.name',
             [profileId, today, today, today]);
         for (var i = 0; i < rs.rows.length; i++) {
             medications.push({ id: rs.rows.item(i).id, name: rs.rows.item(i).name ? String(rs.rows.item(i).name) : "" });
@@ -1665,6 +1659,9 @@ function addModulesToModel(profileId, a_model, on_only) {
 
 function getModules(profileId, on_only) {
     var modules = [];
+    var categoryRank = 'CASE Modules.category ' + CATEGORY_ORDER.map(function (category, rank) {
+        return 'WHEN ? THEN ' + rank;
+    }).join(' ') + ' ELSE ' + CATEGORY_ORDER.length + ' END';
     db().transaction(function (tx) {
         var rs = tx.executeSql('SELECT Modules.id, Modules.name, Modules.type, Modules.category, Modules.uses, Modules.icon, ' +
             "COALESCE(Metrics.unit, '') AS unit, COALESCE(Metrics.grouped, 0) AS grouped, " +
@@ -1674,12 +1671,8 @@ function getModules(profileId, on_only) {
             'WHEN Modules.uses=? THEN ? END ' +
             'LEFT JOIN ModuleOrder ON ModuleOrder.profileId=? AND ModuleOrder.moduleId=Modules.id ' +
             (on_only ? 'WHERE is_on ' : '') +
-            // The Today row heads the list; activity follows calories and water.
-            'ORDER BY ModuleOrder.position IS NULL, ModuleOrder.position, ' +
-            'CASE Modules.category WHEN ? THEN 0 WHEN ? THEN 1 WHEN ? THEN 2 WHEN ? THEN 3 WHEN ? THEN 4 ' +
-            'ELSE 5 END, Modules.id',
-            [profileId, MODULE_TYPE_METRIC, CALC_BP, METRIC_BP_SYS, profileId,
-             CATEGORY_DAILY, CATEGORY_BODY, CATEGORY_NUTRITION, CATEGORY_ACTIVITY, CATEGORY_BLOOD]);
+            'ORDER BY ModuleOrder.position IS NULL, ModuleOrder.position, ' + categoryRank + ', Modules.id',
+            [profileId, MODULE_TYPE_METRIC, CALC_BP, METRIC_BP_SYS, profileId].concat(CATEGORY_ORDER));
         for (var i = 0; i < rs.rows.length; i++) {
             modules.push(rs.rows.item(i));
         }
@@ -1725,6 +1718,16 @@ function setGoal(profileId, metricName, value) {
 }
 
 /*
+ * A health condition that is still going on, as SQL: no end date yet (or one still
+ * ahead, bound as a "YYYY-MM-DD" parameter), and not marked recovered. `prefix` is
+ * the table alias with its dot ("c."), or "" for none.
+ */
+function _ongoingConditionSql(prefix) {
+    return "(" + prefix + "endDate IS NULL OR " + prefix + "endDate = '' OR " + prefix + "endDate >= ?) " +
+        "AND COALESCE(" + prefix + "status, '') <> 'Recovered'";
+}
+
+/*
  * What the dashboard says about health conditions: how many are ongoing and the
  * newest of those. Ongoing = no end date yet (or one still ahead), and not marked
  * recovered.
@@ -1732,7 +1735,7 @@ function setGoal(profileId, metricName, value) {
 function getConditionSummary(profileId) {
     var summary = { total: 0, active: 0, latestActive: "" };
     var today = toTimestamp(new Date()).substring(0, 10);
-    var ongoing = "(endDate IS NULL OR endDate = '' OR endDate >= ?) AND COALESCE(status, '') <> 'Recovered'";
+    var ongoing = _ongoingConditionSql("");
     db().transaction(function (tx) {
         var rs = tx.executeSql('SELECT COUNT(*) AS total, SUM(CASE WHEN ' + ongoing + ' THEN 1 ELSE 0 END) AS active ' +
             'FROM HealthConditions WHERE profileId=?', [today, profileId]);
@@ -1779,7 +1782,8 @@ function getLatestMeditation(profileId) {
  *
  *  - {kind: "goal", metricName, unit, total, goal, done}: each daily total with a goal
  *    (water, calories eaten, calories burned);
- *  - {kind: "meditation", seconds, goal (minutes), done}: once a meditation goal is set;
+ *  - {kind: "meditation", metricName: GOAL_MEDITATION, total, goal, done}: once a
+ *    meditation goal is set, total and goal in minutes;
  *  - {kind: "medication", medicationId, name, count, last, done}: each medication the
  *    profile is on today. How often it is due is free text, so "done" means taken at
  *    least once today.
@@ -1816,7 +1820,8 @@ function getTodayPlan(profileId) {
         var minutes = getGoal(profileId, GOAL_MEDITATION);
         if (minutes !== null && minutes > 0) {
             var seconds = getMeditationSecondsToday(profileId);
-            add({ kind: "meditation", seconds: seconds, goal: minutes, done: seconds >= minutes * 60 });
+            add({ kind: "meditation", metricName: GOAL_MEDITATION, total: seconds / 60, goal: minutes,
+                  done: seconds >= minutes * 60 });
         }
     }
 
