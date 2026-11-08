@@ -55,6 +55,13 @@ ListItem {
     // Set by the dashboard so two cards sharing a row are the same height.
     property real rowHeight: 0
     contentHeight: Math.max(naturalHeight, rowHeight)
+
+    // A half card's title takes one line or two (titleNaturalHeight). The dashboard
+    // sets titleHeight to the taller title of the row, so the two values stay level.
+    readonly property real titleNaturalHeight: !empty && !hero && layout.item
+                                               && layout.item.titleNaturalHeight !== undefined
+                                               ? layout.item.titleNaturalHeight : 0
+    property real titleHeight: 0
     // The rounded background below shows the press instead of a full-width block.
     highlightedColor: "transparent"
 
@@ -319,14 +326,19 @@ ListItem {
     Component {
         id: halfLayout
         Column {
+            readonly property real titleNaturalHeight: Math.max(cardIcon.height, cardTitle.implicitHeight)
+
             width: card.width - 2 * Theme.paddingLarge
             spacing: Theme.paddingSmall
 
-            Row {
+            // A long title ("Waist-to-height ratio") wraps instead of fading out half way.
+            Item {
                 width: parent.width
-                spacing: Theme.paddingSmall
+                height: Math.max(parent.titleNaturalHeight, card.titleHeight)
+
                 HighlightImage {
                     id: cardIcon
+                    anchors.verticalCenter: parent.verticalCenter
                     width: Theme.iconSizeSmall
                     height: Theme.iconSizeSmall
                     sourceSize.width: Theme.iconSizeSmall
@@ -336,9 +348,14 @@ ListItem {
                     highlighted: card.highlighted
                 }
                 Label {
-                    width: parent.width - cardIcon.width - parent.spacing
+                    id: cardTitle
+                    anchors.left: cardIcon.right
+                    anchors.leftMargin: Theme.paddingSmall
+                    anchors.right: parent.right
                     anchors.verticalCenter: parent.verticalCenter
-                    truncationMode: TruncationMode.Fade
+                    wrapMode: Text.Wrap
+                    maximumLineCount: 2
+                    truncationMode: TruncationMode.Elide
                     text: card.title
                     font.pixelSize: Theme.fontSizeSmall
                     color: Theme.secondaryHighlightColor

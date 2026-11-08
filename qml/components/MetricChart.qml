@@ -131,9 +131,10 @@ Item {
                 // Nothing but zeros: still an axis to draw them against.
                 b.yMax = b.yMin + 10 * Math.pow(10, -precision);
             } else {
-                b.yMax += (b.yMax - b.yMin) * 0.1;
+                // A little room only: rounding the axis up adds the rest.
+                b.yMax += (b.yMax - b.yMin) * 0.05;
             }
-            return b;
+            return roundAxis(b, precision);
         }
 
         if (b.xMax === b.xMin) {
@@ -157,6 +158,47 @@ Item {
             b.yMin -= margin;
             b.yMax += margin;
         }
+        return roundAxis(b, precision);
+    }
+
+    // At most this many gaps between the value axis's grid lines.
+    readonly property int _maxGridIntervals: 5
+
+    /*
+     * Widens the value range to a round step (1, 2 or 5 times a power of ten, never
+     * finer than the decimals shown) and records the grid lines: b.step, and b.firstTick
+     * and b.ticks, the lines being (firstTick + i) * step for i from 0 to ticks.
+     *
+     * The grid used to divide the padded range in four whatever it was: lines at 80.3,
+     * 82.3, 84.3, and on a narrow range two of them rounding to the same label
+     * (waist-to-height 0.525 and 0.534 both "0.53").
+     */
+    function roundAxis(b, precision) {
+        var minStep = Math.pow(10, -precision);
+        var rough = (b.yMax - b.yMin) / _maxGridIntervals;
+        var exponent = Math.floor(Math.log(Math.max(rough, minStep)) / Math.LN10);
+        var multipliers = [1, 2, 5];
+        // Each pass goes a power of ten up; a handful always finds a step that fits.
+        for (var pass = 0; pass < 20; pass++, exponent++) {
+            for (var m = 0; m < multipliers.length; m++) {
+                var step = multipliers[m] * Math.pow(10, exponent);
+                if (step < minStep * 0.999) {
+                    continue;
+                }
+                // The small allowances keep a value that is already on a line from
+                // being pushed out a step by floating point.
+                var low = Math.floor(b.yMin / step + 1e-9);
+                var high = Math.ceil(b.yMax / step - 1e-9);
+                if (high - low <= _maxGridIntervals) {
+                    b.step = step;
+                    b.firstTick = low;
+                    b.ticks = Math.max(1, high - low);
+                    b.yMin = low * step;
+                    b.yMax = (low + b.ticks) * step;
+                    return b;
+                }
+            }
+        }
         return b;
     }
 
@@ -170,6 +212,46 @@ Item {
 
     function yAt(v) {
         return _plotY + _plotHeight - ((v - _bounds.yMin) / (_bounds.yMax - _bounds.yMin)) * _plotHeight;
+    }
+
+    /*
+     * The date labels under the plot, [{text, x, align}]: the first and last at the
+     * plot's edges, evenly spaced between, as many as fit up to maxIntervals + 1.
+     *
+     * Over a year the full date ("11 Nov 2025") is too wide for three across a phone
+     * and they ran into each other. Labels are measured first: the month and year
+     * ("Nov 2025") are tried before a label is dropped. ctx must have the label font.
+     */
+    function dateLabels(ctx, start, span, maxIntervals, longSpan) {
+        var formats = longSpan ? [Formatter.DateMedium, "MMM yyyy"] : [Formatter.DateMediumWithoutYear];
+        var labels = [];
+        for (var n = maxIntervals; n >= 1; n--) {
+            for (var f = 0; f < formats.length; f++) {
+                labels = [];
+                for (var d = 0; d <= n; d++) {
+                    var t = start + span * (d / n);
+                    var date = new Date(t);
+                    // Locale order rather than a fixed "d MMM", with the year once the
+                    // window is long enough for "3 Jan" to be ambiguous.
+                    var text = typeof formats[f] === "string" ? date.toLocaleDateString(Qt.locale(), formats[f])
+                                                              : Format.formatDate(date, formats[f]);
+                    var textWidth = ctx.measureText(text).width;
+                    var x = xAt(_cx(t));
+                    var align = d === 0 ? "left" : (d === n ? "right" : "center");
+                    var left = align === "left" ? x : (align === "right" ? x - textWidth : x - textWidth / 2);
+                    labels.push({ text: text, x: x, align: align, left: left, right: left + textWidth });
+                }
+                var fits = true;
+                for (var i = 1; i < labels.length && fits; i++) {
+                    fits = labels[i].left - labels[i - 1].right >= Theme.paddingLarge;
+                }
+                if (fits) {
+                    return labels;
+                }
+            }
+        }
+        // Nothing fitted: the last try, the two ends in the shortest format.
+        return labels;
     }
 
     onSeriesChanged: canvas.requestPaint()
@@ -231,9 +313,8 @@ Item {
             ctx.strokeStyle = Theme.rgba(Theme.primaryColor, 0.15);
             ctx.fillStyle = Theme.secondaryColor;
 
-            var gridLines = 4;
-            for (var g = 0; g <= gridLines; g++) {
-                var value = b.yMin + (b.yMax - b.yMin) * (g / gridLines);
+            for (var g = 0; g <= b.ticks; g++) {
+                var value = (b.firstTick + g) * b.step;
                 var y = yAt(value);
                 ctx.beginPath();
                 ctx.moveTo(px, y);
@@ -244,26 +325,14 @@ Item {
 
             // --- date labels -----------------------------------------------------
             ctx.textBaseline = "top";
-            var dateLabels = pw > Theme.itemSizeHuge * 3 ? 3 : 2;
             var longSpan = (b.xMax - b.xMin) > 300 * 86400000;
             // Under bars the labels name periods, from the first bar to the last: the
             // right edge of the plot is when the last period ends ("1 Dec" under November).
             var labelSpan = (b.xMax - b.xMin) - (root.bars ? root._bucketMs : 0);
-            for (var d = 0; d <= dateLabels; d++) {
-                var t = b.xMin + labelSpan * (d / dateLabels);
-                var lx = xAt(root._cx(t));
-                if (d === 0) {
-                    ctx.textAlign = "left";
-                } else if (d === dateLabels) {
-                    ctx.textAlign = "right";
-                } else {
-                    ctx.textAlign = "center";
-                }
-                // Locale order rather than a fixed "d MMM", with the year once the
-                // window is long enough for "3 Jan" to be ambiguous.
-                ctx.fillText(Format.formatDate(new Date(t), longSpan ? Formatter.DateMedium
-                                                                     : Formatter.DateMediumWithoutYear),
-                             lx, py + ph + Theme.paddingSmall);
+            var labels = root.dateLabels(ctx, b.xMin, labelSpan, pw > Theme.itemSizeHuge * 3 ? 3 : 2, longSpan);
+            for (var d = 0; d < labels.length; d++) {
+                ctx.textAlign = labels[d].align;
+                ctx.fillText(labels[d].text, labels[d].x, py + ph + Theme.paddingSmall);
             }
 
             // --- series ----------------------------------------------------------

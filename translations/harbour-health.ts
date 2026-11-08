@@ -737,7 +737,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/components/CoverMetric.qml" line="115"/>
+        <location filename="../qml/components/CoverMetric.qml" line="129"/>
         <source>of %1 %2</source>
         <translation type="unfinished"></translation>
     </message>
@@ -778,7 +778,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../qml/components/CoverToday.qml" line="96"/>
+        <location filename="../qml/components/CoverToday.qml" line="110"/>
         <source>+%n more</source>
         <extracomment>Cover: open items of the Today list that did not fit</extracomment>
         <translation type="unfinished">
@@ -790,27 +790,27 @@
 <context>
     <name>DashboardCard</name>
     <message>
-        <location filename="../qml/components/DashboardCard.qml" line="171"/>
+        <location filename="../qml/components/DashboardCard.qml" line="178"/>
         <source>Add entry</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/components/DashboardCard.qml" line="175"/>
+        <location filename="../qml/components/DashboardCard.qml" line="182"/>
         <source>History</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/components/DashboardCard.qml" line="233"/>
+        <location filename="../qml/components/DashboardCard.qml" line="240"/>
         <source>Needs height and weight</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/components/DashboardCard.qml" line="234"/>
+        <location filename="../qml/components/DashboardCard.qml" line="241"/>
         <source>Needs height and waist</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/components/DashboardCard.qml" line="235"/>
+        <location filename="../qml/components/DashboardCard.qml" line="242"/>
         <source>No readings yet</source>
         <translation type="unfinished"></translation>
     </message>
@@ -957,40 +957,40 @@
 <context>
     <name>GoalCard</name>
     <message>
-        <location filename="../qml/components/GoalCard.qml" line="82"/>
         <location filename="../qml/components/GoalCard.qml" line="87"/>
+        <location filename="../qml/components/GoalCard.qml" line="92"/>
         <source>Add %1 ml</source>
         <extracomment>Quick add on the water card; %1 is an amount in millilitres</extracomment>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/components/GoalCard.qml" line="91"/>
+        <location filename="../qml/components/GoalCard.qml" line="96"/>
         <source>Other amount…</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/components/GoalCard.qml" line="91"/>
+        <location filename="../qml/components/GoalCard.qml" line="96"/>
         <source>Add entry</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/components/GoalCard.qml" line="95"/>
+        <location filename="../qml/components/GoalCard.qml" line="100"/>
         <source>History</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/components/GoalCard.qml" line="99"/>
+        <location filename="../qml/components/GoalCard.qml" line="104"/>
         <source>Daily goal</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/components/GoalCard.qml" line="139"/>
+        <location filename="../qml/components/GoalCard.qml" line="152"/>
         <source>%1 today</source>
         <extracomment>Dashboard card title for a daily total, e.g. &quot;Water today&quot;</extracomment>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/components/GoalCard.qml" line="171"/>
+        <location filename="../qml/components/GoalCard.qml" line="184"/>
         <source>of %1 %2</source>
         <extracomment>Under today&apos;s total in the ring, e.g. &quot;of 2 L&quot;</extracomment>
         <translation type="unfinished"></translation>
@@ -1266,117 +1266,117 @@
 <context>
     <name>MainPage</name>
     <message>
-        <location filename="../qml/pages/MainPage.qml" line="250"/>
+        <location filename="../qml/pages/MainPage.qml" line="264"/>
         <source>No profile selected</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MainPage.qml" line="162"/>
+        <location filename="../qml/pages/MainPage.qml" line="176"/>
         <source>About</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MainPage.qml" line="166"/>
+        <location filename="../qml/pages/MainPage.qml" line="180"/>
         <source>Profiles</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MainPage.qml" line="171"/>
+        <location filename="../qml/pages/MainPage.qml" line="185"/>
         <source>Create a new profile</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MainPage.qml" line="176"/>
+        <location filename="../qml/pages/MainPage.qml" line="190"/>
         <source>Backup and restore</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MainPage.qml" line="180"/>
+        <location filename="../qml/pages/MainPage.qml" line="194"/>
         <source>Cover page settings</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MainPage.qml" line="187"/>
+        <location filename="../qml/pages/MainPage.qml" line="201"/>
         <source>Arrange dashboard</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MainPage.qml" line="195"/>
+        <location filename="../qml/pages/MainPage.qml" line="209"/>
         <source>Add measurement</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MainPage.qml" line="274"/>
+        <location filename="../qml/pages/MainPage.qml" line="288"/>
         <source>Getting started</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MainPage.qml" line="281"/>
+        <location filename="../qml/pages/MainPage.qml" line="295"/>
         <source>Pull down and choose Add measurement to log your first reading. Tap a card to see its history, long-press it for quick actions, and use Arrange dashboard to choose what is shown.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MainPage.qml" line="387"/>
+        <location filename="../qml/pages/MainPage.qml" line="401"/>
         <source>Welcome to Health</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MainPage.qml" line="395"/>
+        <location filename="../qml/pages/MainPage.qml" line="409"/>
         <source>A private journal for your health: measurements, conditions, vaccines and more.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MainPage.qml" line="406"/>
+        <location filename="../qml/pages/MainPage.qml" line="420"/>
         <source>Weight, blood pressure, water and more on one dashboard</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MainPage.qml" line="407"/>
+        <location filename="../qml/pages/MainPage.qml" line="421"/>
         <source>See how each measurement changes over time</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MainPage.qml" line="408"/>
+        <location filename="../qml/pages/MainPage.qml" line="422"/>
         <source>No account and no internet: everything stays on this phone</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MainPage.qml" line="446"/>
+        <location filename="../qml/pages/MainPage.qml" line="460"/>
         <source>Create your profile</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MainPage.qml" line="447"/>
+        <location filename="../qml/pages/MainPage.qml" line="461"/>
         <source>Your name and birthday, to get started</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MainPage.qml" line="449"/>
+        <location filename="../qml/pages/MainPage.qml" line="463"/>
         <source>Restore a backup</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MainPage.qml" line="450"/>
+        <location filename="../qml/pages/MainPage.qml" line="464"/>
         <source>Bring back data exported from Health on another phone</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MainPage.qml" line="510"/>
+        <location filename="../qml/pages/MainPage.qml" line="524"/>
         <source>Health is not medical advice and must not be used for diagnosis or treatment decisions.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MainPage.qml" line="520"/>
+        <location filename="../qml/pages/MainPage.qml" line="534"/>
         <source>Pull down and choose Arrange dashboard to pick what to track</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MainPage.qml" line="519"/>
+        <location filename="../qml/pages/MainPage.qml" line="533"/>
         <source>No modules enabled</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/MainPage.qml" line="559"/>
+        <location filename="../qml/pages/MainPage.qml" line="573"/>
         <source>Health could not open its database</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1630,7 +1630,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/components/MetricChart.qml" line="474"/>
+        <location filename="../qml/components/MetricChart.qml" line="543"/>
         <source>%1 a day</source>
         <extracomment>Chart readout for a weekly or monthly bar: the average per day, e.g. &quot;1.8 L a day&quot;</extracomment>
         <translation type="unfinished"></translation>

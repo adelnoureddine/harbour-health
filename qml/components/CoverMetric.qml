@@ -100,13 +100,27 @@ Column {
         Column {
             anchors.verticalCenter: parent.verticalCenter
             width: parent.width - ring.width - parent.spacing
-            Label {
+            // The number large and its unit small, as on the dashboard: "410 kcal" all
+            // large did not fit beside the ring and faded to "410 kc".
+            Row {
                 width: parent.width
-                truncationMode: TruncationMode.Fade
-                text: Utils.formatValue(root.total, Utils.metricDecimals(root.metricName))
-                      + (root.unit ? " " + root.unit : "")
-                font.pixelSize: Theme.fontSizeLarge
-                color: Theme.primaryColor
+                spacing: Theme.paddingSmall / 2
+                Label {
+                    id: totalLabel
+                    width: Math.min(implicitWidth, parent.width - (totalUnit.visible ? totalUnit.width + parent.spacing : 0))
+                    truncationMode: TruncationMode.Fade
+                    text: Utils.formatValue(root.total, Utils.metricDecimals(root.metricName))
+                    font.pixelSize: Theme.fontSizeLarge
+                    color: Theme.primaryColor
+                }
+                Label {
+                    id: totalUnit
+                    anchors.baseline: totalLabel.baseline
+                    visible: root.unit !== ""
+                    text: root.unit
+                    font.pixelSize: Theme.fontSizeExtraSmall
+                    color: Theme.secondaryColor
+                }
             }
             Label {
                 width: parent.width

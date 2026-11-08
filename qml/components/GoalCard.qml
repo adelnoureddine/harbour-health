@@ -39,6 +39,11 @@ ListItem {
     contentHeight: Math.max(naturalHeight, rowHeight)
     highlightedColor: "transparent"
 
+    // The title takes one line or two (titleNaturalHeight). The dashboard sets
+    // titleHeight to the taller title of the row, so the two rings stay level.
+    readonly property real titleNaturalHeight: Math.max(icon.height, titleLabel.implicitHeight)
+    property real titleHeight: 0
+
     function refresh() {
         if (profileId < 0 || metricName === "") {
             return;
@@ -118,11 +123,14 @@ ListItem {
         width: parent.width - 2 * Theme.paddingLarge
         spacing: Theme.paddingMedium
 
-        Row {
+        // A long title ("Calories eaten today") wraps instead of fading out half way.
+        Item {
             width: parent.width
-            spacing: Theme.paddingSmall
+            height: Math.max(card.titleNaturalHeight, card.titleHeight)
+
             HighlightImage {
                 id: icon
+                anchors.verticalCenter: parent.verticalCenter
                 width: Theme.iconSizeSmall
                 height: Theme.iconSizeSmall
                 sourceSize.width: Theme.iconSizeSmall
@@ -132,9 +140,14 @@ ListItem {
                 highlighted: card.highlighted
             }
             Label {
-                width: parent.width - icon.width - parent.spacing
+                id: titleLabel
+                anchors.left: icon.right
+                anchors.leftMargin: Theme.paddingSmall
+                anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
-                truncationMode: TruncationMode.Fade
+                wrapMode: Text.Wrap
+                maximumLineCount: 2
+                truncationMode: TruncationMode.Elide
                 //: Dashboard card title for a daily total, e.g. "Water today"
                 text: qsTr("%1 today").arg(Utils.moduleDisplayName(card.moduleName))
                 font.pixelSize: Theme.fontSizeSmall

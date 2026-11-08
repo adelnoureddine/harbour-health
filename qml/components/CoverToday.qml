@@ -51,13 +51,24 @@ Column {
     Repeater {
         model: root.openItems.slice(0, root.maxRows)
 
-        delegate: Row {
+        /*
+         * The name with the amount still to go at the end of the line, or, when both do
+         * not fit across the cover ("Calories eaten" and "850 kcal"), the amount on a
+         * line of its own under the name. The name used to give way and fade out.
+         */
+        delegate: Item {
+            id: row
+            readonly property real textX: box.width + Theme.paddingSmall
+            readonly property bool stacked: remaining.text !== ""
+                    && textX + itemTitle.implicitWidth + Theme.paddingSmall + remaining.implicitWidth > width
+
             width: root.width
-            spacing: Theme.paddingSmall
+            height: stacked ? itemTitle.height + remaining.height : itemTitle.height
 
             // An open box: these are still to do.
             Rectangle {
-                anchors.verticalCenter: parent.verticalCenter
+                id: box
+                anchors.verticalCenter: itemTitle.verticalCenter
                 width: Math.round(Theme.paddingMedium)
                 height: width
                 radius: width / 2
@@ -68,8 +79,9 @@ Column {
 
             Label {
                 id: itemTitle
-                width: parent.width - Theme.paddingMedium - parent.spacing
-                       - (remaining.text !== "" ? remaining.width + parent.spacing : 0)
+                x: row.textX
+                width: row.width - row.textX
+                       - (remaining.text !== "" && !row.stacked ? remaining.width + Theme.paddingSmall : 0)
                 truncationMode: TruncationMode.Fade
                 text: Utils.todayItemTitle(modelData)
                 font.pixelSize: Theme.fontSizeExtraSmall
@@ -79,7 +91,9 @@ Column {
             Label {
                 id: remaining
                 visible: text !== ""
-                width: Math.min(implicitWidth, root.width / 2)
+                x: row.stacked ? row.textX : row.width - width
+                y: row.stacked ? itemTitle.height : 0
+                width: row.stacked ? row.width - row.textX : Math.min(implicitWidth, row.width / 2)
                 truncationMode: TruncationMode.Fade
                 text: Utils.todayItemRemaining(modelData)
                 font.pixelSize: Theme.fontSizeExtraSmall

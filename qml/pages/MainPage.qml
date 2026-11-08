@@ -58,11 +58,21 @@ Page {
 
     /*
      * Wide cards (weight, empty rows, the summary rows) take a whole row and the others
-     * pair up, the two of a pair made the same height. In a free order a half card can
-     * end up alone on its row; in portrait it is stretched instead of leaving a hole.
+     * pair up, the two of a pair made the same height, with titles of the same height
+     * so their values line up when one title takes two lines. In a free order a half
+     * card can end up alone on its row; in portrait it is stretched instead of leaving
+     * a hole.
+     *
+     * Every card gets each value once per pass: a pass that changes nothing emits no
+     * height change, which would start another pass.
      */
     function relayout() {
         var pending = null;
+        function alone(card) {
+            card.wide = true;
+            card.rowHeight = 0;
+            card.titleHeight = 0;
+        }
         for (var i = 0; i < cardRepeater.count; i++) {
             var slot = cardRepeater.itemAt(i);
             var card = slot ? slot.item : null;
@@ -71,8 +81,7 @@ Page {
             }
             if (card.wantsWide) {
                 if (pending) {
-                    pending.wide = true;
-                    pending.rowHeight = 0;
+                    alone(pending);
                     pending = null;
                 }
                 card.wide = true;
@@ -80,18 +89,23 @@ Page {
             } else {
                 card.wide = false;
                 if (columns === 2 && pending) {
+                    var titleHeight = Math.max(pending.titleNaturalHeight, card.titleNaturalHeight);
+                    pending.titleHeight = titleHeight;
+                    card.titleHeight = titleHeight;
                     var height = Math.max(pending.naturalHeight, card.naturalHeight);
                     pending.rowHeight = height;
                     card.rowHeight = height;
                     pending = null;
+                } else if (columns === 2) {
+                    pending = card;
                 } else {
                     card.rowHeight = 0;
-                    pending = columns === 2 ? card : null;
+                    card.titleHeight = 0;
                 }
             }
         }
         if (pending) {
-            pending.wide = true;
+            alone(pending);
         }
     }
 
