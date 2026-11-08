@@ -3,12 +3,16 @@ import Sailfish.Silica 1.0
 import harbour.health.FileWriter 1.0
 import "../js/DataManager.js" as DataManager
 import "../js/utils.js" as Utils
+import "../components"
 
 /*
  * Backup and restore.
  *
  * Health keeps everything on the device and has no network access, so an exported
  * file is the only way to move data to a new phone or survive a reinstall.
+ *
+ * One card per job: a full backup, restoring one, and a CSV for spreadsheets. Each
+ * card reports the outcome of its own action, where the user is looking.
  */
 Page {
     id: page
@@ -16,6 +20,8 @@ Page {
 
     property string statusMessage: ""
     property bool statusIsError: false
+    // The card the message belongs to: "backup", "restore" or "csv".
+    property string statusFor: ""
 
     FileWriter {
         id: fileWriter
@@ -27,15 +33,26 @@ Page {
                 + Utils.pad2(now.getHours()) + Utils.pad2(now.getMinutes()) + extension;
     }
 
-    function report(message, isError) {
+    function report(message, isError, section) {
         statusMessage = message;
         statusIsError = isError === true;
+        statusFor = section;
+    }
+
+    /*
+     * When a backup was made, read from the name exportJson() gives it
+     * ("health-backup-2026-11-08-0740.json"). FileWriter has no file dates or sizes,
+     * so a file named otherwise gets "" and shows its name only.
+     */
+    function backupTimestamp(name) {
+        var match = /(\d{4}-\d{2}-\d{2})-(\d{2})(\d{2})\.json$/.exec(name);
+        return match ? match[1] + "T" + match[2] + ":" + match[3] + ":00" : "";
     }
 
     function exportJson() {
         var directory = fileWriter.exportDirectory();
         if (directory === "") {
-            report(fileWriter.lastError(), true);
+            report(fileWriter.lastError(), true, "backup");
             return;
         }
         var path = directory + "/" + timestampedName("health-backup", ".json");
@@ -43,28 +60,28 @@ Page {
         try {
             content = JSON.stringify(DataManager.exportAll(), null, 2);
         } catch (error) {
-            report(qsTr("Could not read the database: %1").arg(error.message), true);
+            report(qsTr("Could not read the database: %1").arg(error.message), true, "backup");
             return;
         }
         if (fileWriter.writeFile(path, content)) {
-            report(qsTr("Saved to %1").arg(path), false);
+            report(qsTr("Saved to %1").arg(path), false, "backup");
             refreshBackups();
         } else {
-            report(fileWriter.lastError(), true);
+            report(fileWriter.lastError(), true, "backup");
         }
     }
 
     function exportCsv() {
         var directory = fileWriter.exportDirectory();
         if (directory === "") {
-            report(fileWriter.lastError(), true);
+            report(fileWriter.lastError(), true, "csv");
             return;
         }
         var path = directory + "/" + timestampedName("health-measurements", ".csv");
         if (fileWriter.writeFile(path, DataManager.exportMeasurementsCsv())) {
-            report(qsTr("Saved to %1").arg(path), false);
+            report(qsTr("Saved to %1").arg(path), false, "csv");
         } else {
-            report(fileWriter.lastError(), true);
+            report(fileWriter.lastError(), true, "csv");
         }
     }
 
@@ -72,16 +89,16 @@ Page {
         var content = fileWriter.readFile(path);
         if (content === "") {
             // An empty file reads without any error, which left the message blank.
-            report(fileWriter.lastError() || qsTr("This backup file is empty."), true);
+            report(fileWriter.lastError() || qsTr("This backup file is empty."), true, "restore");
             return;
         }
         try {
             DataManager.restoreAll(JSON.parse(content));
         } catch (error) {
-            report(qsTr("Restore failed: %1").arg(error.message), true);
+            report(qsTr("Restore failed: %1").arg(error.message), true, "restore");
             return;
         }
-        report(qsTr("Restored from %1").arg(path), false);
+        report(qsTr("Restored from %1").arg(path), false, "restore");
         // Every page below is showing data that no longer exists.
         var dashboard = pageStack.find(function(candidate) {
             return candidate.objectName === "dashboardPage";
@@ -97,93 +114,234 @@ Page {
         if (directory === "") {
             return;
         }
+        // Newest first (FileWriter.listFiles sorts by modification time).
         var files = fileWriter.listFiles(directory, ".json");
         for (var i = 0; i < files.length; i++) {
             var path = String(files[i]);
-            backupModel.append({ path: path, name: path.substring(path.lastIndexOf("/") + 1) });
+            var name = path.substring(path.lastIndexOf("/") + 1);
+            backupModel.append({ path: path, name: name, when: backupTimestamp(name) });
         }
     }
 
-    SilicaListView {
-        id: listView
+    SilicaFlickable {
         anchors.fill: parent
-        model: backupModel
+        contentHeight: column.height + Theme.paddingLarge
 
-        header: Column {
-            width: listView.width
-            spacing: Theme.paddingMedium
+        Column {
+            id: column
+            width: parent.width
+            spacing: Theme.paddingLarge
 
             PageHeader {
                 title: qsTr("Backup and restore")
+                //: Under the page title: backups and restores cover every profile, not only the one in use
+                description: qsTr("All profiles")
             }
 
-            Label {
-                x: Theme.horizontalPageMargin
-                width: parent.width - 2 * Theme.horizontalPageMargin
-                wrapMode: Text.Wrap
-                font.pixelSize: Theme.fontSizeSmall
-                color: Theme.secondaryColor
-                text: qsTr("A backup covers every profile and all of its data, not just the one you are using. Files are written to the Health folder in your Documents, in readable form — keep them somewhere private.")
+            // --- backup ----------------------------------------------------------------
+            Card {
+                spacing: Theme.paddingMedium
+
+                Label {
+                    width: parent.width
+                    //: Card title: saving everything to a file
+                    text: qsTr("Backup")
+                    font.pixelSize: Theme.fontSizeSmall
+                    color: Theme.secondaryHighlightColor
+                }
+
+                Label {
+                    width: parent.width
+                    wrapMode: Text.Wrap
+                    font.pixelSize: Theme.fontSizeSmall
+                    color: Theme.secondaryColor
+                    text: qsTr("A backup covers every profile and all of its data, not just the one you are using. Files are written to the Health folder in your Documents, in readable form — keep them somewhere private.")
+                }
+
+                Button {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    text: qsTr("Export backup")
+                    onClicked: page.exportJson()
+                }
+
+                Label {
+                    width: parent.width
+                    visible: page.statusFor === "backup" && page.statusMessage !== ""
+                    // Paths have no spaces to wrap at.
+                    wrapMode: Text.WrapAtWordBoundaryOrAnywhere
+                    font.pixelSize: Theme.fontSizeExtraSmall
+                    color: page.statusIsError ? Theme.errorColor : Theme.highlightColor
+                    text: page.statusMessage
+                }
             }
 
-            Button {
-                anchors.horizontalCenter: parent.horizontalCenter
-                text: qsTr("Export full backup")
-                onClicked: page.exportJson()
+            // --- restore ---------------------------------------------------------------
+            Card {
+                id: restoreCard
+                spacing: Theme.paddingMedium
+
+                Label {
+                    width: parent.width
+                    //: Card title: replacing everything with a backup file
+                    text: qsTr("Restore")
+                    font.pixelSize: Theme.fontSizeSmall
+                    color: Theme.secondaryHighlightColor
+                }
+
+                Row {
+                    width: parent.width
+                    spacing: Theme.paddingMedium
+
+                    Icon {
+                        id: warningIcon
+                        source: "image://theme/icon-m-warning"
+                        color: Theme.highlightColor
+                    }
+
+                    Label {
+                        width: parent.width - warningIcon.width - parent.spacing
+                        // Centred on the icon only while shorter than it.
+                        y: Math.max(0, (warningIcon.height - height) / 2)
+                        wrapMode: Text.Wrap
+                        font.pixelSize: Theme.fontSizeSmall
+                        color: Theme.highlightColor
+                        text: qsTr("Restoring replaces everything currently in the app — every profile and all of its data — with the contents of the backup. Export a backup first if you are unsure.")
+                    }
+                }
+
+                Label {
+                    width: parent.width
+                    visible: backupModel.count > 0
+                    wrapMode: Text.Wrap
+                    font.pixelSize: Theme.fontSizeExtraSmall
+                    color: Theme.secondaryColor
+                    text: qsTr("Tap a backup to restore it. There are a few seconds to cancel before anything is replaced.")
+                }
+
+                // Backups found in Documents/Health, newest first. The rows span the
+                // whole card so their pressed highlight does too.
+                Column {
+                    x: -restoreCard.padding
+                    width: restoreCard.width
+                    visible: backupModel.count > 0
+
+                    Repeater {
+                        model: backupModel
+
+                        delegate: ListItem {
+                            id: backupItem
+                            width: parent.width
+                            contentHeight: Math.max(Theme.itemSizeMedium, backupText.height + 2 * Theme.paddingMedium)
+
+                            onClicked: {
+                                var path = model.path;
+                                backupItem.remorseAction(qsTr("Replacing all data"), function() {
+                                    page.restore(path);
+                                })
+                            }
+
+                            Column {
+                                id: backupText
+                                x: restoreCard.padding
+                                width: parent.width - 2 * restoreCard.padding
+                                       - (latestPill.visible ? latestPill.width + Theme.paddingMedium : 0)
+                                anchors.verticalCenter: parent.verticalCenter
+
+                                Label {
+                                    width: parent.width
+                                    truncationMode: TruncationMode.Fade
+                                    text: model.name
+                                    font.pixelSize: Theme.fontSizeSmall
+                                    color: backupItem.highlighted ? Theme.highlightColor : Theme.primaryColor
+                                }
+                                Label {
+                                    width: parent.width
+                                    visible: text !== ""
+                                    truncationMode: TruncationMode.Fade
+                                    text: model.when !== "" ? Utils.relativeTime(model.when, true) : ""
+                                    font.pixelSize: Theme.fontSizeExtraSmall
+                                    color: backupItem.highlighted ? Theme.secondaryHighlightColor : Theme.secondaryColor
+                                }
+                            }
+
+                            StatusPill {
+                                id: latestPill
+                                anchors.right: parent.right
+                                anchors.rightMargin: restoreCard.padding
+                                anchors.verticalCenter: parent.verticalCenter
+                                //: Marks the newest backup file in the list
+                                text: index === 0 ? qsTr("Latest") : ""
+                            }
+                        }
+                    }
+                }
+
+                // In the card rather than a ViewPlaceholder: the other cards fill the page.
+                Column {
+                    width: parent.width
+                    visible: backupModel.count === 0
+                    spacing: Theme.paddingSmall
+
+                    Label {
+                        width: parent.width
+                        wrapMode: Text.Wrap
+                        text: qsTr("No backups found")
+                        font.pixelSize: Theme.fontSizeMedium
+                        color: Theme.highlightColor
+                    }
+                    Label {
+                        width: parent.width
+                        wrapMode: Text.Wrap
+                        text: qsTr("Export one first, or copy a backup file into Documents/Health")
+                        font.pixelSize: Theme.fontSizeExtraSmall
+                        color: Theme.secondaryColor
+                    }
+                }
+
+                Label {
+                    width: parent.width
+                    visible: page.statusFor === "restore" && page.statusMessage !== ""
+                    wrapMode: Text.WrapAtWordBoundaryOrAnywhere
+                    font.pixelSize: Theme.fontSizeExtraSmall
+                    color: page.statusIsError ? Theme.errorColor : Theme.highlightColor
+                    text: page.statusMessage
+                }
             }
 
-            Button {
-                anchors.horizontalCenter: parent.horizontalCenter
-                text: qsTr("Export measurements as CSV")
-                onClicked: page.exportCsv()
+            // --- CSV -------------------------------------------------------------------
+            Card {
+                spacing: Theme.paddingMedium
+
+                Label {
+                    width: parent.width
+                    text: qsTr("Spreadsheet export (CSV)")
+                    font.pixelSize: Theme.fontSizeSmall
+                    color: Theme.secondaryHighlightColor
+                }
+
+                Label {
+                    width: parent.width
+                    wrapMode: Text.Wrap
+                    font.pixelSize: Theme.fontSizeSmall
+                    color: Theme.secondaryColor
+                    text: qsTr("Every measurement of every profile in one table, to open in a spreadsheet. It is saved in the same folder, but a CSV file cannot be restored.")
+                }
+
+                Button {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    text: qsTr("Export CSV")
+                    onClicked: page.exportCsv()
+                }
+
+                Label {
+                    width: parent.width
+                    visible: page.statusFor === "csv" && page.statusMessage !== ""
+                    wrapMode: Text.WrapAtWordBoundaryOrAnywhere
+                    font.pixelSize: Theme.fontSizeExtraSmall
+                    color: page.statusIsError ? Theme.errorColor : Theme.highlightColor
+                    text: page.statusMessage
+                }
             }
-
-            Label {
-                x: Theme.horizontalPageMargin
-                width: parent.width - 2 * Theme.horizontalPageMargin
-                wrapMode: Text.Wrap
-                font.pixelSize: Theme.fontSizeExtraSmall
-                color: page.statusIsError ? Theme.errorColor : Theme.highlightColor
-                visible: page.statusMessage !== ""
-                text: page.statusMessage
-            }
-
-            SectionHeader {
-                text: qsTr("Restore")
-            }
-
-            Label {
-                x: Theme.horizontalPageMargin
-                width: parent.width - 2 * Theme.horizontalPageMargin
-                wrapMode: Text.Wrap
-                font.pixelSize: Theme.fontSizeSmall
-                color: Theme.secondaryColor
-                text: qsTr("Restoring replaces everything currently in the app — every profile and all of its data — with the contents of the backup. Export a backup first if you are unsure.")
-            }
-        }
-
-        delegate: ListItem {
-            id: backupItem
-            contentHeight: Theme.itemSizeSmall
-
-            onClicked: backupItem.remorseAction(qsTr("Replacing all data"), function() {
-                page.restore(model.path);
-            })
-
-            Label {
-                x: Theme.horizontalPageMargin
-                width: parent.width - 2 * Theme.horizontalPageMargin
-                anchors.verticalCenter: parent.verticalCenter
-                text: model.name
-                truncationMode: TruncationMode.Fade
-                color: backupItem.highlighted ? Theme.highlightColor : Theme.primaryColor
-            }
-        }
-
-        ViewPlaceholder {
-            enabled: backupModel.count === 0
-            text: qsTr("No backups found")
-            hintText: qsTr("Export one first, or copy a backup file into Documents/Health")
         }
 
         VerticalScrollDecorator {}

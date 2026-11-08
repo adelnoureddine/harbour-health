@@ -2,12 +2,19 @@ import QtQuick 2.0
 import Sailfish.Silica 1.0
 import "../js/DataManager.js" as DataManager
 import "../js/utils.js" as Utils
+import "../components"
 
 Page {
     id: page
     allowedOrientations: Orientation.All
 
     property int profileId: -1
+    property string profileName: ""
+    // What the page last loaded (see DataManager.dataKey). Coming back from a cycle's
+    // details or a cancelled edit does not reload.
+    property string loadedFrom: ""
+    // Keeps the placeholder from flashing while the page is pushed.
+    property bool loaded: false
 
     /*
      * Length in days, matching the average on the cycle page: from this cycle's start
@@ -15,20 +22,20 @@ Page {
      * still in progress (-1).
      */
     function cycleLength(cycles, i) {
-        var start = Utils.fromLocalDateString(cycles[i].startDate);
-        var until = i > 0 ? Utils.fromLocalDateString(cycles[i - 1].startDate) : null;
-        if (start === null) {
-            return -1;
+        var toNext = i > 0 ? Utils.daysBetween(cycles[i].startDate, cycles[i - 1].startDate) : null;
+        if (toNext !== null) {
+            return toNext;
         }
-        if (until !== null) {
-            return Math.round((until - start) / 86400000);
-        }
-        var end = Utils.fromLocalDateString(cycles[i].endDate);
-        return end === null ? -1 : Math.round((end - start) / 86400000) + 1;
+        // The end date is the cycle's last day, so it counts too.
+        var toEnd = Utils.daysBetween(cycles[i].startDate, cycles[i].endDate);
+        return toEnd === null ? -1 : toEnd + 1;
     }
 
     function refresh() {
         if (profileId >= 0) {
+            var key = DataManager.dataKey();
+            var profile = DataManager.getProfile(profileId);
+            profileName = profile ? profile.firstName : "";
             var cycles = DataManager.getMenstrualCycles(profileId);
             var rows = [];
             for (var i = 0; i < cycles.length; i++) {
@@ -41,6 +48,8 @@ Page {
             if (rows.length > 0) {
                 listModel.append(rows);
             }
+            loaded = true;
+            loadedFrom = key;
         }
     }
 
@@ -48,10 +57,17 @@ Page {
         id: listView
         anchors.fill: parent
         model: listModel
+        spacing: Theme.paddingMedium
 
         header: PageHeader {
             width: listView.width
             title: qsTr("Cycle history")
+            description: page.profileName
+        }
+
+        footer: Item {
+            width: listView.width
+            height: Theme.paddingLarge
         }
 
         PullDownMenu {
@@ -65,7 +81,20 @@ Page {
 
         delegate: ListItem {
             id: cycleItem
-            contentHeight: Math.max(Theme.itemSizeMedium, cycleColumn.height + 2 * Theme.paddingMedium)
+            contentHeight: cycleColumn.height + 2 * Theme.paddingLarge
+            // The card shows the pressed state itself.
+            highlightedColor: "transparent"
+
+            // On the row, not in the menu: the menu is destroyed as soon as it closes,
+            // before the remorse runs out, and its model.id with it.
+            function remove() {
+                cycleItem.remorseDelete(function() {
+                    DataManager.deleteMenstrualCycle(model.id);
+                    // Reloaded rather than removed: the neighbouring cycle's length
+                    // depends on this one.
+                    page.refresh();
+                })
+            }
 
             // Built when first opened. Created with every row, the menu made each
             // row about ten times slower to build, which showed while scrolling.
@@ -84,39 +113,60 @@ Page {
                     }
                     MenuItem {
                         text: qsTr("Delete")
-                        onClicked: cycleItem.remorseDelete(function() {
-                            DataManager.deleteMenstrualCycle(model.id);
-                            // Reloaded rather than removed: the neighbouring cycle's length
-                            // depends on this one.
-                            page.refresh();
-                        })
+                        onClicked: cycleItem.remove()
                     }
                 }
             }
 
-            Column {
-                id: cycleColumn
-                anchors.verticalCenter: parent.verticalCenter
+            CardBackground {
                 x: Theme.horizontalPageMargin
                 width: parent.width - 2 * Theme.horizontalPageMargin
+                height: parent.height
+                highlighted: cycleItem.highlighted
+            }
 
-                Label {
+            Column {
+                id: cycleColumn
+                x: Theme.horizontalPageMargin + Theme.paddingLarge
+                y: Theme.paddingLarge
+                width: parent.width - 2 * (Theme.horizontalPageMargin + Theme.paddingLarge)
+                spacing: Theme.paddingSmall
+
+                Item {
                     width: parent.width
-                    truncationMode: TruncationMode.Fade
-                    text: model.endDate
-                          ? qsTr("%1 to %2").arg(Utils.formatDate(model.startDate))
-                                            .arg(Utils.formatDate(model.endDate))
-                          : qsTr("Started on %1").arg(Utils.formatDate(model.startDate))
-                    color: cycleItem.highlighted ? Theme.highlightColor : Theme.primaryColor
+                    height: Math.max(rangeLabel.height, lengthLabel.height, progressPill.height)
+
+                    Label {
+                        id: rangeLabel
+                        anchors.left: parent.left
+                        anchors.right: model.lengthDays >= 0 ? lengthLabel.left : progressPill.left
+                        anchors.rightMargin: Theme.paddingMedium
+                        anchors.verticalCenter: parent.verticalCenter
+                        truncationMode: TruncationMode.Fade
+                        text: model.endDate
+                              ? qsTr("%1 to %2").arg(Utils.formatDate(model.startDate))
+                                                .arg(Utils.formatDate(model.endDate))
+                              : qsTr("Started on %1").arg(Utils.formatDate(model.startDate))
+                        color: cycleItem.highlighted ? Theme.highlightColor : Theme.primaryColor
+                    }
+                    Label {
+                        id: lengthLabel
+                        anchors.right: parent.right
+                        anchors.verticalCenter: parent.verticalCenter
+                        visible: model.lengthDays >= 0
+                        text: model.lengthDays >= 0 ? qsTr("%n day(s)", "", model.lengthDays) : ""
+                        font.pixelSize: Theme.fontSizeSmall
+                        color: Theme.secondaryHighlightColor
+                    }
+                    StatusPill {
+                        id: progressPill
+                        anchors.right: parent.right
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: model.lengthDays < 0 ? qsTr("In progress") : ""
+                        dotColor: Theme.highlightColor
+                    }
                 }
-                Label {
-                    width: parent.width
-                    truncationMode: TruncationMode.Fade
-                    text: model.lengthDays >= 0 ? qsTr("%n day(s)", "", model.lengthDays)
-                                                : qsTr("In progress")
-                    font.pixelSize: Theme.fontSizeSmall
-                    color: cycleItem.highlighted ? Theme.secondaryHighlightColor : Theme.secondaryColor
-                }
+
                 Label {
                     width: parent.width
                     text: model.note
@@ -133,14 +183,15 @@ Page {
                 profileId: page.profileId,
                 startDate: model.startDate,
                 endDate: model.endDate,
-                note: model.note
+                note: model.note,
+                lengthDays: model.lengthDays
             })
         }
 
         VerticalScrollDecorator {}
 
         ViewPlaceholder {
-            enabled: listModel.count === 0
+            enabled: page.loaded && listModel.count === 0
             text: qsTr("No cycles recorded")
             hintText: qsTr("Pull down to record a new cycle")
         }
@@ -151,8 +202,10 @@ Page {
     }
 
     onStatusChanged: {
-        if (status === PageStatus.Active) {
+        if (status === PageStatus.Active && DataManager.dataKey() !== loadedFrom) {
             refresh();
         }
     }
 }
+
+// vim:et:ts=4:sw=4

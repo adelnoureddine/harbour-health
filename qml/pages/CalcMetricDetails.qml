@@ -18,7 +18,6 @@ Page {
     property string calculate: DataManager.CALC_BMI
     property string title: qsTr("BMI")
     property string metricUnit: ""
-    property var invalidateSignal
 
     property int rangeDays: 365
     property var chartSeries: []
@@ -51,7 +50,7 @@ Page {
     readonly property bool isWHtR: calculate === DataManager.CALC_WHTR
     readonly property string inputMetric: isWHtR ? DataManager.METRIC_WAIST : DataManager.METRIC_WEIGHT
     // A ratio around 0.5 is meaningless at one decimal.
-    readonly property int decimals: isWHtR ? 2 : 1
+    readonly property int decimals: Utils.metricDecimals(calculate)
 
     function refresh() {
         if (profileId < 0) {
@@ -91,13 +90,31 @@ Page {
 
     onRangeDaysChanged: refresh()
 
+    // Opens at its top while the header settles, as on the other history pages.
+    property bool holdTop: true
+
+    Timer {
+        id: scrollToTop
+        interval: 50
+        onTriggered: {
+            listView.forceLayout();
+            listView.positionViewAtBeginning();
+        }
+    }
+
     SilicaListView {
         id: listView
         anchors.fill: parent
+        onMovementStarted: page.holdTop = false
 
         header: Column {
             width: listView.width
             spacing: Theme.paddingMedium
+            onHeightChanged: {
+                if (page.holdTop) {
+                    scrollToTop.restart();
+                }
+            }
 
             PageHeader {
                 title: page.title
@@ -151,7 +168,7 @@ Page {
                 text: Utils.metricHint(DataManager.METRIC_WAIST)
             }
 
-            MetricChart {
+            ChartCard {
                 width: parent.width - 2 * Theme.horizontalPageMargin
                 x: Theme.horizontalPageMargin
                 visible: page.hasData
@@ -198,8 +215,7 @@ Page {
                     profileId: page.profileId,
                     metricName: DataManager.METRIC_HEIGHT,
                     metricUnit: DataManager.getMetricUnit(DataManager.METRIC_HEIGHT),
-                    lockMetric: true,
-                    invalidateSignal: page.invalidateSignal
+                    lockMetric: true
                 })
             }
             MenuItem {
@@ -209,8 +225,7 @@ Page {
                     profileId: page.profileId,
                     metricName: page.inputMetric,
                     metricUnit: DataManager.getMetricUnit(page.inputMetric),
-                    lockMetric: true,
-                    invalidateSignal: page.invalidateSignal
+                    lockMetric: true
                 })
             }
         }

@@ -15,11 +15,17 @@ Dialog {
     property date startDate: new Date()
     property date endDate: new Date()
     property bool hasEndDate: false
+    // The condition being treated, shown under the header for context.
+    property string conditionName: ""
 
     readonly property bool editing: treatmentId >= 0
+    // Compared as calendar days: a start of "now" against an end picked as today
+    // (midnight) used to count as the end coming first.
+    readonly property bool datesValid: !hasEndDate
+                                       || Utils.toLocalDateString(endDate) >= Utils.toLocalDateString(startDate)
 
     canAccept: profileId >= 0 && nameField.text.trim() !== "" && dosageField.text.trim() !== ""
-               && (!hasEndDate || endDate >= startDate)
+               && datesValid
 
     /*
      * Loads the whole treatment by id rather than receiving a handful of fields.
@@ -27,6 +33,8 @@ Dialog {
      * reset the treatment's start date to today.
      */
     function load() {
+        var condition = conditionId >= 0 ? DataManager.getCondition(conditionId) : null;
+        conditionName = condition && condition.name ? condition.name : "";
         if (!editing) {
             return;
         }
@@ -62,17 +70,17 @@ Dialog {
         var startStr = Utils.toLocalDateString(startDate);
         var endStr = hasEndDate ? Utils.toLocalDateString(endDate) : null;
         if (!editing) {
-            DataManager.addTreatment(profileId, medId, conditionId, dosageField.text,
-                                     frequencyField.text, startStr, endStr, notesField.text);
+            DataManager.addTreatment(profileId, medId, conditionId, dosageField.text.trim(),
+                                     frequencyField.text.trim(), startStr, endStr, notesField.text.trim());
         } else {
-            DataManager.updateTreatment(treatmentId, dosageField.text, frequencyField.text,
-                                        startStr, endStr, notesField.text);
+            DataManager.updateTreatment(treatmentId, dosageField.text.trim(), frequencyField.text.trim(),
+                                        startStr, endStr, notesField.text.trim());
         }
     }
 
     SilicaFlickable {
         anchors.fill: parent
-        contentHeight: column.height
+        contentHeight: column.height + Theme.paddingLarge
 
         Column {
             id: column
@@ -84,27 +92,73 @@ Dialog {
                 acceptText: qsTr("Save")
             }
 
+            Label {
+                x: Theme.horizontalPageMargin
+                width: parent.width - 2 * Theme.horizontalPageMargin
+                visible: text !== ""
+                truncationMode: TruncationMode.Fade
+                text: dialog.conditionName
+                font.pixelSize: Theme.fontSizeLarge
+                color: Theme.highlightColor
+            }
+
             TextField {
                 id: nameField
+                // Set once the field has been left, so an untouched form is not
+                // greeted with an error.
+                property bool touched: false
+
                 width: parent.width
                 label: qsTr("Medication name")
-                text: medicationName
+                text: dialog.medicationName
                 placeholderText: label
                 // The medication itself is shared between treatments; renaming it
                 // here would rewrite every other treatment that uses it.
                 enabled: !dialog.editing
                 focus: !dialog.editing
+                onActiveFocusChanged: {
+                    if (!activeFocus) {
+                        touched = true;
+                    }
+                }
                 EnterKey.iconSource: "image://theme/icon-m-enter-next"
                 EnterKey.onClicked: dosageField.focus = true
             }
 
+            Label {
+                x: Theme.horizontalPageMargin
+                width: parent.width - 2 * Theme.horizontalPageMargin
+                wrapMode: Text.Wrap
+                font.pixelSize: Theme.fontSizeExtraSmall
+                color: Theme.errorColor
+                visible: nameField.touched && nameField.text.trim() === ""
+                text: qsTr("Enter the name of the medication.")
+            }
+
             TextField {
                 id: dosageField
+                property bool touched: false
+
                 width: parent.width
                 label: qsTr("Dosage")
                 placeholderText: qsTr("e.g. 500mg")
+                onActiveFocusChanged: {
+                    if (!activeFocus) {
+                        touched = true;
+                    }
+                }
                 EnterKey.iconSource: "image://theme/icon-m-enter-next"
                 EnterKey.onClicked: frequencyField.focus = true
+            }
+
+            Label {
+                x: Theme.horizontalPageMargin
+                width: parent.width - 2 * Theme.horizontalPageMargin
+                wrapMode: Text.Wrap
+                font.pixelSize: Theme.fontSizeExtraSmall
+                color: Theme.errorColor
+                visible: dosageField.touched && dosageField.text.trim() === ""
+                text: qsTr("Enter the dosage.")
             }
 
             TextField {
@@ -116,18 +170,9 @@ Dialog {
                 EnterKey.onClicked: notesField.focus = true
             }
 
-            TextField {
-                id: notesField
-                width: parent.width
-                label: qsTr("Notes")
-                placeholderText: qsTr("Optional notes")
-                EnterKey.iconSource: "image://theme/icon-m-enter-close"
-                EnterKey.onClicked: focus = false
-            }
-
             ValueButton {
                 label: qsTr("Start date")
-                value: Qt.formatDate(dialog.startDate, Qt.DefaultLocaleShortDate)
+                value: Utils.formatDate(dialog.startDate)
                 onClicked: {
                     var dateDialog = pageStack.push("Sailfish.Silica.DatePickerDialog", {
                         date: dialog.startDate
@@ -143,12 +188,18 @@ Dialog {
                 text: qsTr("Has end date")
                 checked: dialog.hasEndDate
                 automaticCheck: false
-                onClicked: dialog.hasEndDate = !dialog.hasEndDate
+                onClicked: {
+                    dialog.hasEndDate = !dialog.hasEndDate;
+                    // Starts from a valid date rather than one before the start.
+                    if (dialog.hasEndDate && !dialog.datesValid) {
+                        dialog.endDate = dialog.startDate;
+                    }
+                }
             }
 
             ValueButton {
                 label: qsTr("End date")
-                value: Qt.formatDate(dialog.endDate, Qt.DefaultLocaleShortDate)
+                value: Utils.formatDate(dialog.endDate)
                 visible: dialog.hasEndDate
                 onClicked: {
                     var dateDialog = pageStack.push("Sailfish.Silica.DatePickerDialog", {
@@ -166,8 +217,19 @@ Dialog {
                 wrapMode: Text.Wrap
                 font.pixelSize: Theme.fontSizeExtraSmall
                 color: Theme.errorColor
-                visible: dialog.hasEndDate && dialog.endDate < dialog.startDate
+                visible: !dialog.datesValid
                 text: qsTr("The end date is before the start date.")
+            }
+
+            // Last, so Enter here can save.
+            TextField {
+                id: notesField
+                width: parent.width
+                label: qsTr("Notes")
+                placeholderText: qsTr("Optional notes")
+                EnterKey.iconSource: "image://theme/icon-m-enter-accept"
+                EnterKey.enabled: dialog.canAccept
+                EnterKey.onClicked: dialog.accept()
             }
         }
 

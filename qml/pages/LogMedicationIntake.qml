@@ -11,16 +11,22 @@ Dialog {
     property int medicationId: -1
     property string medicationName
     property date selectedDate: new Date()
+    // What was already taken today, so a dose is not logged twice by mistake.
+    property string todayText: ""
 
-    canAccept: profileId >= 0 && medicationId >= 0
+    // An intake is something that happened. Re-evaluated whenever the date or the
+    // time changes.
+    readonly property bool inFuture: selectedDate > new Date()
+
+    canAccept: profileId >= 0 && medicationId >= 0 && !inFuture
 
     onAccepted: {
-        DataManager.addMedicationLog(profileId, medicationId, selectedDate, noteField.text);
+        DataManager.addMedicationLog(profileId, medicationId, selectedDate, noteField.text.trim());
     }
 
     SilicaFlickable {
         anchors.fill: parent
-        contentHeight: column.height
+        contentHeight: column.height + Theme.paddingLarge
 
         Column {
             id: column
@@ -28,13 +34,35 @@ Dialog {
             spacing: Theme.paddingLarge
 
             DialogHeader {
-                title: qsTr("Log intake — %1").arg(medicationName)
+                // The medication is named below: in the title it was cut off.
+                title: qsTr("Log intake")
                 acceptText: qsTr("Save")
+            }
+
+            Column {
+                x: Theme.horizontalPageMargin
+                width: parent.width - 2 * Theme.horizontalPageMargin
+
+                Label {
+                    width: parent.width
+                    truncationMode: TruncationMode.Fade
+                    text: dialog.medicationName
+                    font.pixelSize: Theme.fontSizeLarge
+                    color: Theme.highlightColor
+                }
+                Label {
+                    width: parent.width
+                    visible: text !== ""
+                    wrapMode: Text.Wrap
+                    text: dialog.todayText
+                    font.pixelSize: Theme.fontSizeExtraSmall
+                    color: Theme.secondaryHighlightColor
+                }
             }
 
             ValueButton {
                 label: qsTr("Date")
-                value: Qt.formatDate(dialog.selectedDate, Qt.DefaultLocaleShortDate)
+                value: Utils.formatDate(dialog.selectedDate)
                 onClicked: {
                     var dateDialog = pageStack.push("Sailfish.Silica.DatePickerDialog", {
                         date: dialog.selectedDate
@@ -54,7 +82,7 @@ Dialog {
             ValueButton {
                 label: qsTr("Time")
                 // Follows the system 12/24-hour setting.
-                value: Format.formatDate(dialog.selectedDate, Formatter.TimeValue)
+                value: Utils.formatTime(dialog.selectedDate)
                 onClicked: {
                     var timeDialog = pageStack.push("Sailfish.Silica.TimePickerDialog", {
                         hour: dialog.selectedDate.getHours(),
@@ -71,17 +99,37 @@ Dialog {
                 }
             }
 
+            Label {
+                x: Theme.horizontalPageMargin
+                width: parent.width - 2 * Theme.horizontalPageMargin
+                wrapMode: Text.Wrap
+                font.pixelSize: Theme.fontSizeExtraSmall
+                color: Theme.errorColor
+                visible: dialog.inFuture
+                text: qsTr("The intake time is in the future.")
+            }
+
             TextField {
                 id: noteField
                 width: parent.width
                 label: qsTr("Note")
                 placeholderText: qsTr("e.g. after meal, morning dose...")
-                EnterKey.iconSource: "image://theme/icon-m-enter-close"
-                EnterKey.onClicked: focus = false
+                EnterKey.iconSource: "image://theme/icon-m-enter-accept"
+                EnterKey.enabled: dialog.canAccept
+                EnterKey.onClicked: dialog.accept()
             }
         }
 
         VerticalScrollDecorator {}
+    }
+
+    Component.onCompleted: {
+        if (profileId < 0 || medicationId < 0) {
+            return;
+        }
+        // Newest first, so the first one is the latest intake.
+        var today = DataManager.getMedicationLogsToday(profileId, medicationId);
+        todayText = Utils.medicationTodayText(today.length, today.length > 0 ? today[0].timestamp : "");
     }
 }
 

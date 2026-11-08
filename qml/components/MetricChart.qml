@@ -220,6 +220,19 @@ Item {
                 }
                 var lineColor = set.color ? set.color : Theme.highlightColor;
 
+                // The area under a lone line is shaded; several lines would overlap.
+                if (root.series.length === 1 && set.points.length > 1) {
+                    ctx.beginPath();
+                    ctx.moveTo(xAt(set.points[0].t), py + ph);
+                    for (var f = 0; f < set.points.length; f++) {
+                        ctx.lineTo(xAt(set.points[f].t), yAt(set.points[f].v));
+                    }
+                    ctx.lineTo(xAt(set.points[set.points.length - 1].t), py + ph);
+                    ctx.closePath();
+                    ctx.fillStyle = Theme.rgba(lineColor, 0.16);
+                    ctx.fill();
+                }
+
                 ctx.strokeStyle = lineColor;
                 // Device pixels: a 2 px line is a hairline on a high-density screen.
                 ctx.lineWidth = 2 * Theme.pixelRatio;
@@ -244,6 +257,17 @@ Item {
                         ctx.fill();
                     }
                 }
+
+                // The latest reading stands out, so "where am I now" reads at a glance.
+                var last = set.points[set.points.length - 1];
+                ctx.fillStyle = Theme.rgba(lineColor, 0.35);
+                ctx.beginPath();
+                ctx.arc(xAt(last.t), yAt(last.v), 7 * Theme.pixelRatio, 0, 2 * Math.PI);
+                ctx.fill();
+                ctx.fillStyle = lineColor;
+                ctx.beginPath();
+                ctx.arc(xAt(last.t), yAt(last.v), 4 * Theme.pixelRatio, 0, 2 * Math.PI);
+                ctx.fill();
 
                 // --- average ------------------------------------------------------
                 if (root.showAverage && set.points.length > 1) {

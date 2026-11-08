@@ -99,24 +99,38 @@ var SERIES_DAILY_AVG = "dailyAvg";
 // Every profile-owned table. Used by deleteProfile() so the cascade cannot drift.
 var PROFILE_TABLES = ["HealthLogs", "Injections", "Treatments", "HealthConditions",
                       "MenstrualCycles", "MenstrualLogs", "MeditationSessions",
-                      "MedicationLogs", "ProfileModules"];
+                      "MedicationLogs", "ProfileModules", "Goals", "ModuleOrder"];
 
-// Tables covered by export/restore, parents before children.
+// Tables covered by export/restore, parents before children. Goals and ModuleOrder
+// came later: an older backup simply has none, and an older app ignores them.
 var ALL_TABLES = ["Profiles", "Metrics", "Modules", "ProfileModules", "MetricConstraints",
                   "HealthLogs", "Vaccines", "Injections", "Medications", "Treatments",
                   "MedicationLogs", "HealthConditions", "MenstrualCycles", "MenstrualLogs",
-                  "MeditationSessions"];
+                  "MeditationSessions", "Goals", "ModuleOrder"];
+
+// Daily goals for the metrics totalled per day, shown as rings on the dashboard. These
+// apply until the user sets their own (Goals table).
+var DEFAULT_GOALS = {};
+DEFAULT_GOALS[METRIC_WATER] = 2;
+DEFAULT_GOALS[METRIC_CALORIES] = 2000;
 
 /*
  * openDatabaseSync() was previously called afresh by every single function. Returning
  * to the dashboard rebuilds a dozen cards, each running several of them, so the
  * handle is memoised for the lifetime of the engine.
+ *
+ * The first call also creates or upgrades the schema, so whatever queries first -- the
+ * dashboard, the cover, the window -- finds the tables in place. The handle is kept
+ * only once that succeeded: after a failure the next call tries again (and throws
+ * again, which the window shows as a database error).
  */
 var _db = null;
 
 function db() {
     if (_db === null) {
-        _db = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
+        var handle = Sql.LocalStorage.openDatabaseSync(DB_NAME, DB_VERSION, DB_DESCRIPTION, DB_SIZE);
+        _createSchema(handle);
+        _db = handle;
     }
     return _db;
 }
@@ -222,7 +236,7 @@ function timestampToMs(s) {
  * Schema upgrades.
  *
  * Add one `if (version < N)` block per new schema version, ending by assigning N.
- * Everything runs inside init()'s transaction, so a failed upgrade rolls back whole.
+ * Everything runs inside _createSchema()'s transaction, so a failed upgrade rolls back whole.
  * Bump DB_SCHEMA_VERSION in the same commit as the block that reaches it.
  */
 function migrateDatabase(tx, fromVersion) {
@@ -240,9 +254,13 @@ function migrateDatabase(tx, fromVersion) {
     return version;
 }
 
-// Initialize the database and tables
+// Opens the database, creating or upgrading it on first use (db() does the work).
 function init() {
-    db().transaction(function (tx) {
+    db();
+}
+
+function _createSchema(handle) {
+    handle.transaction(function (tx) {
         tx.executeSql('CREATE TABLE IF NOT EXISTS SchemaInfo (' +
             'version INTEGER PRIMARY KEY)');
         var rs = tx.executeSql('SELECT version FROM SchemaInfo ORDER BY version DESC LIMIT 1');
@@ -337,6 +355,13 @@ function init() {
         tx.executeSql('CREATE TABLE IF NOT EXISTS MenstrualCycles (id INTEGER PRIMARY KEY AUTOINCREMENT, profileId INTEGER, startDate TEXT, endDate TEXT, note TEXT)');
         tx.executeSql('CREATE TABLE IF NOT EXISTS MenstrualLogs (id INTEGER PRIMARY KEY AUTOINCREMENT, profileId INTEGER, date TEXT, flow TEXT, pain TEXT, energy TEXT, sleepTime REAL, note TEXT)');
         tx.executeSql('CREATE TABLE IF NOT EXISTS MeditationSessions (id INTEGER PRIMARY KEY AUTOINCREMENT, profileId INTEGER, date DATETIME DEFAULT CURRENT_TIMESTAMP, duration INTEGER, name TEXT)');
+        // Added without a schema version bump: a new table touches no existing data,
+        // and CREATE TABLE IF NOT EXISTS reaches every database on its next start.
+        tx.executeSql('CREATE TABLE IF NOT EXISTS Goals (profileId INTEGER NOT NULL, metricName TEXT NOT NULL, ' +
+            'value REAL NOT NULL, PRIMARY KEY (profileId, metricName))');
+        // The dashboard order a profile chose (Arrange dashboard). No row: default order.
+        tx.executeSql('CREATE TABLE IF NOT EXISTS ModuleOrder (profileId INTEGER NOT NULL, moduleId INTEGER NOT NULL, ' +
+            'position INTEGER NOT NULL, PRIMARY KEY (profileId, moduleId))');
         tx.executeSql('CREATE TABLE IF NOT EXISTS MedicationLogs (id INTEGER PRIMARY KEY AUTOINCREMENT, profileId INTEGER NOT NULL, medicationId INTEGER NOT NULL, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP, note TEXT, FOREIGN KEY(profileId) REFERENCES Profiles(id), FOREIGN KEY(medicationId) REFERENCES Medications(id))');
         tx.executeSql('CREATE TABLE IF NOT EXISTS MetricConstraints (' +
             'id INTEGER PRIMARY KEY AUTOINCREMENT, ' +
@@ -589,16 +614,6 @@ function getMetrics() {
     return metrics;
 }
 
-function getMetricsToModel(a_model) {
-    db().transaction(function (tx) {
-        var rs = tx.executeSql('SELECT * FROM Metrics ORDER BY category,name');
-        a_model.clear();
-        for (var i = 0; i < rs.rows.length; i++) {
-            a_model.append(rs.rows.item(i));
-        }
-    });
-}
-
 function calculateMetrics(profileId, calculate) {
     if (calculate === CALC_BMI) {
         var bmi = calcBMI(profileId);
@@ -609,12 +624,11 @@ function calculateMetrics(profileId, calculate) {
         return whtr === null ? null : Math.round(whtr * 100) / 100;
     }
     if (calculate === CALC_BP) {
-        var systolic = getLatestLogValue(profileId, METRIC_BP_SYS);
-        var diastolic = getLatestLogValue(profileId, METRIC_BP_DIA);
-        if (systolic === null || diastolic === null) {
+        var bp = getLatestBloodPressure(profileId);
+        if (bp === null || bp.systolic === null || bp.diastolic === null) {
             return null;
         }
-        return systolic + "/" + diastolic;
+        return bp.systolic + "/" + bp.diastolic;
     }
     return null;
 }
@@ -695,16 +709,103 @@ function deleteLogs(ids) {
     });
 }
 
-function getLatestLogValue(profileId, metricName) {
-    var value = null;
+// Whether a profile has any reading at all (the dashboard's getting-started card).
+function hasLogs(profileId) {
+    var found = false;
     db().transaction(function (tx) {
-        var rs = tx.executeSql('SELECT value FROM HealthLogs WHERE profileId=? AND metricId=' + METRIC_ID +
-            ' ORDER BY timestamp DESC LIMIT 1', [profileId, metricName]);
-        if (rs.rows.length > 0) {
-            value = rs.rows.item(0).value;
+        found = tx.executeSql('SELECT EXISTS (SELECT 1 FROM HealthLogs WHERE profileId=?) AS found',
+                              [profileId]).rows.item(0).found ? true : false;
+    });
+    return found;
+}
+
+function _latestLog(tx, profileId, metricName) {
+    var rs = tx.executeSql('SELECT value, timestamp FROM HealthLogs WHERE profileId=? AND metricId=' + METRIC_ID +
+        ' ORDER BY timestamp DESC LIMIT 1', [profileId, metricName]);
+    return rs.rows.length > 0 ? { value: rs.rows.item(0).value, timestamp: String(rs.rows.item(0).timestamp) }
+                              : null;
+}
+
+// Latest reading with its time, or null: {value, timestamp}.
+function getLatestLog(profileId, metricName) {
+    var log = null;
+    db().transaction(function (tx) {
+        log = _latestLog(tx, profileId, metricName);
+    });
+    return log;
+}
+
+/*
+ * The latest reading of every metric the profile has logged, in one statement:
+ * {metricName: {value, timestamp}}. Each lookup is one index seek, so this costs about
+ * what a single getLatestLog() does, instead of one transaction per type.
+ */
+function getLatestLogs(profileId) {
+    var latest = {};
+    db().transaction(function (tx) {
+        var rs = tx.executeSql('SELECT m.name AS name, l.value AS value, l.timestamp AS timestamp ' +
+            'FROM Metrics m JOIN HealthLogs l ON l.id = (SELECT id FROM HealthLogs ' +
+            'WHERE profileId=? AND metricId=m.id ORDER BY timestamp DESC LIMIT 1)', [profileId]);
+        for (var i = 0; i < rs.rows.length; i++) {
+            var row = rs.rows.item(i);
+            latest[row.name] = { value: row.value, timestamp: String(row.timestamp) };
         }
     });
-    return value;
+    return latest;
+}
+
+/*
+ * Systolic and diastolic latest readings ({value, timestamp} or null each) as one
+ * blood pressure: {systolic, diastolic, timestamp}, a missing half null and the time
+ * the newer half's. null when neither half was ever logged.
+ */
+function bloodPressureFrom(systolic, diastolic) {
+    if (!systolic && !diastolic) {
+        return null;
+    }
+    var newer = !diastolic || (systolic && timestampToMs(systolic.timestamp) >= timestampToMs(diastolic.timestamp))
+            ? systolic : diastolic;
+    return {
+        systolic: systolic ? systolic.value : null,
+        diastolic: diastolic ? diastolic.value : null,
+        timestamp: newer.timestamp
+    };
+}
+
+function getLatestBloodPressure(profileId) {
+    var bp = null;
+    db().transaction(function (tx) {
+        bp = bloodPressureFrom(_latestLog(tx, profileId, METRIC_BP_SYS), _latestLog(tx, profileId, METRIC_BP_DIA));
+    });
+    return bp;
+}
+
+// The last `limit` readings, oldest first, as chart points [{t, v}].
+function getRecentReadings(profileId, metricName, limit) {
+    var points = [];
+    db().transaction(function (tx) {
+        var rs = tx.executeSql('SELECT timestamp, value FROM HealthLogs WHERE profileId=? AND metricId=' + METRIC_ID +
+            ' ORDER BY timestamp DESC LIMIT ?', [profileId, metricName, limit]);
+        for (var i = rs.rows.length - 1; i >= 0; i--) {
+            points.push({ t: timestampToMs(rs.rows.item(i).timestamp), v: rs.rows.item(i).value });
+        }
+    });
+    return points;
+}
+
+function getLatestLogValue(profileId, metricName) {
+    var log = getLatestLog(profileId, metricName);
+    return log ? log.value : null;
+}
+
+/*
+ * The points a trend line is drawn from (dashboard card, cover): the last 30 days, or
+ * the last ten readings when the month has fewer than two, so an old weight still gets
+ * its trend. Chart points [{t, v}], oldest first.
+ */
+function getTrend(profileId, metricName) {
+    var points = getSeries(profileId, metricName, sinceForDays(30, false), SERIES_RAW);
+    return points.length >= 2 ? points : getRecentReadings(profileId, metricName, 10);
 }
 
 /*
@@ -767,7 +868,9 @@ function addLogsToModel(profileId, metricName, a_model, grouped) {
             }
         }
         else {
-            rs = tx.executeSql('SELECT id, timestamp, value, note FROM HealthLogs ' +
+            // `day` is the calendar day here: the history groups readings by the day
+            // they were taken (no 04:00 border, which is about daily totals).
+            rs = tx.executeSql('SELECT id, timestamp, value, note, DATE(timestamp) AS day FROM HealthLogs ' +
                 'WHERE profileId=? AND metricId=' + METRIC_ID + ' ORDER BY timestamp DESC',
                 [profileId, metricName]);
             for (i = 0; i < rs.rows.length; i++) {
@@ -990,26 +1093,28 @@ function getWHtRSeries(profileId, sinceIso) {
 }
 
 // Vaccine Operations
-function getVaccinesToModel(profileId, a_model) {
-    a_model.clear();
+/*
+ * The profile's vaccines -- the mandatory ones and any with an injection -- by name,
+ * with how many doses were recorded and the latest date: [{id, name, doses, lastDate}].
+ * One grouped query; the pages used to fetch every injection of each vaccine in turn.
+ */
+function getVaccineSummaries(profileId) {
+    var vaccines = [];
     db().transaction(function (tx) {
-        var rs = tx.executeSql('SELECT DISTINCT v.* FROM Vaccines v ' +
-            'LEFT JOIN Injections i ON v.id = i.vaccineId AND i.profileId = ? ' +
-            'WHERE v.isMandatory = 1 OR i.id IS NOT NULL ORDER BY v.name', [profileId]);
+        var rs = tx.executeSql('SELECT v.id AS id, v.name AS name, COUNT(i.id) AS doses, MAX(i.date) AS lastDate ' +
+            'FROM Vaccines v LEFT JOIN Injections i ON v.id = i.vaccineId AND i.profileId = ? ' +
+            'WHERE v.isMandatory = 1 OR i.id IS NOT NULL GROUP BY v.id ORDER BY v.name', [profileId]);
         for (var i = 0; i < rs.rows.length; i++) {
-            a_model.append(rs.rows.item(i));
+            var row = rs.rows.item(i);
+            vaccines.push({
+                id: row.id,
+                name: row.name ? String(row.name) : "",
+                doses: row.doses,
+                lastDate: row.lastDate ? String(row.lastDate) : ""
+            });
         }
     });
-}
-
-function getVaccineCount(profileId) {
-    var count = 0;
-    db().transaction(function (tx) {
-        var rs = tx.executeSql('SELECT count(DISTINCT v.id) as count FROM Vaccines v ' +
-            'INNER JOIN Injections i ON v.id = i.vaccineId WHERE i.profileId = ?', [profileId]);
-        count = rs.rows.item(0).count;
-    });
-    return count;
+    return vaccines;
 }
 
 function getOrCreateVaccine(name, isMandatory) {
@@ -1243,7 +1348,41 @@ function addMenstrualLog(profileId, date, flow, pain, energy, sleepTime, note) {
  * least two cycles to measure between.
  */
 function getAverageCycleLength(profileId) {
+    return averageCycleLength(getMenstrualCycles(profileId));
+}
+
+/*
+ * Where the cycle stands today, for the cycle page and its dashboard row:
+ * {last, open, dayOfCycle, averageLength, nextStart}. last is the newest cycle (null
+ * with none) and open whether it has no end yet; its start is day 1 (0 without one).
+ * averageLength is null with fewer than two cycles, nextStart "YYYY-MM-DD" or "".
+ */
+function getCycleStatus(profileId) {
     var cycles = getMenstrualCycles(profileId);
+    var status = { last: null, open: false, dayOfCycle: 0, averageLength: averageCycleLength(cycles), nextStart: "" };
+    if (cycles.length === 0) {
+        return status;
+    }
+    status.last = cycles[0];
+    status.open = !cycles[0].endDate;
+    var startMs = timestampToMs(cycles[0].startDate);
+    if (!isNaN(startMs)) {
+        var start = new Date(startMs);
+        var today = new Date();
+        today.setHours(0, 0, 0, 0);
+        // Rounded: across the spring clock change two local midnights are an hour short
+        // of whole days, and flooring lost a day.
+        status.dayOfCycle = Math.round((today.getTime() - startMs) / 86400000) + 1;
+        if (status.averageLength !== null) {
+            status.nextStart = toTimestamp(new Date(start.getFullYear(), start.getMonth(),
+                                                    start.getDate() + status.averageLength)).substring(0, 10);
+        }
+    }
+    return status;
+}
+
+// The same for cycles already loaded (getMenstrualCycles order: newest first).
+function averageCycleLength(cycles) {
     if (cycles.length < 2) {
         return null;
     }
@@ -1276,6 +1415,33 @@ function getMeditationSessions(profileId) {
         }
     });
     return sessions;
+}
+
+/*
+ * What the meditation page shows: {total, weekCount, weekSeconds, recent}, recent being
+ * the newest `limit` sessions [{date, duration, name}]. weekStart is a Date; it is
+ * bound as a bare "YYYY-MM-DD", which sorts before every time of that day in both the
+ * "T" format written now and the space format of CURRENT_TIMESTAMP defaults.
+ */
+function getMeditationSummary(profileId, weekStart, limit) {
+    var summary = { total: 0, weekCount: 0, weekSeconds: 0, recent: [] };
+    var since = toTimestamp(weekStart).substring(0, 10);
+    db().transaction(function (tx) {
+        var rs = tx.executeSql('SELECT COUNT(*) AS total, ' +
+            'SUM(CASE WHEN date >= ? THEN 1 ELSE 0 END) AS weekCount, ' +
+            'SUM(CASE WHEN date >= ? THEN COALESCE(duration, 0) ELSE 0 END) AS weekSeconds ' +
+            'FROM MeditationSessions WHERE profileId=?', [since, since, profileId]);
+        summary.total = rs.rows.item(0).total || 0;
+        summary.weekCount = rs.rows.item(0).weekCount || 0;
+        summary.weekSeconds = rs.rows.item(0).weekSeconds || 0;
+        rs = tx.executeSql('SELECT date, duration, name FROM MeditationSessions WHERE profileId=? ' +
+            'ORDER BY date DESC LIMIT ?', [profileId, limit]);
+        for (var i = 0; i < rs.rows.length; i++) {
+            var row = rs.rows.item(i);
+            summary.recent.push({ date: String(row.date), duration: row.duration || 0, name: row.name ? String(row.name) : "" });
+        }
+    });
+    return summary;
 }
 
 // duration is stored in seconds.
@@ -1327,6 +1493,25 @@ function getMedicationLogsToday(profileId, medicationId) {
     return logs;
 }
 
+/*
+ * Today's intakes of all the profile's medications in one query:
+ * {medicationId: {count, last}}, last being the latest timestamp.
+ */
+function getMedicationTodaySummary(profileId) {
+    var summary = {};
+    db().transaction(function (tx) {
+        var rs = tx.executeSql(
+            "SELECT medicationId, COUNT(*) AS count, MAX(timestamp) AS last FROM MedicationLogs " +
+            "WHERE profileId=? AND date(timestamp)=date('now','localtime') GROUP BY medicationId",
+            [profileId]);
+        for (var i = 0; i < rs.rows.length; i++) {
+            var row = rs.rows.item(i);
+            summary[row.medicationId] = { count: row.count, last: String(row.last) };
+        }
+    });
+    return summary;
+}
+
 function getMedicationLogsHistory(profileId, medicationId) {
     var logs = [];
     db().transaction(function (tx) {
@@ -1342,26 +1527,127 @@ function getMedicationLogsHistory(profileId, medicationId) {
 
 // Module Settings
 /*
- * Modules in display order: by category, then in the order they were defined, so
- * related tiles sit together (Weight, Height, BMI, Waist, WHtR). Sorting on the stored
- * English names put WHtR before Waist and made no sense once translated.
+ * Modules in display order: the order the profile arranged (ModuleOrder), then, for
+ * anything never arranged, by category and the order they were defined, so related
+ * cards sit together (Weight, Height, BMI, Waist, WHtR). Sorting on the stored English
+ * names put WHtR before Waist and made no sense once translated.
  *
  * unit and grouped come along for metric modules ('' and 0 otherwise, so the model
  * roles keep one type) -- every tile used to look both up with queries of its own.
  */
 function addModulesToModel(profileId, a_model, on_only) {
+    var modules = getModules(profileId, on_only);
+    if (modules.length > 0) {
+        a_model.append(modules);
+    }
+}
+
+function getModules(profileId, on_only) {
+    var modules = [];
     db().transaction(function (tx) {
         var rs = tx.executeSql('SELECT Modules.id, Modules.name, Modules.type, Modules.category, Modules.uses, Modules.icon, ' +
             "COALESCE(Metrics.unit, '') AS unit, COALESCE(Metrics.grouped, 0) AS grouped, " +
             '(SELECT ProfileModules.profileId FROM ProfileModules WHERE Modules.id=ProfileModules.moduleId AND ProfileModules.profileId=?) IS NOT NULL AS is_on ' +
-            'FROM Modules LEFT JOIN Metrics ON Modules.type=? AND Metrics.name=Modules.uses ' +
+            // Blood pressure has no metric of its own: it shows the systolic unit.
+            'FROM Modules LEFT JOIN Metrics ON Metrics.name = CASE WHEN Modules.type=? THEN Modules.uses ' +
+            'WHEN Modules.uses=? THEN ? END ' +
+            'LEFT JOIN ModuleOrder ON ModuleOrder.profileId=? AND ModuleOrder.moduleId=Modules.id ' +
             (on_only ? 'WHERE is_on ' : '') +
-            'ORDER BY CASE Modules.category WHEN ? THEN 0 WHEN ? THEN 1 WHEN ? THEN 2 ELSE 3 END, Modules.id',
-            [profileId, MODULE_TYPE_METRIC, CATEGORY_BODY, CATEGORY_NUTRITION, CATEGORY_BLOOD]);
+            'ORDER BY ModuleOrder.position IS NULL, ModuleOrder.position, ' +
+            'CASE Modules.category WHEN ? THEN 0 WHEN ? THEN 1 WHEN ? THEN 2 ELSE 3 END, Modules.id',
+            [profileId, MODULE_TYPE_METRIC, CALC_BP, METRIC_BP_SYS, profileId,
+             CATEGORY_BODY, CATEGORY_NUTRITION, CATEGORY_BLOOD]);
         for (var i = 0; i < rs.rows.length; i++) {
-            a_model.append(rs.rows.item(i));
+            modules.push(rs.rows.item(i));
         }
     });
+    return modules;
+}
+
+// Saves the dashboard order for a profile: moduleIds first to last, shown or not.
+function setModuleOrder(profileId, moduleIds) {
+    db().transaction(function (tx) {
+        tx.executeSql('DELETE FROM ModuleOrder WHERE profileId=?', [profileId]);
+        for (var i = 0; i < moduleIds.length; i++) {
+            tx.executeSql('INSERT INTO ModuleOrder (profileId, moduleId, position) VALUES (?,?,?)',
+                [profileId, moduleIds[i], i]);
+        }
+    });
+}
+
+// Back to the default order (by category).
+function resetModuleOrder(profileId) {
+    db().transaction(function (tx) {
+        tx.executeSql('DELETE FROM ModuleOrder WHERE profileId=?', [profileId]);
+    });
+}
+
+// Daily goal for a metric: the user's, else the default, else null (no goal).
+function getGoal(profileId, metricName) {
+    var goal = DEFAULT_GOALS.hasOwnProperty(metricName) ? DEFAULT_GOALS[metricName] : null;
+    db().transaction(function (tx) {
+        var rs = tx.executeSql('SELECT value FROM Goals WHERE profileId=? AND metricName=?', [profileId, metricName]);
+        if (rs.rows.length > 0) {
+            goal = rs.rows.item(0).value;
+        }
+    });
+    return goal;
+}
+
+function setGoal(profileId, metricName, value) {
+    db().transaction(function (tx) {
+        tx.executeSql('INSERT OR REPLACE INTO Goals (profileId, metricName, value) VALUES (?,?,?)',
+            [profileId, metricName, value]);
+    });
+}
+
+/*
+ * What the dashboard says about health conditions: how many are ongoing and the
+ * newest of those. Ongoing = no end date yet (or one still ahead), and not marked
+ * recovered.
+ */
+function getConditionSummary(profileId) {
+    var summary = { total: 0, active: 0, latestActive: "" };
+    var today = toTimestamp(new Date()).substring(0, 10);
+    var ongoing = "(endDate IS NULL OR endDate = '' OR endDate >= ?) AND COALESCE(status, '') <> 'Recovered'";
+    db().transaction(function (tx) {
+        var rs = tx.executeSql('SELECT COUNT(*) AS total, SUM(CASE WHEN ' + ongoing + ' THEN 1 ELSE 0 END) AS active ' +
+            'FROM HealthConditions WHERE profileId=?', [today, profileId]);
+        summary.total = rs.rows.item(0).total || 0;
+        summary.active = rs.rows.item(0).active || 0;
+        rs = tx.executeSql('SELECT name FROM HealthConditions WHERE profileId=? AND ' + ongoing +
+            ' ORDER BY startDate DESC LIMIT 1', [profileId, today]);
+        if (rs.rows.length > 0) {
+            summary.latestActive = rs.rows.item(0).name || "";
+        }
+    });
+    return summary;
+}
+
+// Most recent vaccine injection: {name, date}, or null.
+function getLatestInjection(profileId) {
+    var last = null;
+    db().transaction(function (tx) {
+        var rs = tx.executeSql('SELECT v.name AS name, i.date AS date FROM Injections i ' +
+            'JOIN Vaccines v ON v.id = i.vaccineId WHERE i.profileId=? ORDER BY i.date DESC LIMIT 1', [profileId]);
+        if (rs.rows.length > 0) {
+            last = { name: rs.rows.item(0).name, date: String(rs.rows.item(0).date) };
+        }
+    });
+    return last;
+}
+
+// Most recent meditation session: {date, duration (seconds)}, or null.
+function getLatestMeditation(profileId) {
+    var last = null;
+    db().transaction(function (tx) {
+        var rs = tx.executeSql('SELECT date, duration FROM MeditationSessions WHERE profileId=? ORDER BY date DESC LIMIT 1',
+            [profileId]);
+        if (rs.rows.length > 0) {
+            last = { date: String(rs.rows.item(0).date), duration: rs.rows.item(0).duration || 0 };
+        }
+    });
+    return last;
 }
 
 function addProfileModule(profileId, moduleId) {
@@ -1377,7 +1663,17 @@ function removeProfileModule(profileId, moduleId) {
 }
 
 // Constraints
+/*
+ * Bands per metric, cached: every dashboard card and history page reads them on each
+ * refresh, and they only change through the functions below or a restore, which clear
+ * the cache.
+ */
+var _constraintCache = {};
+
 function getConstraintsForMetric(metricName) {
+    if (_constraintCache.hasOwnProperty(metricName)) {
+        return _constraintCache[metricName];
+    }
     var constraints = [];
     db().transaction(function (tx) {
         // NULL minimum means "no lower bound", so it has to sort first.
@@ -1387,6 +1683,7 @@ function getConstraintsForMetric(metricName) {
             constraints.push(rs.rows.item(i));
         }
     });
+    _constraintCache[metricName] = constraints;
     return constraints;
 }
 
@@ -1436,6 +1733,7 @@ function matchWorstConstraint(pairs) {
 }
 
 function addConstraint(metricName, label, minValue, maxValue, color) {
+    _constraintCache = {};
     db().transaction(function (tx) {
         tx.executeSql('INSERT INTO MetricConstraints (metricName, label, minValue, maxValue, color) VALUES (?,?,?,?,?)',
             [metricName, label, minValue, maxValue, color]);
@@ -1443,6 +1741,7 @@ function addConstraint(metricName, label, minValue, maxValue, color) {
 }
 
 function updateConstraint(id, label, minValue, maxValue, color) {
+    _constraintCache = {};
     db().transaction(function (tx) {
         tx.executeSql('UPDATE MetricConstraints SET label=?, minValue=?, maxValue=?, color=? WHERE id=?',
             [label, minValue, maxValue, color, id]);
@@ -1450,6 +1749,7 @@ function updateConstraint(id, label, minValue, maxValue, color) {
 }
 
 function deleteConstraint(id) {
+    _constraintCache = {};
     db().transaction(function (tx) {
         tx.executeSql('DELETE FROM MetricConstraints WHERE id=?', [id]);
     });
@@ -1525,6 +1825,7 @@ function restoreAll(dump) {
     if (dump.schemaVersion > DB_SCHEMA_VERSION) {
         throw new Error("This backup was made by a newer version of Health");
     }
+    _constraintCache = {};
 
     db().transaction(function (tx) {
         var i;

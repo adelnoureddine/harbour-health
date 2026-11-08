@@ -2,6 +2,7 @@ import QtQuick 2.0
 import Sailfish.Silica 1.0
 import "../js/DataManager.js" as DataManager
 import "../js/utils.js" as Utils
+import "../components"
 
 Page {
     id: page
@@ -11,6 +12,7 @@ Page {
     property int conditionId
     property string conditionName
     property var conditionData: ({})
+    property string profileName: ""
 
     // What the page last loaded (see DataManager.dataKey). It loads when created, so
     // the content is there as the page slides in, and used to load all over again
@@ -20,67 +22,157 @@ Page {
     function refresh() {
         loadedFrom = DataManager.dataKey();
         conditionData = DataManager.getCondition(conditionId) || {};
+        var profile = DataManager.getProfile(profileId);
+        profileName = profile ? profile.firstName : "";
         listModel.clear();
         if (profileId >= 0) {
             var treatments = DataManager.getTreatments(profileId, -1, conditionId);
             treatments.forEach(function(t) {
-                listModel.append(t);
+                // Plain strings: NULL columns would change a role's type between rows.
+                listModel.append({
+                    id: t.id,
+                    medicationId: t.medicationId,
+                    medicationName: t.medicationName ? String(t.medicationName) : "",
+                    dosage: t.dosage ? String(t.dosage) : "",
+                    frequency: t.frequency ? String(t.frequency) : "",
+                    startDate: t.startDate ? String(t.startDate) : "",
+                    endDate: t.endDate ? String(t.endDate) : ""
+                });
             });
         }
     }
 
     SilicaListView {
+        id: listView
         anchors.fill: parent
 
         header: Column {
-            width: parent.width
-            spacing: Theme.paddingLarge
+            width: listView.width
+            spacing: Theme.paddingMedium
 
             PageHeader {
                 // The stored name, so an edit made from this page shows on return.
-                title: conditionData.name || conditionName
+                title: page.conditionData.name || page.conditionName
+                description: page.profileName
             }
 
-            DetailItem {
-                label: qsTr("Status")
-                value: Utils.conditionStatusDisplayName(conditionData.status)
-            }
+            // The condition at a glance: where it stands, when it started and ended,
+            // and the notes in full.
+            Card {
+                spacing: Theme.paddingMedium
 
-            DetailItem {
-                label: qsTr("Start date")
-                value: conditionData.startDate ? Utils.formatDate(conditionData.startDate) : ""
-            }
+                StatusPill {
+                    text: Utils.conditionStatusDisplayName(page.conditionData.status)
+                    dotColor: Utils.conditionStatusColor(page.conditionData.status)
+                }
 
-            DetailItem {
-                label: qsTr("End date")
-                value: conditionData.endDate ? Utils.formatDate(conditionData.endDate)
-                                             : qsTr("Ongoing")
-            }
+                Row {
+                    width: parent.width
+                    spacing: Theme.paddingLarge
 
-            DetailItem {
-                label: qsTr("Notes")
-                value: conditionData.note || ""
-                visible: value !== ""
+                    Column {
+                        width: (parent.width - parent.spacing) / 2
+                        Label {
+                            width: parent.width
+                            truncationMode: TruncationMode.Fade
+                            text: qsTr("Start date")
+                            font.pixelSize: Theme.fontSizeSmall
+                            color: Theme.secondaryHighlightColor
+                        }
+                        Label {
+                            width: parent.width
+                            truncationMode: TruncationMode.Fade
+                            //: Shown when a health condition has no start date
+                            text: page.conditionData.startDate ? Utils.formatDate(page.conditionData.startDate)
+                                                               : qsTr("Unknown")
+                            font.pixelSize: Theme.fontSizeLarge
+                            color: Theme.primaryColor
+                        }
+                    }
+                    Column {
+                        width: (parent.width - parent.spacing) / 2
+                        Label {
+                            width: parent.width
+                            truncationMode: TruncationMode.Fade
+                            text: qsTr("End date")
+                            font.pixelSize: Theme.fontSizeSmall
+                            color: Theme.secondaryHighlightColor
+                        }
+                        Label {
+                            width: parent.width
+                            truncationMode: TruncationMode.Fade
+                            text: page.conditionData.endDate ? Utils.formatDate(page.conditionData.endDate)
+                                                             : qsTr("Ongoing")
+                            font.pixelSize: Theme.fontSizeLarge
+                            color: Theme.primaryColor
+                        }
+                    }
+                }
+
+                Label {
+                    width: parent.width
+                    visible: notesText.visible
+                    text: qsTr("Notes")
+                    font.pixelSize: Theme.fontSizeSmall
+                    color: Theme.secondaryHighlightColor
+                }
+                Label {
+                    id: notesText
+                    width: parent.width
+                    visible: text !== ""
+                    wrapMode: Text.Wrap
+                    text: page.conditionData.note || ""
+                    font.pixelSize: Theme.fontSizeSmall
+                    color: Theme.primaryColor
+                }
             }
 
             SectionHeader {
                 text: qsTr("Treatments")
             }
+
+            // A ViewPlaceholder sits a third of the way down the screen, on top of the
+            // card above; this one stays under the section header.
+            Card {
+                subtle: true
+                visible: listModel.count === 0
+                spacing: 0
+
+                Label {
+                    width: parent.width
+                    wrapMode: Text.Wrap
+                    text: qsTr("No treatments for this condition")
+                    color: Theme.highlightColor
+                }
+                Label {
+                    width: parent.width
+                    wrapMode: Text.Wrap
+                    text: qsTr("Pull down to add a treatment")
+                    font.pixelSize: Theme.fontSizeExtraSmall
+                    color: Theme.secondaryHighlightColor
+                }
+            }
+        }
+
+        footer: Item {
+            width: listView.width
+            height: Theme.paddingLarge
         }
 
         PullDownMenu {
             MenuItem {
-                text: qsTr("Add treatment")
-                onClicked: pageStack.animatorPush(Qt.resolvedUrl("AddAndEditMedication.qml"), {
-                    profileId: profileId,
-                    conditionId: conditionId
-                })
-            }
-            MenuItem {
                 text: qsTr("Edit condition")
                 onClicked: pageStack.animatorPush(Qt.resolvedUrl("AddAndEditIllness.qml"), {
-                    profileId: profileId,
-                    conditionId: conditionId
+                    profileId: page.profileId,
+                    conditionId: page.conditionId
+                })
+            }
+            // Most used, so last: nearest to where the pulley stops.
+            MenuItem {
+                text: qsTr("Add treatment")
+                onClicked: pageStack.animatorPush(Qt.resolvedUrl("AddAndEditMedication.qml"), {
+                    profileId: page.profileId,
+                    conditionId: page.conditionId
                 })
             }
         }
@@ -89,11 +181,20 @@ Page {
 
         delegate: ListItem {
             id: treatmentItem
-            contentHeight: Theme.itemSizeMedium
+            contentHeight: Math.max(Theme.itemSizeMedium, treatmentColumn.height + 2 * Theme.paddingMedium)
+
+            onClicked: pageStack.animatorPush(Qt.resolvedUrl("ConsultMedication.qml"), {
+                profileId: page.profileId,
+                medicationId: model.medicationId,
+                medicationName: model.medicationName
+            })
+
             Column {
+                id: treatmentColumn
                 anchors.verticalCenter: parent.verticalCenter
                 x: Theme.horizontalPageMargin
                 width: parent.width - 2 * Theme.horizontalPageMargin
+
                 Label {
                     width: parent.width
                     truncationMode: TruncationMode.Fade
@@ -102,18 +203,32 @@ Page {
                 }
                 Label {
                     width: parent.width
+                    visible: text !== ""
                     truncationMode: TruncationMode.Fade
                     text: model.frequency ? qsTr("%1 · %2").arg(model.dosage).arg(model.frequency)
                                           : model.dosage
                     font.pixelSize: Theme.fontSizeExtraSmall
                     color: treatmentItem.highlighted ? Theme.secondaryHighlightColor : Theme.secondaryColor
                 }
+                Label {
+                    width: parent.width
+                    visible: text !== ""
+                    truncationMode: TruncationMode.Fade
+                    text: Utils.periodText(model.startDate, model.endDate)
+                    font.pixelSize: Theme.fontSizeExtraSmall
+                    color: treatmentItem.highlighted ? Theme.secondaryHighlightColor : Theme.secondaryColor
+                }
             }
-            onClicked: pageStack.animatorPush(Qt.resolvedUrl("ConsultMedication.qml"), {
-                profileId: profileId,
-                medicationId: model.medicationId,
-                medicationName: model.medicationName
-            })
+
+            // On the row, not in the menu: the menu is destroyed as soon as it closes,
+            // before the remorse runs out, and its model.id with it.
+            function remove() {
+                treatmentItem.remorseDelete(function() {
+                    DataManager.deleteTreatment(model.id);
+                    listModel.remove(index);
+                })
+            }
+
             // Built when first opened. Created with every row, the menu made each
             // row about ten times slower to build, which showed while scrolling.
             menu: Component {
@@ -121,27 +236,17 @@ Page {
                     MenuItem {
                         text: qsTr("Edit")
                         onClicked: pageStack.animatorPush(Qt.resolvedUrl("AddAndEditMedication.qml"), {
-                            profileId: profileId,
-                            conditionId: conditionId,
+                            profileId: page.profileId,
+                            conditionId: page.conditionId,
                             treatmentId: model.id
                         })
                     }
                     MenuItem {
                         text: qsTr("Delete")
-                        onClicked: treatmentItem.remorseDelete(function() {
-                            DataManager.deleteTreatment(model.id);
-                            listModel.remove(index);
-                        })
+                        onClicked: treatmentItem.remove()
                     }
                 }
             }
-
-        }
-
-        ViewPlaceholder {
-            enabled: listModel.count === 0
-            text: qsTr("No treatments for this condition")
-            hintText: qsTr("Pull down to add a treatment")
         }
 
         VerticalScrollDecorator {}
@@ -160,3 +265,4 @@ Page {
     Component.onCompleted: refresh()
 }
 
+// vim:et:ts=4:sw=4

@@ -23,21 +23,33 @@ Dialog {
     property date endDate: new Date()
     property bool hasEndDate: false
 
-    canAccept: profileId >= 0 && (!hasEndDate || endDate >= startDate)
+    // Start days of the profile's other cycles, and the latest of them for context.
+    property var otherStarts: []
+    property string previousStart: ""
+
+    readonly property string startDay: Utils.toLocalDateString(startDate)
+    // Compared as days: both defaults are "now", a few milliseconds apart, so comparing
+    // the dates themselves could flag today as before today.
+    readonly property bool endBeforeStart: hasEndDate && Utils.toLocalDateString(endDate) < startDay
+    // Two cycles on one day make a zero-day cycle, which the lengths and the average skip.
+    readonly property bool startTaken: otherStarts.indexOf(startDay) >= 0
+
+    canAccept: profileId >= 0 && !endBeforeStart && !startTaken
 
     onAccepted: {
         var startStr = Utils.toLocalDateString(startDate);
         var endStr = hasEndDate ? Utils.toLocalDateString(endDate) : null;
+        var noteText = notesField.text.trim();
         if (editing) {
-            DataManager.updateMenstrualCycle(cycleId, startStr, endStr, notesField.text);
+            DataManager.updateMenstrualCycle(cycleId, startStr, endStr, noteText);
         } else {
-            DataManager.addMenstrualCycle(profileId, startStr, endStr, notesField.text);
+            DataManager.addMenstrualCycle(profileId, startStr, endStr, noteText);
         }
     }
 
     SilicaFlickable {
         anchors.fill: parent
-        contentHeight: column.height
+        contentHeight: column.height + Theme.paddingLarge
 
         Column {
             id: column
@@ -53,6 +65,10 @@ Dialog {
             ValueButton {
                 label: qsTr("Start date")
                 value: Qt.formatDate(dialog.startDate, Qt.DefaultLocaleShortDate)
+                //: Context under a new cycle's start date; %1 is a date
+                description: !dialog.editing && dialog.previousStart !== ""
+                             ? qsTr("Last cycle started on %1").arg(Utils.formatDate(dialog.previousStart))
+                             : ""
                 onClicked: {
                     var dateDialog = pageStack.push("Sailfish.Silica.DatePickerDialog", {
                         date: dialog.startDate
@@ -63,8 +79,19 @@ Dialog {
                 }
             }
 
+            Label {
+                x: Theme.horizontalPageMargin
+                width: parent.width - 2 * Theme.horizontalPageMargin
+                wrapMode: Text.Wrap
+                font.pixelSize: Theme.fontSizeExtraSmall
+                color: Theme.errorColor
+                visible: dialog.startTaken
+                text: qsTr("Another cycle already starts on this day.")
+            }
+
             TextSwitch {
                 text: qsTr("Has end date")
+                description: qsTr("Leave off while the cycle is still going on.")
                 checked: dialog.hasEndDate
                 automaticCheck: false
                 onClicked: dialog.hasEndDate = !dialog.hasEndDate
@@ -90,7 +117,7 @@ Dialog {
                 wrapMode: Text.Wrap
                 font.pixelSize: Theme.fontSizeExtraSmall
                 color: Theme.errorColor
-                visible: dialog.hasEndDate && dialog.endDate < dialog.startDate
+                visible: dialog.endBeforeStart
                 text: qsTr("The end date is before the start date.")
             }
 
@@ -118,6 +145,18 @@ Dialog {
         if (end !== null) {
             endDate = end;
             hasEndDate = true;
+        }
+        if (profileId >= 0) {
+            var cycles = DataManager.getMenstrualCycles(profileId);
+            var starts = [];
+            for (var i = 0; i < cycles.length; i++) {
+                if (cycles[i].id !== cycleId) {
+                    starts.push(String(cycles[i].startDate));
+                }
+            }
+            otherStarts = starts;
+            // Newest first.
+            previousStart = starts.length > 0 ? starts[0] : "";
         }
     }
 }

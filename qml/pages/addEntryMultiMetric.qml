@@ -2,6 +2,7 @@ import QtQuick 2.0
 import Sailfish.Silica 1.0
 import "../js/DataManager.js" as DataManager
 import "../js/utils.js" as Utils
+import "../components"
 
 Dialog {
     id: dialog
@@ -12,13 +13,15 @@ Dialog {
     property string metricName2
     property string metricUnit: "mmHg"
     property date selectedDate: new Date()
-    property var invalidateSignal
 
     // Set when editing an existing pair of readings.
     property int logId1: -1
     property int logId2: -1
 
     readonly property bool editing: logId1 >= 0 && logId2 >= 0
+
+    // The previous pair under the fields; empty when editing, or with none yet.
+    property string contextText: ""
 
     canAccept: profileId >= 0 && value1Field.text !== "" && value2Field.text !== ""
                && value1Field.acceptableInput && value2Field.acceptableInput
@@ -35,7 +38,17 @@ Dialog {
         return !isNaN(systolic) && !isNaN(diastolic) && systolic <= diastolic;
     }
 
+    // "Last: 128/82 mmHg, 19/08/2026", to type the new pair against.
+    function lastReadingText() {
+        if (profileId < 0 || editing) {
+            return "";
+        }
+        var bp = DataManager.getLatestBloodPressure(profileId);
+        return bp !== null ? Utils.lastReadingText(Utils.formatBloodPressure(bp, metricUnit), bp.timestamp) : "";
+    }
+
     function load() {
+        contextText = lastReadingText();
         if (!editing) {
             return;
         }
@@ -54,6 +67,7 @@ Dialog {
         }
     }
 
+
     onAccepted: {
         var systolic = parseFloat(value1Field.text.replace(',', '.'));
         var diastolic = parseFloat(value2Field.text.replace(',', '.'));
@@ -68,15 +82,11 @@ Dialog {
                                             { metricName: metricName2, value: diastolic }],
                                 selectedDate, noteField.text);
         }
-        if (invalidateSignal) {
-            invalidateSignal(metricName1);
-            invalidateSignal(metricName2);
-        }
     }
 
     SilicaFlickable {
         anchors.fill: parent
-        contentHeight: column.height
+        contentHeight: column.height + Theme.paddingLarge
 
         Column {
             id: column
@@ -88,76 +98,62 @@ Dialog {
                 acceptText: qsTr("Save")
             }
 
-            TextField {
-                id: value1Field
+            // The pair with what helps to type it: the last reading, the order check.
+            Column {
                 width: parent.width
-                label: qsTr("Systolic (%1)").arg(dialog.metricUnit)
-                placeholderText: qsTr("Systolic — e.g. 120")
-                // Blood pressure monitors only ever show whole numbers.
-                inputMethodHints: Qt.ImhDigitsOnly
-                validator: RegExpValidator { regExp: /^\d{2,3}$/ }
-                EnterKey.enabled: acceptableInput
-                focus: true
-                EnterKey.iconSource: "image://theme/icon-m-enter-next"
-                EnterKey.onClicked: value2Field.focus = true
-            }
+                spacing: Theme.paddingSmall
 
-            TextField {
-                id: value2Field
-                width: parent.width
-                label: qsTr("Diastolic (%1)").arg(dialog.metricUnit)
-                placeholderText: qsTr("Diastolic — e.g. 80")
-                inputMethodHints: Qt.ImhDigitsOnly
-                validator: RegExpValidator { regExp: /^\d{2,3}$/ }
-                EnterKey.enabled: acceptableInput
-                EnterKey.iconSource: "image://theme/icon-m-enter-next"
-                EnterKey.onClicked: noteField.focus = true
-            }
+                TextField {
+                    id: value1Field
+                    width: parent.width
+                    label: qsTr("Systolic (%1)").arg(dialog.metricUnit)
+                    placeholderText: qsTr("Systolic — e.g. 120")
+                    // Blood pressure monitors only ever show whole numbers.
+                    inputMethodHints: Qt.ImhDigitsOnly
+                    validator: RegExpValidator { regExp: /^\d{2,3}$/ }
+                    EnterKey.enabled: acceptableInput
+                    focus: true
+                    EnterKey.iconSource: "image://theme/icon-m-enter-next"
+                    EnterKey.onClicked: value2Field.focus = true
+                }
 
-            Label {
-                x: Theme.horizontalPageMargin
-                width: parent.width - 2 * Theme.horizontalPageMargin
-                wrapMode: Text.Wrap
-                visible: dialog.valuesLookSwapped
-                font.pixelSize: Theme.fontSizeExtraSmall
-                color: Theme.errorColor
-                text: qsTr("Systolic is usually the higher of the two — check the order.")
-            }
+                TextField {
+                    id: value2Field
+                    width: parent.width
+                    label: qsTr("Diastolic (%1)").arg(dialog.metricUnit)
+                    placeholderText: qsTr("Diastolic — e.g. 80")
+                    inputMethodHints: Qt.ImhDigitsOnly
+                    validator: RegExpValidator { regExp: /^\d{2,3}$/ }
+                    EnterKey.enabled: acceptableInput
+                    EnterKey.iconSource: "image://theme/icon-m-enter-next"
+                    EnterKey.onClicked: noteField.focus = true
+                }
 
-            ValueButton {
-                label: qsTr("Date")
-                value: Qt.formatDate(dialog.selectedDate, Qt.DefaultLocaleShortDate)
-                onClicked: {
-                    var dateDialog = pageStack.push("Sailfish.Silica.DatePickerDialog", {
-                        date: dialog.selectedDate
-                    })
-                    dateDialog.accepted.connect(function() {
-                        dialog.selectedDate = new Date(dateDialog.date.getFullYear(),
-                                                       dateDialog.date.getMonth(),
-                                                       dateDialog.date.getDate(),
-                                                       dialog.selectedDate.getHours(),
-                                                       dialog.selectedDate.getMinutes(), 0);
-                    })
+                Label {
+                    x: Theme.horizontalPageMargin
+                    width: parent.width - 2 * Theme.horizontalPageMargin
+                    text: dialog.contextText
+                    visible: text !== ""
+                    truncationMode: TruncationMode.Fade
+                    font.pixelSize: Theme.fontSizeExtraSmall
+                    color: Theme.secondaryColor
+                }
+
+                Label {
+                    x: Theme.horizontalPageMargin
+                    width: parent.width - 2 * Theme.horizontalPageMargin
+                    wrapMode: Text.Wrap
+                    visible: dialog.valuesLookSwapped
+                    font.pixelSize: Theme.fontSizeExtraSmall
+                    color: Theme.errorColor
+                    text: qsTr("Systolic is usually the higher of the two — check the order.")
                 }
             }
 
-            ValueButton {
-                label: qsTr("Time")
-                // Follows the system 12/24-hour setting.
-                value: Format.formatDate(dialog.selectedDate, Formatter.TimeValue)
-                onClicked: {
-                    var timeDialog = pageStack.push("Sailfish.Silica.TimePickerDialog", {
-                        hour: dialog.selectedDate.getHours(),
-                        minute: dialog.selectedDate.getMinutes()
-                    })
-                    timeDialog.accepted.connect(function() {
-                        // Numeric properties rather than the locale-formatted timeText.
-                        dialog.selectedDate = new Date(dialog.selectedDate.getFullYear(),
-                                                       dialog.selectedDate.getMonth(),
-                                                       dialog.selectedDate.getDate(),
-                                                       timeDialog.hour, timeDialog.minute, 0);
-                    })
-                }
+            DateTimeRow {
+                width: parent.width
+                selectedDate: dialog.selectedDate
+                onPicked: dialog.selectedDate = when
             }
 
             TextField {

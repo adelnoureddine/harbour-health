@@ -74,10 +74,31 @@ function formatTime(s) {
     return d === null ? "" : Format.formatDate(d, Formatter.TimeValue);
 }
 
-function formatDateTime(s) {
-    var d = parseTimestamp(s);
-    return d === null ? "" : Qt.formatDate(d, Qt.DefaultLocaleShortDate) + " "
-                                + Format.formatDate(d, Formatter.TimeValue);
+/*
+ * A date without the year when it is this year's: "17 Aug", "17 Aug 2025". What the
+ * dashboard, the history pages and the cover say for an earlier day.
+ */
+function shortDate(d) {
+    return Format.formatDate(d, d.getFullYear() === new Date().getFullYear() ? Formatter.DateMediumWithoutYear
+                                                                             : Formatter.DateMedium);
+}
+
+function _calendarDay(v) {
+    if (v instanceof Date) {
+        return new Date(v.getFullYear(), v.getMonth(), v.getDate());
+    }
+    return fromLocalDateString(v);
+}
+
+/*
+ * Whole days from one calendar day to another, each a Date or a stored "YYYY-MM-DD",
+ * or null when either is missing. Rounded: across the spring clock change two local
+ * midnights are an hour short of a whole day, and flooring lost a day.
+ */
+function daysBetween(from, to) {
+    var a = _calendarDay(from);
+    var b = _calendarDay(to);
+    return a === null || b === null ? null : Math.round((b - a) / 86400000);
 }
 
 var _decimalPoint = Qt.locale().decimalPoint;
@@ -181,7 +202,7 @@ function metricHint(name) {
 }
 
 /*
- * Module and category names are stored in the database in English and double as
+ * Module names are stored in the database in English and double as
  * identifiers (dashboard wiring, reference-band keys, sort order), so the stored
  * value never changes. Only what reaches the screen is translated, here.
  */
@@ -202,16 +223,6 @@ function moduleDisplayName(name) {
     case "Waist":             return qsTr("Waist");
     case "WHtR":              return qsTr("Waist-to-height ratio");
     default:                  return name ? name : "";
-    }
-}
-
-function categoryDisplayName(category) {
-    switch (category) {
-    case "Body":       return qsTr("Body");
-    case "Nutrition":  return qsTr("Nutrition");
-    case "Blood":      return qsTr("Blood");
-    case "Other":      return qsTr("Other");
-    default:           return category ? category : "";
     }
 }
 
@@ -279,6 +290,107 @@ function energyDisplayName(energy) {
     }
 }
 
+/*
+ * The line icon for a module, by its stored name, or for a metric by its name (the
+ * measurement picker). Anything unknown keeps the icon stored with the module.
+ */
+function moduleIcon(name, storedIcon) {
+    switch (name) {
+    case "Weight":
+    case "weight":            return "weight.svg";
+    case "Height":
+    case "height":            return "height.svg";
+    case "BMI":               return "bmi.svg";
+    case "Waist":
+    case "waist":             return "waist.svg";
+    case "WHtR":              return "whtr.svg";
+    case "Calories":
+    case "calories":          return "calories.svg";
+    case "Water":
+    case "water":             return "water.svg";
+    case "Heartrate":
+    case "heartrate":         return "heartrate.svg";
+    case "Blood Pressure":
+    case "blood-pressure":    return "blood-pressure.svg";
+    case "Glucose":
+    case "glucose":           return "glucose.svg";
+    case "Health Condition":  return "condition.svg";
+    case "Vaccination":       return "vaccine.svg";
+    case "Meditation":        return "meditation.svg";
+    case "Menstruation":      return "cycle.svg";
+    default:                  return storedIcon ? storedIcon : "";
+    }
+}
+
+/*
+ * How long ago a reading was, the way the dashboard says it: "Today, 07:40" (or just
+ * "Today"), "Yesterday", "3 days ago", then the date. Calendar days, not the 04:00
+ * border: this is about when it was measured, not which day's total it counts for.
+ */
+function relativeTime(s, withTime) {
+    var d = parseTimestamp(s);
+    if (d === null) {
+        return "";
+    }
+    var days = daysBetween(d, new Date());
+    if (days <= 0) {
+        return withTime ? qsTr("Today, %1").arg(Format.formatDate(d, Formatter.TimeValue)) : qsTr("Today");
+    }
+    if (days === 1) {
+        return qsTr("Yesterday");
+    }
+    if (days < 7) {
+        return qsTr("%n day(s) ago", "", days);
+    }
+    return shortDate(d);
+}
+
+/*
+ * When a card's reading was taken, spelled out: a bare "17 Aug" or "Today" under a
+ * value did not say what the date was.
+ */
+function measuredWhen(s) {
+    var d = parseTimestamp(s);
+    if (d === null) {
+        return "";
+    }
+    var days = daysBetween(d, new Date());
+    if (days <= 0) {
+        return qsTr("Measured today");
+    }
+    if (days === 1) {
+        return qsTr("Measured yesterday");
+    }
+    if (days < 7) {
+        return qsTr("Measured %n day(s) ago", "", days);
+    }
+    //: %1 is a date, e.g. "Measured 17 Aug"
+    return qsTr("Measured %1").arg(shortDate(d));
+}
+
+/*
+ * Heading for a day in a history list ("YYYY-MM-DD"): "Today", "Yesterday", then the
+ * weekday and date, with the year only when it is not this one. `currentDay` is the
+ * day that counts as today: daily totals pass the 04:00-border day, so a glass of
+ * water at 01:00 is under "Today" together with the evening before it.
+ */
+function dayTitle(day, currentDay) {
+    var d = fromLocalDateString(day);
+    if (d === null) {
+        return "";
+    }
+    var today = currentDay ? currentDay : new Date();
+    var days = daysBetween(d, today);
+    if (days === 0) {
+        return qsTr("Today");
+    }
+    if (days === 1) {
+        return qsTr("Yesterday");
+    }
+    return Format.formatDate(d, d.getFullYear() === today.getFullYear() ? Formatter.DateFullWithoutYear
+                                                                         : Formatter.DateFull);
+}
+
 function genderDisplayName(gender) {
     switch (gender) {
     case "female": return qsTr("Female");
@@ -298,6 +410,159 @@ function constraintColor(name) {
     case "blue":   return "#3498db";
     default:       return "";
     }
+}
+
+/*
+ * A reference band match (DataManager.matchConstraint) as what is shown for it:
+ * {label, color}, an empty label and a transparent colour without one.
+ */
+function bandFor(match) {
+    var colour = match ? constraintColor(match.color) : "";
+    return {
+        label: match ? constraintLabelDisplayName(match.label) : "",
+        color: colour !== "" ? colour : "transparent"
+    };
+}
+
+// "−0.8 kg since 9 Oct", from the first to the last of chart points [{t, v}]; "" with fewer than two.
+function changeSinceText(points, unit, decimals) {
+    if (!points || points.length < 2) {
+        return "";
+    }
+    var delta = points[points.length - 1].v - points[0].v;
+    //: Change of a measurement over the chart period, e.g. "−0.8 kg since 9 Oct"
+    return qsTr("%1 since %2").arg((delta < 0 ? "−" : delta > 0 ? "+" : "±")
+                                   + formatValue(Math.abs(delta), decimals)
+                                   + (unit ? " " + unit : ""))
+                              .arg(shortDate(new Date(points[0].t)));
+}
+
+// A blood pressure (DataManager.bloodPressureFrom) as "128/82 mmHg", "—" for a missing half.
+function formatBloodPressure(bp, unit) {
+    return (bp.systolic !== null ? formatValue(bp.systolic, 0) : "—") + "/"
+            + (bp.diastolic !== null ? formatValue(bp.diastolic, 0) : "—")
+            + (unit ? " " + unit : "");
+}
+
+// The previous reading to type a new one against: "Last: 66.5 kg, 19/08/2026".
+function lastReadingText(valueText, timestamp) {
+    //: The previous reading of a measurement: %1 is the value with its unit, %2 its date
+    return qsTr("Last: %1, %2").arg(valueText).arg(formatDate(timestamp));
+}
+
+// Age in whole years on a birthday (a Date or "YYYY-MM-DD"), or -1 when unknown.
+function ageFrom(birthDate) {
+    var born = _calendarDay(birthDate);
+    if (born === null || isNaN(born.getTime())) {
+        return -1;
+    }
+    var today = new Date();
+    var age = today.getFullYear() - born.getFullYear();
+    if (today.getMonth() < born.getMonth()
+            || (today.getMonth() === born.getMonth() && today.getDate() < born.getDate())) {
+        age--;
+    }
+    return age >= 0 ? age : -1;
+}
+
+// "Female · 36 years", the line under a profile's name.
+function profileDetailLine(gender, birthDate) {
+    var parts = [];
+    var genderText = genderDisplayName(gender);
+    if (genderText !== "") {
+        parts.push(genderText);
+    }
+    var age = ageFrom(birthDate);
+    if (age >= 0) {
+        //: A profile's age
+        parts.push(qsTr("%n year(s)", "", age));
+    }
+    return parts.join(" · ");
+}
+
+// The letters in a profile's round badge.
+function initials(firstName, lastName) {
+    return ((firstName ? firstName.charAt(0) : "") + (lastName ? lastName.charAt(0) : "")).toUpperCase();
+}
+
+// The latest moment a birthday can be picked: a birthday cannot be in the future.
+function endOfToday() {
+    var d = new Date();
+    d.setHours(23, 59, 59, 999);
+    return d;
+}
+
+// Dot colour of a condition's status.
+function conditionStatusColor(status) {
+    switch (status) {
+    case "Active":     return constraintColor("orange");
+    case "Chronic":    return constraintColor("blue");
+    case "Recovered":  return constraintColor("green");
+    default:           return Theme.highlightColor;
+    }
+}
+
+// The dates of a condition or treatment: "3 Mar to 9 Mar", "Since 3 Mar", "Until 9 Mar".
+function periodText(startDate, endDate) {
+    if (startDate && endDate) {
+        //: Period of a health condition or treatment: start date to end date
+        return qsTr("%1 to %2").arg(formatDate(startDate)).arg(formatDate(endDate));
+    }
+    if (startDate) {
+        //: Start of an ongoing health condition or treatment; %1 is a date
+        return qsTr("Since %1").arg(formatDate(startDate));
+    }
+    if (endDate) {
+        //: End of a health condition or treatment without a start date; %1 is a date
+        return qsTr("Until %1").arg(formatDate(endDate));
+    }
+    return "";
+}
+
+/*
+ * Dot colour of a day's flow, pain or energy: green where things are fine, then blue,
+ * orange and red with intensity. Neutral values use the highlight colour.
+ */
+function cycleLevelColor(kind, value) {
+    var scale = {
+        flow: { "Spotting": "blue", "Light": "blue", "Medium": "orange", "Heavy": "red" },
+        pain: { "None": "green", "Mild": "blue", "Moderate": "orange", "Severe": "red" },
+        energy: { "Exhausted": "red", "Low": "orange", "Normal": "green", "High": "green", "Peak": "green" }
+    };
+    var name = scale[kind] ? scale[kind][value] : undefined;
+    var colour = name ? constraintColor(name) : "";
+    return colour !== "" ? colour : Theme.highlightColor;
+}
+
+// A meditation session's length: "45 s", "10 min", "10 min 30 s".
+function formatDuration(seconds) {
+    if (seconds === null || seconds === undefined) {
+        return "";
+    }
+    if (seconds < 60) {
+        //: Meditation session length under a minute, in seconds
+        return qsTr("%1 s").arg(seconds);
+    }
+    var minutes = Math.floor(seconds / 60);
+    var remainder = seconds % 60;
+    //: Meditation session length in whole minutes
+    return remainder === 0 ? qsTr("%1 min").arg(minutes)
+                             //: Meditation session length, minutes and seconds
+                           : qsTr("%1 min %2 s").arg(minutes).arg(remainder);
+}
+
+// Whole minutes, but never 0 for a session that happened.
+function wholeMinutes(seconds) {
+    return seconds > 0 ? Math.max(1, Math.round(seconds / 60)) : 0;
+}
+
+// "Taken 2 times today, last at 08:30", or that a medication was not taken yet today.
+function medicationTodayText(count, lastTimestamp) {
+    if (count === 0) {
+        return qsTr("Not taken today");
+    }
+    //: Medication intakes logged today; %1 is the time of the latest one
+    return qsTr("Taken %n time(s) today, last at %1", "", count).arg(formatTime(lastTimestamp));
 }
 
 // vim:et:ts=4:sw=4

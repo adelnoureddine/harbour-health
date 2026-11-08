@@ -12,17 +12,19 @@ ApplicationWindow {
     // Empty unless the database could not be opened or upgraded.
     property string databaseError: ""
 
+    /*
+     * The database creates or upgrades itself on first use, whichever of the dashboard,
+     * the cover or this comes first. This only catches a failure, so a failed schema
+     * upgrade does not leave a blank, unexplained window.
+     *
+     * Without a profile the dashboard shows its welcome screen, which explains the app
+     * and offers creating a profile or restoring a backup.
+     */
     Component.onCompleted: {
         try {
             DataManager.init();
         } catch (error) {
-            // A failed schema upgrade must not leave a blank, unexplained window.
             databaseError = error.message ? error.message : String(error);
-            return;
-        }
-
-        if (DataManager.countProfiles() === 0) {
-            pageStack.push(Qt.resolvedUrl("pages/createProfile.qml"));
         }
     }
 }

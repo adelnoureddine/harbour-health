@@ -1,6 +1,7 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
 import "../js/DataManager.js" as DataManager
+import "../js/utils.js" as Utils
 
 Page {
     id: page
@@ -10,6 +11,7 @@ Page {
 
     property int profileId: -1
     property string sessionName: qsTr("Meditation session")
+    property string profileName: ""
 
     /*
      * Elapsed time comes from the wall clock, not from counting Timer ticks. A
@@ -21,6 +23,12 @@ Page {
     property double startedAt: 0        // ms, while running
     property int accumulated: 0         // seconds banked from previous runs
     property int elapsed: 0             // seconds, what is displayed
+
+    // Optional target in minutes. Without one the ring shows the current ten minutes.
+    property int targetMinutes: 0
+    readonly property var targetChoices: [0, 5, 10, 15, 20, 30, 45, 60]
+    readonly property int ringSeconds: targetMinutes > 0 ? targetMinutes * 60 : 600
+    readonly property bool targetReached: targetMinutes > 0 && elapsed >= ringSeconds
 
     function currentElapsed() {
         if (!running) {
@@ -49,10 +57,27 @@ Page {
         elapsed = 0;
     }
 
+    // "4:05", or "1:04:05" past an hour.
     function formatDuration(seconds) {
-        var minutes = Math.floor(seconds / 60);
+        var hours = Math.floor(seconds / 3600);
+        var minutes = Math.floor((seconds % 3600) / 60);
         var remainder = seconds % 60;
-        return minutes + ":" + (remainder < 10 ? "0" : "") + remainder;
+        var tail = (remainder < 10 ? "0" : "") + remainder;
+        if (hours > 0) {
+            return hours + ":" + (minutes < 10 ? "0" : "") + minutes + ":" + tail;
+        }
+        return minutes + ":" + tail;
+    }
+
+    function statusText() {
+        if (targetReached) {
+            return qsTr("Target reached");
+        }
+        if (!running && elapsed > 0) {
+            return qsTr("Paused");
+        }
+        //: Under the timer: the chosen target, e.g. "of 10 min"
+        return targetMinutes > 0 ? qsTr("of %n min", "", targetMinutes) : "";
     }
 
     RemorsePopup {
@@ -68,7 +93,7 @@ Page {
 
     SilicaFlickable {
         anchors.fill: parent
-        contentHeight: column.height
+        contentHeight: column.height + Theme.paddingLarge
 
         Column {
             id: column
@@ -77,27 +102,47 @@ Page {
 
             PageHeader {
                 title: qsTr("New session")
+                description: page.profileName
             }
 
-            TextField {
-                id: nameField
+            Item {
                 width: parent.width
-                label: qsTr("Session name")
-                text: sessionName
-                onTextChanged: sessionName = text
-                EnterKey.iconSource: "image://theme/icon-m-enter-close"
-                EnterKey.onClicked: focus = false
-            }
+                height: ring.height
 
-            SectionHeader {
-                text: qsTr("Timer")
-            }
+                ProgressCircle {
+                    id: ring
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    width: Math.min(Theme.itemSizeHuge * 2, Math.min(page.width, page.height) * 0.6)
+                    height: width
+                    value: page.targetMinutes > 0 ? Math.min(1, page.elapsed / page.ringSeconds)
+                                                  : (page.elapsed % page.ringSeconds) / page.ringSeconds
+                    progressColor: page.targetReached ? Utils.constraintColor("green") : Theme.highlightColor
+                    backgroundColor: Theme.rgba(Theme.primaryColor, 0.2)
+                }
 
-            Label {
-                anchors.horizontalCenter: parent.horizontalCenter
-                text: page.formatDuration(page.elapsed)
-                font.pixelSize: Theme.fontSizeHuge
-                color: Theme.highlightColor
+                Column {
+                    anchors.centerIn: ring
+                    width: ring.width * 0.75
+
+                    Label {
+                        width: parent.width
+                        horizontalAlignment: Text.AlignHCenter
+                        text: page.formatDuration(page.elapsed)
+                        font.pixelSize: Theme.fontSizeHuge * 1.15
+                        // Past an hour the extra digits must still fit inside the ring.
+                        fontSizeMode: Text.HorizontalFit
+                        minimumPixelSize: Theme.fontSizeLarge
+                        color: page.running ? Theme.highlightColor : Theme.primaryColor
+                    }
+                    Label {
+                        width: parent.width
+                        horizontalAlignment: Text.AlignHCenter
+                        truncationMode: TruncationMode.Fade
+                        text: page.statusText()
+                        font.pixelSize: Theme.fontSizeSmall
+                        color: Theme.secondaryHighlightColor
+                    }
+                }
             }
 
             Row {
@@ -127,16 +172,62 @@ Page {
                 enabled: page.profileId >= 0 && page.elapsed > 0
                 onClicked: {
                     page.pause();
+                    var name = page.sessionName.trim();
                     // Stored in seconds: rounding up to whole minutes turned a
                     // ten-second sitting into a one-minute session.
                     DataManager.addMeditationSession(page.profileId, page.accumulated,
-                                                     page.sessionName, new Date());
+                                                     name !== "" ? name : qsTr("Meditation session"),
+                                                     new Date());
                     pageStack.pop();
                 }
+            }
+
+            SectionHeader {
+                text: qsTr("Session")
+            }
+
+            TextField {
+                id: nameField
+                width: parent.width
+                label: qsTr("Session name")
+                text: sessionName
+                onTextChanged: sessionName = text
+                EnterKey.iconSource: "image://theme/icon-m-enter-close"
+                EnterKey.onClicked: focus = false
+            }
+
+            ComboBox {
+                id: targetBox
+                width: parent.width
+                label: qsTr("Target")
+                description: page.targetMinutes > 0 ? ""
+                                                    : qsTr("Without a target the ring shows the current ten minutes")
+                // One item per choice, in the same order, so currentIndex indexes
+                // targetChoices.
+                menu: ContextMenu {
+                    Repeater {
+                        model: page.targetChoices
+                        MenuItem {
+                            text: modelData === 0
+                                  //: No meditation target
+                                  ? qsTr("None")
+                                  //: Meditation target in minutes
+                                  : qsTr("%n min", "", modelData)
+                        }
+                    }
+                }
+                onCurrentIndexChanged: page.targetMinutes = page.targetChoices[currentIndex] || 0
             }
         }
 
         VerticalScrollDecorator {}
+    }
+
+    Component.onCompleted: {
+        if (profileId >= 0) {
+            var profile = DataManager.getProfile(profileId);
+            profileName = profile ? profile.firstName : "";
+        }
     }
 
     // Leaving the page must not leave the ticker running.

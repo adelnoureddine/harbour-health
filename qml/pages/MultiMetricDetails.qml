@@ -12,13 +12,19 @@ Page {
     property string metricName1
     property string metricName2
     property string metricUnit: "mmHg"
-    property var invalidateSignal
 
     property int rangeDays: 30
     property var chartSeries: []
     property var chartBands: []
     property var chartStats: null
     property var chartStats2: null
+
+    // The top of the page: the latest pair, when it was taken and its band.
+    property string profileName: ""
+    property string latestText: ""
+    property string latestTimestamp: ""
+    property string bandLabel: ""
+    property color bandColor: "transparent"
 
     // The list holds every reading regardless of the chart range. With none at all the
     // chart and range tabs are hidden, so the placeholder has the page to itself instead
@@ -125,10 +131,25 @@ Page {
         if (ordered.length > 0) {
             listModel.append(ordered);
         }
+
+        var profile = DataManager.getProfile(profileId);
+        profileName = profile ? profile.firstName : "";
+        var newest = ordered.length > 0 ? ordered[0] : null;
+        latestText = newest ? (newest.value1 === "" ? "—" : Utils.formatValue(newest.value1)) + "/"
+                              + (newest.value2 === "" ? "—" : Utils.formatValue(newest.value2)) : "";
+        latestTimestamp = newest ? String(newest.timestamp) : "";
+        var band = Utils.bandFor(newest ? DataManager.matchWorstConstraint([
+            { metricName: page.metricName1, value: newest.value1 === "" ? null : newest.value1 },
+            { metricName: page.metricName2, value: newest.value2 === "" ? null : newest.value2 }
+        ]) : null);
+        bandLabel = band.label;
+        bandColor = band.color;
+        listView.forceLayout();
         if (keepY !== null) {
-            listView.forceLayout();
             listView.contentY = keepY;
             listView.returnToBounds();
+        } else {
+            scrollToTop.restart();
         }
 
         loaded = true;
@@ -145,36 +166,47 @@ Page {
         loadedFrom = key;
     }
 
-    function notifyChanged() {
-        if (page.invalidateSignal) {
-            page.invalidateSignal(page.metricName1);
-            page.invalidateSignal(page.metricName2);
-        }
-    }
 
     onRangeDaysChanged: refreshChart()
 
     SilicaListView {
         id: listView
         anchors.fill: parent
+        onMovementStarted: page.holdTop = false
 
         header: Column {
             width: listView.width
             spacing: Theme.paddingMedium
+            onHeightChanged: {
+                if (page.holdTop) {
+                    scrollToTop.restart();
+                }
+            }
 
             PageHeader {
                 title: qsTr("Blood pressure")
-                description: page.metricUnit
+                description: page.profileName
             }
 
-            MetricChart {
+            HistoryHero {
+                x: Theme.horizontalPageMargin
+                width: parent.width - 2 * Theme.horizontalPageMargin
+                visible: page.hasData
+                valueText: page.latestText
+                unit: page.metricUnit
+                detailText: Utils.measuredWhen(page.latestTimestamp)
+                bandLabel: page.bandLabel
+                bandColor: page.bandColor
+            }
+
+            ChartCard {
                 width: parent.width - 2 * Theme.horizontalPageMargin
                 x: Theme.horizontalPageMargin
                 visible: page.hasData
                 series: page.chartSeries
                 bands: page.chartBands
                 unit: page.metricUnit
-                decimals: 0
+                decimals: Utils.metricDecimals(page.metricName1)
                 emptyText: qsTr("No data in this period")
             }
 
@@ -193,7 +225,7 @@ Page {
                 stats: page.chartStats
                 stats2: page.chartStats2
                 unit: page.metricUnit
-                decimals: 0
+                decimals: Utils.metricDecimals(page.metricName1)
             }
 
             Item { width: 1; height: Theme.paddingMedium }
@@ -222,8 +254,7 @@ Page {
                     profileId: page.profileId,
                     metricName1: page.metricName1,
                     metricName2: page.metricName2,
-                    metricUnit: page.metricUnit,
-                    invalidateSignal: page.invalidateSignal
+                    metricUnit: page.metricUnit
                 })
             }
         }
@@ -237,7 +268,7 @@ Page {
             // margins. Setting the full view width pushed the right-aligned text one
             // margin off-screen and clipped the date.
             delegate: SectionHeader {
-                text: Utils.formatDate(section)
+                text: Utils.dayTitle(section)
             }
         }
 
@@ -246,6 +277,16 @@ Page {
             contentHeight: noteLabel.visible
                            ? Math.max(Theme.itemSizeMedium, entryColumn.height + 2 * Theme.paddingMedium)
                            : Theme.itemSizeSmall
+
+            // On the row, not in the menu: the menu is destroyed as soon as it closes,
+            // before the remorse runs out, and model.id1/id2 with it.
+            function remove() {
+                listItem.remorseDelete(function() {
+                    // Both halves in one transaction; a missing half is -1.
+                    DataManager.deleteLogs([model.id1, model.id2]);
+                    page.refresh();
+                })
+            }
 
             // Built when first opened. Created with every row, the menu made each
             // row about ten times slower to build, which showed while scrolling.
@@ -261,20 +302,12 @@ Page {
                             metricName2: page.metricName2,
                             metricUnit: page.metricUnit,
                             logId1: model.id1,
-                            logId2: model.id2,
-                            invalidateSignal: page.invalidateSignal
+                            logId2: model.id2
                         })
                     }
                     MenuItem {
                         text: qsTr("Delete")
-                        onClicked: {
-                            listItem.remorseDelete(function() {
-                                // Both halves in one transaction; a missing half is -1.
-                                DataManager.deleteLogs([model.id1, model.id2]);
-                                page.refresh();
-                                page.notifyChanged();
-                            })
-                        }
+                        onClicked: listItem.remove()
                     }
                 }
             }
@@ -332,6 +365,23 @@ Page {
 
     ListModel {
         id: listModel
+    }
+
+    /*
+     * A page opens at its top, header included. The header keeps growing for a moment
+     * after the list loads (latest reading, change line, stats), and the list view keeps
+     * its rows where they were, so the header ended up partly off-screen. Until the user
+     * scrolls, every change of the header's height puts the view back at the top.
+     */
+    property bool holdTop: true
+
+    Timer {
+        id: scrollToTop
+        interval: 50
+        onTriggered: {
+            listView.forceLayout();
+            listView.positionViewAtBeginning();
+        }
     }
 
     onStatusChanged: {

@@ -14,6 +14,11 @@ Dialog {
     property string energy: "Normal"
     property real sleepHours: 8.0
 
+    // Context for the chosen day: its number in the cycle (0 outside one) and whether
+    // it already has an entry, which saving replaces.
+    property int cycleDay: 0
+    property bool hasEntry: false
+
     readonly property var flowValues: ["None", "Spotting", "Light", "Medium", "Heavy"]
     readonly property var painValues: ["None", "Mild", "Moderate", "Severe"]
     readonly property var energyValues: ["Exhausted", "Low", "Normal", "High", "Peak"]
@@ -29,6 +34,23 @@ Dialog {
 
     canAccept: profileId >= 0
 
+    // Day of the cycle `dateStr` falls in, counted like the cycle details page: from the
+    // latest start on or before it, while that cycle is open or not yet ended.
+    function dayInCycle(dateStr) {
+        var cycles = DataManager.getMenstrualCycles(profileId);
+        for (var i = 0; i < cycles.length; i++) {
+            var c = cycles[i];
+            if (c.startDate <= dateStr) {
+                if (c.endDate && dateStr > c.endDate) {
+                    return 0;
+                }
+                var days = Utils.daysBetween(c.startDate, dateStr);
+                return days === null ? 0 : days + 1;
+            }
+        }
+        return 0;
+    }
+
     /*
      * A day has at most one entry, and saving replaces it. Load whatever is already
      * recorded for the chosen day so saving never silently drops fields the user
@@ -38,7 +60,10 @@ Dialog {
         if (profileId < 0) {
             return;
         }
-        var logs = DataManager.getMenstrualLogs(profileId, Utils.toLocalDateString(logDate));
+        var dateStr = Utils.toLocalDateString(logDate);
+        cycleDay = dayInCycle(dateStr);
+        var logs = DataManager.getMenstrualLogs(profileId, dateStr);
+        hasEntry = logs.length > 0;
         if (logs.length === 0) {
             // Start the new day clean. The previous day's values used to stay in the
             // form and were saved to this day as if the user had entered them.
@@ -60,13 +85,13 @@ Dialog {
     }
 
     onAccepted: {
-            var dateStr = Utils.toLocalDateString(logDate);
-            DataManager.addMenstrualLog(profileId, dateStr, flow, pain, energy, sleepHours, notesField.text);
+        var dateStr = Utils.toLocalDateString(logDate);
+        DataManager.addMenstrualLog(profileId, dateStr, flow, pain, energy, sleepHours, notesField.text.trim());
     }
 
     SilicaFlickable {
         anchors.fill: parent
-        contentHeight: column.height
+        contentHeight: column.height + Theme.paddingLarge
 
         Column {
             id: column
@@ -81,6 +106,11 @@ Dialog {
             ValueButton {
                 label: qsTr("Date")
                 value: Qt.formatDate(logDate, Qt.DefaultLocaleShortDate)
+                description: [
+                    //: Context under the date: the day's number in the current cycle
+                    dialog.cycleDay > 0 ? qsTr("Day %1 of the cycle").arg(dialog.cycleDay) : "",
+                    dialog.hasEntry ? qsTr("Already recorded: saving replaces it") : ""
+                ].filter(function (part) { return part !== ""; }).join(" · ")
                 onClicked: {
                     var dateDialog = pageStack.push("Sailfish.Silica.DatePickerDialog", {
                         date: logDate

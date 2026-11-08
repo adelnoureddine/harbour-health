@@ -12,7 +12,6 @@ Page {
     property bool grouped: false
     property string metricName
     property string metricUnit
-    property var invalidateSignal
 
     property int rangeDays: 30
     property var chartSeries: []
@@ -21,6 +20,19 @@ Page {
 
     // day -> total, built once per refresh so section headers are a hash lookup.
     property var dayTotals: ({})
+
+    // The top of the page: the latest reading (today's total for water and
+    // calories), how it moved over the chart's range, and its reference band.
+    property string profileName: ""
+    property var latestValue: null
+    property string latestTimestamp: ""
+    property real todayTotal: 0
+    property var goal: null
+    property string changeText: ""
+    property string bandLabel: ""
+    property color bandColor: "transparent"
+    // The day "Today" refers to: the 04:00-border day for daily totals.
+    property var currentDay: new Date()
 
     readonly property int decimals: Utils.metricDecimals(metricName)
     // Unit with its leading space, or nothing for a unitless metric.
@@ -47,23 +59,48 @@ Page {
                                                    : DataManager.SERIES_RAW;
     }
 
+
     function refreshChart() {
         if (profileId < 0) {
             return;
         }
         var mode = seriesMode();
         var since = DataManager.sinceForDays(rangeDays, mode !== DataManager.SERIES_RAW);
+        var points = DataManager.getSeries(profileId, metricName, since, mode);
         chartSeries = [{
-            points: DataManager.getSeries(profileId, metricName, since, mode),
+            points: points,
             color: Theme.highlightColor,
             label: Utils.metricDisplayName(metricName)
         }];
+        // "−0.8 kg since 9 Oct" over the chart's range. It only means something for
+        // single readings, not for daily totals.
+        changeText = page.grouped ? "" : Utils.changeSinceText(points, page.metricUnit, page.decimals);
         chartStats = DataManager.getSeriesStats(profileId, metricName, since, mode);
         chartBands = DataManager.getConstraintsForMetric(metricName);
     }
 
+    function refreshHero() {
+        var profile = DataManager.getProfile(profileId);
+        profileName = profile ? profile.firstName : "";
+        currentDay = page.grouped ? DataManager.dayStart() : new Date();
+        if (page.grouped) {
+            var total = DataManager.getTodayTotal(profileId, metricName);
+            todayTotal = total === null ? 0 : total;
+            goal = DataManager.getGoal(profileId, metricName);
+            bandLabel = "";
+            return;
+        }
+        var log = DataManager.getLatestLog(profileId, metricName);
+        latestValue = log ? log.value : null;
+        latestTimestamp = log ? log.timestamp : "";
+        var band = Utils.bandFor(log ? DataManager.matchConstraint(metricName, log.value) : null);
+        bandLabel = band.label;
+        bandColor = band.color;
+    }
+
     function refresh() {
         var key = DataManager.dataKey();
+        refreshHero();
         // Rebuilding the list puts the view back at the top. After editing or deleting
         // an entry further down, the user was thrown back there.
         var keepY = loaded ? listView.contentY : null;
@@ -71,10 +108,12 @@ Page {
         // The totals come back with the rows. They used to be collected by reading
         // every row back out of the model, the slowest part of opening the page.
         dayTotals = DataManager.addLogsToModel(profileId, metricName, listModel, page.grouped);
+        listView.forceLayout();
         if (keepY !== null) {
-            listView.forceLayout();
             listView.contentY = keepY;
             listView.returnToBounds();
+        } else {
+            scrollToTop.restart();
         }
         loaded = true;
         refreshChart();
@@ -89,28 +128,47 @@ Page {
         loadedFrom = key;
     }
 
-    function notifyChanged() {
-        if (page.invalidateSignal) {
-            page.invalidateSignal(page.metricName);
-        }
-    }
 
     onRangeDaysChanged: refreshChart()
 
     SilicaListView {
         id: listView
         anchors.fill: parent
+        onMovementStarted: page.holdTop = false
 
         header: Column {
             width: listView.width
             spacing: Theme.paddingMedium
+            onHeightChanged: {
+                if (page.holdTop) {
+                    scrollToTop.restart();
+                }
+            }
 
             PageHeader {
                 title: Utils.metricDisplayName(page.metricName)
-                description: page.metricUnit
+                description: page.profileName
             }
 
-            MetricChart {
+            HistoryHero {
+                x: Theme.horizontalPageMargin
+                width: parent.width - 2 * Theme.horizontalPageMargin
+                visible: page.hasData
+                valueText: page.grouped ? Utils.formatValue(page.todayTotal, page.decimals)
+                                        : Utils.formatValue(page.latestValue)
+                unit: page.metricUnit
+                detailText: page.grouped
+                            ? qsTr("Today") + (page.goal !== null
+                                               //: Daily goal under today's total, e.g. "Goal 2 L"
+                                               ? " · " + qsTr("Goal %1").arg(Utils.formatValue(page.goal) + page.unitSuffix)
+                                               : "")
+                            : [page.changeText, Utils.measuredWhen(page.latestTimestamp)]
+                                  .filter(function (part) { return part !== ""; }).join(" · ")
+                bandLabel: page.bandLabel
+                bandColor: page.bandColor
+            }
+
+            ChartCard {
                 width: parent.width - 2 * Theme.horizontalPageMargin
                 x: Theme.horizontalPageMargin
                 visible: page.hasData
@@ -156,8 +214,7 @@ Page {
                     profileId: page.profileId,
                     metricName: page.metricName,
                     metricUnit: page.metricUnit,
-                    lockMetric: true,
-                    invalidateSignal: page.invalidateSignal
+                    lockMetric: true
                 })
             }
         }
@@ -171,10 +228,11 @@ Page {
             // margins. Setting the full view width pushed the right-aligned text one
             // margin off-screen and clipped the date.
             delegate: SectionHeader {
-                // The per-day total is computed by SQLite now. It used to re-scan the
-                // whole model inside this binding, once per section, on every update.
-                text: Utils.formatValue(page.dayTotals[section]) + page.unitSuffix
-                      + " · " + Utils.formatDate(section)
+                // "Today", "Yesterday", then the weekday and date; daily totals add the
+                // day's sum. The total is computed by SQLite, not by re-scanning the model.
+                text: page.grouped ? Utils.dayTitle(section, page.currentDay) + " · "
+                                     + Utils.formatValue(page.dayTotals[section]) + page.unitSuffix
+                                   : Utils.dayTitle(section)
             }
         }
 
@@ -188,7 +246,6 @@ Page {
                 listItem.remorseDelete(function() {
                     DataManager.deleteLog(model.id);
                     page.refresh();
-                    page.notifyChanged();
                 })
             }
 
@@ -203,8 +260,7 @@ Page {
                             metricName: page.metricName,
                             metricUnit: page.metricUnit,
                             lockMetric: true,
-                            logId: model.id,
-                            invalidateSignal: page.invalidateSignal
+                            logId: model.id
                         })
                     }
                     MenuItem {
@@ -247,9 +303,8 @@ Page {
                 anchors.right: parent.right
                 anchors.rightMargin: Theme.horizontalPageMargin
                 anchors.verticalCenter: parent.verticalCenter
-                // Within a day section the date is already in the header.
-                text: page.grouped ? Utils.formatTime(model.timestamp)
-                                   : Utils.formatDateTime(model.timestamp)
+                // The day is in the section header above.
+                text: Utils.formatTime(model.timestamp)
                 font.pixelSize: Theme.fontSizeExtraSmall
                 color: listItem.highlighted ? Theme.secondaryHighlightColor : Theme.secondaryColor
             }
@@ -266,6 +321,23 @@ Page {
 
     ListModel {
         id: listModel
+    }
+
+    /*
+     * A page opens at its top, header included. The header keeps growing for a moment
+     * after the list loads (latest reading, change line, stats), and the list view keeps
+     * its rows where they were, so the header ended up partly off-screen. Until the user
+     * scrolls, every change of the header's height puts the view back at the top.
+     */
+    property bool holdTop: true
+
+    Timer {
+        id: scrollToTop
+        interval: 50
+        onTriggered: {
+            listView.forceLayout();
+            listView.positionViewAtBeginning();
+        }
     }
 
     onStatusChanged: {

@@ -2,7 +2,13 @@ import QtQuick 2.0
 import Sailfish.Silica 1.0
 import "../js/DataManager.js" as DataManager
 import "../js/utils.js" as Utils
+import "../components"
 
+/*
+ * The cover: the profile's two cover metrics (Cover page settings), a daily total as
+ * a ring and anything else with its trend. When water is one of them, a cover action
+ * logs a glass without opening the app.
+ */
 CoverBackground {
     id: cover
 
@@ -10,42 +16,51 @@ CoverBackground {
     property var profile: null
     property string metric1: DataManager.METRIC_WEIGHT
     property string metric2: DataManager.METRIC_WATER
-    property var value1: null
-    property var value2: null
-    property string unit1: ""
-    property string unit2: ""
-
-    // Grouped metrics (water, calories) show today's total, like the dashboard.
-    function metricValue(metricName) {
-        if (DataManager.getMetricGrouped(metricName)) {
-            return DataManager.getTodayTotal(profileId, metricName);
-        }
-        return DataManager.getLatestLogValue(profileId, metricName);
-    }
-
-    // Units are looked up once per refresh. This used to query the database from
-    // inside the label bindings.
-    function displayFor(value, metricName, unit) {
-        if (value === null || value === undefined) {
-            return "—";
-        }
-        return Utils.formatValue(value) + (unit ? " " + unit : "");
-    }
+    readonly property bool waterShown: metric1 === DataManager.METRIC_WATER
+                                       || metric2 === DataManager.METRIC_WATER
+    // What the cover last showed (see DataManager.dataKey). It becomes active every
+    // time the home screen shows, and reloading with nothing written was wasted work.
+    property string loadedFrom: ""
 
     function refresh() {
-        profileId = DataManager.lastUsedProfileId();
-        if (profileId < 0) {
-            profile = null;
+        var key = DataManager.dataKey();
+        if (key === loadedFrom) {
             return;
         }
-        profile = DataManager.getProfile(profileId);
-        var metrics = DataManager.getCoverMetrics(profileId);
-        metric1 = metrics.metric1;
-        metric2 = metrics.metric2;
-        unit1 = DataManager.getMetricUnit(metric1) || "";
-        unit2 = DataManager.getMetricUnit(metric2) || "";
-        value1 = metricValue(metric1);
-        value2 = metricValue(metric2);
+        profileId = DataManager.lastUsedProfileId();
+        profile = profileId >= 0 ? DataManager.getProfile(profileId) || null : null;
+        if (profile !== null) {
+            var metrics = DataManager.getCoverMetrics(profileId);
+            metric1 = metrics.metric1;
+            metric2 = metrics.metric2;
+            first.refresh();
+            second.refresh();
+        }
+        // Recorded last, so a refresh that failed half way is tried again.
+        loadedFrom = key;
+    }
+
+    function openAddEntry() {
+        if (cover.profileId < 0) {
+            return;
+        }
+        if (cover.metric1 === DataManager.METRIC_BP_SYS || cover.metric1 === DataManager.METRIC_BP_DIA) {
+            // A blood pressure half on the cover opens the dialog for the pair.
+            pageStack.animatorPush(Qt.resolvedUrl("../pages/addEntryMultiMetric.qml"), {
+                profileId: cover.profileId,
+                metricName1: DataManager.METRIC_BP_SYS,
+                metricName2: DataManager.METRIC_BP_DIA,
+                metricUnit: first.unit
+            });
+        } else {
+            // Pre-selects the first cover metric but still lets the type be changed.
+            pageStack.animatorPush(Qt.resolvedUrl("../pages/addEntryMetric.qml"), {
+                profileId: cover.profileId,
+                metricName: cover.metric1,
+                metricUnit: first.unit
+            });
+        }
+        appWindow.activate();
     }
 
     onStatusChanged: {
@@ -57,102 +72,59 @@ CoverBackground {
     Component.onCompleted: refresh()
 
     Column {
-        anchors.centerIn: parent
-        width: parent.width - 2 * Theme.paddingMedium
-        spacing: Theme.paddingSmall
-
-        Image {
-            source: "/usr/share/icons/hicolor/128x128/apps/harbour-health.png"
-            // Fixed pixel sizes here did not scale across device densities.
-            width: Theme.iconSizeLarge
-            height: Theme.iconSizeLarge
-            fillMode: Image.PreserveAspectFit
-            anchors.horizontalCenter: parent.horizontalCenter
-        }
-
-        Label {
-            text: qsTr("Health")
-            font.pixelSize: Theme.fontSizeMedium
-            font.bold: true
-            color: Theme.primaryColor
-            anchors.horizontalCenter: parent.horizontalCenter
-        }
+        x: Theme.paddingLarge
+        y: Theme.paddingLarge
+        width: parent.width - 2 * Theme.paddingLarge
+        spacing: Theme.paddingMedium
 
         Label {
             width: parent.width
-            text: profile ? profile.firstName : ""
-            horizontalAlignment: Text.AlignHCenter
             truncationMode: TruncationMode.Fade
-            font.pixelSize: Theme.fontSizeSmall
+            //: Cover header: the app name and the profile's first name
+            text: cover.profile ? qsTr("Health · %1").arg(cover.profile.firstName) : qsTr("Health")
+            font.pixelSize: Theme.fontSizeExtraSmall
             color: Theme.highlightColor
-            visible: profile !== null
         }
 
-        Separator {
+        CoverMetric {
+            id: first
             width: parent.width
-            color: Theme.rgba(Theme.primaryColor, 0.3)
-            horizontalAlignment: Qt.AlignHCenter
-            visible: profile !== null
+            visible: cover.profile !== null
+            profileId: cover.profileId
+            metricName: cover.metric1
         }
 
-        Repeater {
-            model: profile !== null ? 2 : 0
+        CoverMetric {
+            id: second
+            width: parent.width
+            visible: cover.profile !== null
+            profileId: cover.profileId
+            metricName: cover.metric2
+        }
+    }
 
-            Column {
-                width: cover.width - 2 * Theme.paddingMedium
-                spacing: 0
-
-                Label {
-                    width: parent.width
-                    horizontalAlignment: Text.AlignHCenter
-                    truncationMode: TruncationMode.Fade
-                    // The raw internal name ("systolic blood pressure") used to be
-                    // shown here, lowercase and untranslated.
-                    text: Utils.metricDisplayName(index === 0 ? cover.metric1 : cover.metric2)
-                    font.pixelSize: Theme.fontSizeExtraSmall
-                    color: Theme.secondaryColor
-                }
-
-                Label {
-                    width: parent.width
-                    horizontalAlignment: Text.AlignHCenter
-                    truncationMode: TruncationMode.Fade
-                    text: index === 0 ? cover.displayFor(cover.value1, cover.metric1, cover.unit1)
-                                      : cover.displayFor(cover.value2, cover.metric2, cover.unit2)
-                    font.pixelSize: Theme.fontSizeSmall
-                    font.bold: true
-                    color: Theme.primaryColor
-                }
+    // Two actions while water is on the cover: a glass of water, logged right here,
+    // and a new entry in the app. Otherwise only the latter.
+    CoverActionList {
+        enabled: cover.profile !== null && cover.waterShown
+        CoverAction {
+            iconSource: Qt.resolvedUrl("../icons/cover-water.svg")
+            onTriggered: {
+                DataManager.addLog(cover.profileId, DataManager.METRIC_WATER, 0.25, new Date(), "");
+                cover.refresh();
             }
+        }
+        CoverAction {
+            iconSource: "image://theme/icon-cover-new"
+            onTriggered: cover.openAddEntry()
         }
     }
 
     CoverActionList {
-        id: coverAction
+        enabled: cover.profile !== null && !cover.waterShown
         CoverAction {
             iconSource: "image://theme/icon-cover-new"
-            onTriggered: {
-                if (cover.profileId >= 0 && (cover.metric1 === DataManager.METRIC_BP_SYS
-                                             || cover.metric1 === DataManager.METRIC_BP_DIA)) {
-                    // A blood pressure half on the cover opens the dialog for the pair.
-                    pageStack.animatorPush(Qt.resolvedUrl("../pages/addEntryMultiMetric.qml"), {
-                        profileId: cover.profileId,
-                        metricName1: DataManager.METRIC_BP_SYS,
-                        metricName2: DataManager.METRIC_BP_DIA,
-                        metricUnit: cover.unit1
-                    });
-                } else if (cover.profileId >= 0) {
-                    pageStack.animatorPush(Qt.resolvedUrl("../pages/addEntryMetric.qml"), {
-                        profileId: cover.profileId,
-                        metricName: cover.metric1,
-                        // Pre-selects the first cover metric but still lets the
-                        // type be changed. Opened from the cover the dialog used to
-                        // have no metric at all, so Save could never be enabled.
-                        metricUnit: cover.unit1
-                    });
-                }
-                appWindow.activate();
-            }
+            onTriggered: cover.openAddEntry()
         }
     }
 }

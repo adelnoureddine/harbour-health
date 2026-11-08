@@ -30,10 +30,20 @@ TRANSLATIONS += \
 DISTFILES += \
     qml/harbour-health.qml \
     qml/cover/CoverPage.qml \
-    qml/components/HealthCard.qml \
     qml/components/ChartRangeSelector.qml \
     qml/components/ChartStats.qml \
     qml/components/MetricChart.qml \
+    qml/components/Card.qml \
+    qml/components/CardBackground.qml \
+    qml/components/ChartCard.qml \
+    qml/components/DateTimeRow.qml \
+    qml/components/StatusPill.qml \
+    qml/components/CoverMetric.qml \
+    qml/components/DashboardCard.qml \
+    qml/components/GoalCard.qml \
+    qml/components/HistoryHero.qml \
+    qml/components/Sparkline.qml \
+    qml/components/SummaryRow.qml \
     qml/js/DataManager.js \
     qml/js/utils.js \
     qml/pages/AboutPage.qml \
@@ -70,6 +80,8 @@ DISTFILES += \
     qml/pages/metricConstraints.qml \
     qml/pages/modifyProfile.qml \
     qml/pages/moduleSettings.qml \
+    qml/pages/pickMeasurement.qml \
+    qml/pages/setGoal.qml \
     rpm/harbour-health.changes.in \
     rpm/harbour-health.changes.run.in \
     rpm/harbour-health.spec \
@@ -88,6 +100,22 @@ DISTFILES += \
     qml/icons/water.png \
     qml/icons/blood-pressure.svg \
     qml/icons/waist.svg \
-    qml/icons/whtr.svg
+    qml/icons/whtr.svg \
+    qml/icons/weight.svg \
+    qml/icons/height.svg \
+    qml/icons/bmi.svg \
+    qml/icons/calories.svg \
+    qml/icons/water.svg \
+    qml/icons/heartrate.svg \
+    qml/icons/glucose.svg \
+    qml/icons/condition.svg \
+    qml/icons/vaccine.svg \
+    qml/icons/meditation.svg \
+    qml/icons/cycle.svg \
+    qml/icons/cover-water.svg \
+    qml/icons/lock.svg \
+    qml/icons/trend.svg \
+    qml/icons/profile-add.svg \
+    qml/icons/restore.svg
 
 SAILFISHAPP_ICONS = 86x86 108x108 128x128 172x172

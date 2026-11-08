@@ -2,6 +2,7 @@ import QtQuick 2.0
 import Sailfish.Silica 1.0
 import "../js/DataManager.js" as DataManager
 import "../js/utils.js" as Utils
+import "../components"
 
 Dialog {
     id: dialog
@@ -11,7 +12,6 @@ Dialog {
     property string metricName
     property string metricUnit
     property date selectedDate: new Date()
-    property var invalidateSignal
 
     // Set when editing an existing reading rather than adding one.
     property int logId: -1
@@ -19,6 +19,10 @@ Dialog {
     property bool lockMetric: false
 
     readonly property bool editing: logId >= 0
+
+    // Under the value field; follows the type picker (updateContext). Empty when editing:
+    // the value being edited is the last one.
+    property string contextText: ""
 
     canAccept: profileId >= 0 && metricValue.text !== "" && dialog.metricName !== ""
                && metricValue.acceptableInput
@@ -41,6 +45,40 @@ Dialog {
         if (metrics.length > 0) {
             metricTypeModel.append(metrics);
         }
+    }
+
+    /*
+     * The reading to type the new one against, under the value field: a slip such as
+     * 665 for 66.5 stands out next to it. Water and calories add up over the day, so
+     * they show today's total once there is one.
+     */
+    function lastReadingText(name, unit, grouped) {
+        if (profileId < 0 || name === "" || editing) {
+            return "";
+        }
+        var suffix = unit ? " " + unit : "";
+        if (grouped) {
+            var total = DataManager.getTodayTotal(profileId, name);
+            if (total !== null) {
+                //: Under the value field: today's total so far, %1 is the amount with its unit
+                return qsTr("Today so far: %1").arg(Utils.formatValue(total) + suffix);
+            }
+        }
+        var log = DataManager.getLatestLog(profileId, name);
+        return log ? Utils.lastReadingText(Utils.formatValue(log.value) + suffix, log.timestamp) : "";
+    }
+
+    // Once name and unit are both set: a binding ran the queries for each of them, the
+    // first time with the previous type's unit.
+    function updateContext() {
+        var grouped = false;
+        for (var i = 0; i < metricTypeModel.count; i++) {
+            if (metricTypeModel.get(i).name === dialog.metricName) {
+                grouped = metricTypeModel.get(i).grouped ? true : false;
+                break;
+            }
+        }
+        contextText = lastReadingText(dialog.metricName, dialog.metricUnit, grouped);
     }
 
     function load() {
@@ -77,7 +115,9 @@ Dialog {
             }
         }
         metricField.value = Utils.metricDisplayName(dialog.metricName);
+        updateContext();
     }
+
 
     onAccepted: {
         var value = parseFloat(metricValue.text.replace(',', '.'));
@@ -86,14 +126,11 @@ Dialog {
         } else {
             DataManager.addLog(profileId, dialog.metricName, value, selectedDate, noteField.text);
         }
-        if (dialog.invalidateSignal) {
-            dialog.invalidateSignal(dialog.metricName);
-        }
     }
 
     SilicaFlickable {
         anchors.fill: parent
-        contentHeight: column.height
+        contentHeight: column.height + Theme.paddingLarge
 
         Column {
             id: column
@@ -101,7 +138,9 @@ Dialog {
             spacing: Theme.paddingLarge
 
             DialogHeader {
-                title: dialog.editing
+                // Opened without a metric to preselect, no type is picked yet.
+                title: dialog.metricName === "" ? qsTr("Add measurement")
+                       : dialog.editing
                        //: Dialog title; %1 is a measurement name such as "Weight"
                        ? qsTr("Edit %1").arg(Utils.metricDisplayName(dialog.metricName))
                        //: Dialog title; %1 is a measurement name such as "Weight"
@@ -126,75 +165,59 @@ Dialog {
                             onClicked: {
                                 dialog.metricName = model.name;
                                 dialog.metricUnit = model.unit;
+                                dialog.updateContext();
                             }
                         }
                     }
                 }
             }
 
-            TextField {
-                id: metricValue
+            // The value with what helps to type it: the last reading, where to measure.
+            Column {
                 width: parent.width
-                label: dialog.metricUnit ? qsTr("Value (%1)").arg(dialog.metricUnit) : qsTr("Value")
-                placeholderText: qsTr("Enter %1").arg(Utils.metricDisplayName(dialog.metricName))
-                inputMethodHints: Qt.ImhFormattedNumbersOnly
-                // The old pattern was [\.|,], a character class that also accepted a
-                // literal pipe, so "12|5" passed validation and then parsed as 12.
-                validator: RegExpValidator { regExp: /^\d{1,6}([.,]\d{1,3})?$/ }
-                focus: true
-                EnterKey.iconSource: "image://theme/icon-m-enter-next"
-                EnterKey.onClicked: noteField.focus = true
-            }
+                spacing: Theme.paddingSmall
 
-            // Where to measure, for metrics whose reading depends on it (waist).
-            // Follows the type picker, so it appears and disappears with the metric.
-            Label {
-                x: Theme.horizontalPageMargin
-                width: parent.width - 2 * Theme.horizontalPageMargin
-                text: Utils.metricHint(dialog.metricName)
-                visible: text !== ""
-                wrapMode: Text.Wrap
-                font.pixelSize: Theme.fontSizeExtraSmall
-                color: Theme.secondaryHighlightColor
-            }
+                TextField {
+                    id: metricValue
+                    width: parent.width
+                    label: dialog.metricUnit ? qsTr("Value (%1)").arg(dialog.metricUnit) : qsTr("Value")
+                    placeholderText: qsTr("Enter %1").arg(Utils.metricDisplayName(dialog.metricName))
+                    inputMethodHints: Qt.ImhFormattedNumbersOnly
+                    // The old pattern was [\.|,], a character class that also accepted a
+                    // literal pipe, so "12|5" passed validation and then parsed as 12.
+                    validator: RegExpValidator { regExp: /^\d{1,6}([.,]\d{1,3})?$/ }
+                    focus: true
+                    EnterKey.iconSource: "image://theme/icon-m-enter-next"
+                    EnterKey.onClicked: noteField.focus = true
+                }
 
-            ValueButton {
-                id: dateButton
-                label: qsTr("Date")
-                value: Qt.formatDate(dialog.selectedDate, Qt.DefaultLocaleShortDate)
-                onClicked: {
-                    var dateDialog = pageStack.push("Sailfish.Silica.DatePickerDialog", {
-                        date: dialog.selectedDate
-                    })
-                    dateDialog.accepted.connect(function() {
-                        dialog.selectedDate = new Date(dateDialog.date.getFullYear(),
-                                                       dateDialog.date.getMonth(),
-                                                       dateDialog.date.getDate(),
-                                                       dialog.selectedDate.getHours(),
-                                                       dialog.selectedDate.getMinutes(), 0);
-                    })
+                Label {
+                    x: Theme.horizontalPageMargin
+                    width: parent.width - 2 * Theme.horizontalPageMargin
+                    text: dialog.contextText
+                    visible: text !== ""
+                    truncationMode: TruncationMode.Fade
+                    font.pixelSize: Theme.fontSizeExtraSmall
+                    color: Theme.secondaryColor
+                }
+
+                // Where to measure, for metrics whose reading depends on it (waist).
+                // Follows the type picker, so it appears and disappears with the metric.
+                Label {
+                    x: Theme.horizontalPageMargin
+                    width: parent.width - 2 * Theme.horizontalPageMargin
+                    text: Utils.metricHint(dialog.metricName)
+                    visible: text !== ""
+                    wrapMode: Text.Wrap
+                    font.pixelSize: Theme.fontSizeExtraSmall
+                    color: Theme.secondaryHighlightColor
                 }
             }
 
-            ValueButton {
-                id: timeButton
-                label: qsTr("Time")
-                // Follows the system 12/24-hour setting.
-                value: Format.formatDate(dialog.selectedDate, Formatter.TimeValue)
-                onClicked: {
-                    var timeDialog = pageStack.push("Sailfish.Silica.TimePickerDialog", {
-                        hour: dialog.selectedDate.getHours(),
-                        minute: dialog.selectedDate.getMinutes()
-                    })
-                    timeDialog.accepted.connect(function() {
-                        // timeText is locale formatted -- in a 12-hour locale, parsing
-                        // it recorded 1 pm as 01:00. The numeric properties are exact.
-                        dialog.selectedDate = new Date(dialog.selectedDate.getFullYear(),
-                                                       dialog.selectedDate.getMonth(),
-                                                       dialog.selectedDate.getDate(),
-                                                       timeDialog.hour, timeDialog.minute, 0);
-                    })
-                }
+            DateTimeRow {
+                width: parent.width
+                selectedDate: dialog.selectedDate
+                onPicked: dialog.selectedDate = when
             }
 
             TextField {

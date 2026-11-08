@@ -2,6 +2,7 @@ import QtQuick 2.0
 import Sailfish.Silica 1.0
 import "../js/DataManager.js" as DataManager
 import "../js/utils.js" as Utils
+import "../components"
 
 Page {
     id: page
@@ -10,12 +11,34 @@ Page {
     property string metricName: ""
     property string metricUnit: ""
 
+    // What the page last loaded (see DataManager.dataKey): coming back from a
+    // cancelled dialog no longer rebuilds the list.
+    property string loadedFrom: ""
+
+    /*
+     * A ListModel cannot hold null: an open end came back as 0, so "Below 50" read
+     * "0 to 50" and editing that band saved a minimum of 0. Each end carries a flag.
+     */
     function refresh() {
+        var key = DataManager.dataKey();
         listModel.clear();
-        var constraints = DataManager.getConstraintsForMetric(metricName);
-        constraints.forEach(function(constraint) {
-            listModel.append(constraint);
+        var rows = DataManager.getConstraintsForMetric(metricName).map(function (c) {
+            var hasMin = c.minValue !== null && c.minValue !== undefined;
+            var hasMax = c.maxValue !== null && c.maxValue !== undefined;
+            return {
+                id: c.id,
+                label: c.label ? c.label : "",
+                color: c.color ? c.color : "",
+                hasMin: hasMin,
+                minValue: hasMin ? c.minValue : 0,
+                hasMax: hasMax,
+                maxValue: hasMax ? c.maxValue : 0
+            };
         });
+        if (rows.length > 0) {
+            listModel.append(rows);
+        }
+        loadedFrom = key;
     }
 
     function rangeText(minValue, maxValue) {
@@ -41,6 +64,8 @@ Page {
     SilicaListView {
         id: listView
         anchors.fill: parent
+        // Room between the card rows.
+        spacing: Theme.paddingMedium
 
         header: Column {
             width: listView.width
@@ -51,14 +76,17 @@ Page {
                 description: Utils.metricDisplayName(page.metricName)
             }
 
-            Label {
-                x: Theme.horizontalPageMargin
-                width: parent.width - 2 * Theme.horizontalPageMargin
-                wrapMode: Text.Wrap
-                font.pixelSize: Theme.fontSizeExtraSmall
-                color: Theme.secondaryColor
-                text: qsTr("These bands colour your readings and shade the chart behind them. They are general references, not medical advice — edit them to whatever your own targets are.")
+            Card {
+                Label {
+                    width: parent.width
+                    wrapMode: Text.Wrap
+                    font.pixelSize: Theme.fontSizeExtraSmall
+                    color: Theme.secondaryColor
+                    text: qsTr("These bands colour your readings and shade the chart behind them. They are general references, not medical advice — edit them to whatever your own targets are.")
+                }
             }
+
+            Item { width: 1; height: Theme.paddingSmall }
         }
 
         PullDownMenu {
@@ -75,7 +103,19 @@ Page {
 
         delegate: ListItem {
             id: constraintItem
-            contentHeight: Theme.itemSizeMedium
+            contentHeight: Math.max(Theme.itemSizeMedium, textColumn.height + 2 * Theme.paddingMedium)
+            // The card below shows the press instead of a full-width block.
+            highlightedColor: "transparent"
+
+            // On the row, not in the menu: the lazy menu is destroyed when it closes,
+            // seconds before the remorse runs, and its callback lost `model` with it.
+            function remove() {
+                var constraintId = model.id;
+                constraintItem.remorseDelete(function() {
+                    DataManager.deleteConstraint(constraintId);
+                    listModel.remove(index);
+                })
+            }
 
             // Built when first opened. Created with every row, the menu made each
             // row about ten times slower to build, which showed while scrolling.
@@ -87,38 +127,45 @@ Page {
                             metricName: page.metricName,
                             metricUnit: page.metricUnit,
                             constraintId: model.id,
-                            labelText: model.label ? model.label : "",
-                            minValue: model.minValue,
-                            maxValue: model.maxValue,
+                            labelText: model.label,
+                            minValue: model.hasMin ? model.minValue : null,
+                            maxValue: model.hasMax ? model.maxValue : null,
                             colorName: model.color
                         })
                     }
                     MenuItem {
                         text: qsTr("Delete")
-                        onClicked: constraintItem.remorseDelete(function() {
-                            DataManager.deleteConstraint(model.id);
-                            listModel.remove(index);
-                        })
+                        onClicked: constraintItem.remove()
                     }
                 }
             }
 
+            CardBackground {
+                x: Theme.horizontalPageMargin
+                width: parent.width - 2 * Theme.horizontalPageMargin
+                height: parent.height
+                highlighted: constraintItem.highlighted
+            }
+
+            // The band's colour, as the dot of its pill on the history page.
             Rectangle {
                 id: swatch
                 anchors.verticalCenter: parent.verticalCenter
-                x: Theme.horizontalPageMargin
-                width: Theme.paddingSmall
-                height: parent.height - Theme.paddingLarge
+                x: Theme.horizontalPageMargin + Theme.paddingLarge
+                width: Theme.iconSizeSmall
+                height: width
                 radius: width / 2
                 color: Utils.constraintColor(model.color) !== "" ? Utils.constraintColor(model.color)
                                                                  : Theme.secondaryColor
             }
 
             Column {
+                id: textColumn
                 anchors.verticalCenter: parent.verticalCenter
                 anchors.left: swatch.right
-                anchors.leftMargin: Theme.paddingMedium
-                width: parent.width - swatch.width - Theme.horizontalPageMargin * 2 - Theme.paddingMedium
+                anchors.leftMargin: Theme.paddingLarge
+                anchors.right: parent.right
+                anchors.rightMargin: Theme.horizontalPageMargin + Theme.paddingLarge
 
                 Label {
                     width: parent.width
@@ -129,7 +176,8 @@ Page {
                 Label {
                     width: parent.width
                     truncationMode: TruncationMode.Fade
-                    text: page.rangeText(model.minValue, model.maxValue)
+                    text: page.rangeText(model.hasMin ? model.minValue : null,
+                                         model.hasMax ? model.maxValue : null)
                     font.pixelSize: Theme.fontSizeExtraSmall
                     color: constraintItem.highlighted ? Theme.secondaryHighlightColor : Theme.secondaryColor
                 }
@@ -138,6 +186,8 @@ Page {
 
         ViewPlaceholder {
             enabled: listModel.count === 0
+            // Below the explanation card rather than over it.
+            verticalOffset: listView.headerItem ? listView.headerItem.height : 0
             text: qsTr("No reference ranges")
             hintText: qsTr("Pull down to add one")
         }
@@ -148,7 +198,9 @@ Page {
     ListModel { id: listModel }
 
     onStatusChanged: {
-        if (status === PageStatus.Active) refresh();
+        if (status === PageStatus.Active && DataManager.dataKey() !== loadedFrom) {
+            refresh();
+        }
     }
 }
 

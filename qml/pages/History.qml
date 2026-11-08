@@ -8,29 +8,34 @@ Page {
     allowedOrientations: Orientation.All
 
     property int profileId: -1
+    property string profileName: ""
+    // What the page last loaded (see DataManager.dataKey).
+    property string loadedFrom: ""
+    // Keeps the placeholder from flashing while the page is pushed.
+    property bool loaded: false
 
     function refresh() {
+        var key = DataManager.dataKey();
         listModel.clear();
         if (profileId < 0) {
             return;
         }
+        var profile = DataManager.getProfile(profileId);
+        profileName = profile ? profile.firstName : "";
         var sessions = DataManager.getMeditationSessions(profileId);
+        var rows = [];
         for (var i = 0; i < sessions.length; i++) {
-            listModel.append(sessions[i]);
+            var s = sessions[i];
+            // The local day the session belongs to, for the section headers.
+            var when = Utils.parseTimestamp(s.date);
+            rows.push({ id: s.id, date: String(s.date), duration: s.duration ? s.duration : 0,
+                        name: s.name ? s.name : "", day: when !== null ? Utils.toLocalDateString(when) : "" });
         }
-    }
-
-    function formatDuration(seconds) {
-        if (seconds === null || seconds === undefined) {
-            return "";
+        if (rows.length > 0) {
+            listModel.append(rows);
         }
-        if (seconds < 60) {
-            return qsTr("%1 s").arg(seconds);
-        }
-        var minutes = Math.floor(seconds / 60);
-        var remainder = seconds % 60;
-        return remainder === 0 ? qsTr("%1 min").arg(minutes)
-                               : qsTr("%1 min %2 s").arg(minutes).arg(remainder);
+        loaded = true;
+        loadedFrom = key;
     }
 
     SilicaListView {
@@ -41,6 +46,7 @@ Page {
         header: PageHeader {
             width: listView.width
             title: qsTr("Meditation history")
+            description: page.profileName
         }
 
         PullDownMenu {
@@ -58,9 +64,27 @@ Page {
             }
         }
 
+        section {
+            property: "day"
+            criteria: ViewSection.FullString
+            // No width override: SectionHeader already spans the view minus both margins.
+            delegate: SectionHeader {
+                text: Utils.dayTitle(section)
+            }
+        }
+
         delegate: ListItem {
             id: sessionItem
             contentHeight: Theme.itemSizeMedium
+
+            // On the row, not in the menu: the menu is destroyed as soon as it closes,
+            // before the remorse runs out, and its model.id with it.
+            function remove() {
+                sessionItem.remorseDelete(function() {
+                    DataManager.deleteMeditationSession(model.id);
+                    listModel.remove(index);
+                })
+            }
 
             // Built when first opened. Created with every row, the menu made each
             // row about ten times slower to build, which showed while scrolling.
@@ -68,10 +92,7 @@ Page {
                 ContextMenu {
                     MenuItem {
                         text: qsTr("Delete")
-                        onClicked: sessionItem.remorseDelete(function() {
-                            DataManager.deleteMeditationSession(model.id);
-                            listModel.remove(index);
-                        })
+                        onClicked: sessionItem.remove()
                     }
                 }
             }
@@ -79,26 +100,37 @@ Page {
             Column {
                 anchors.verticalCenter: parent.verticalCenter
                 x: Theme.horizontalPageMargin
-                width: parent.width - 2 * Theme.horizontalPageMargin
+                width: parent.width - 2 * Theme.horizontalPageMargin - timeLabel.width - Theme.paddingMedium
 
                 Label {
                     width: parent.width
-                    text: model.name ? model.name : qsTr("Meditation session")
                     truncationMode: TruncationMode.Fade
+                    text: Utils.formatDuration(model.duration)
                     color: sessionItem.highlighted ? Theme.highlightColor : Theme.primaryColor
                 }
                 Label {
                     width: parent.width
                     truncationMode: TruncationMode.Fade
-                    text: Utils.formatDateTime(model.date) + " · " + page.formatDuration(model.duration)
-                    font.pixelSize: Theme.fontSizeSmall
+                    text: model.name !== "" ? model.name : qsTr("Meditation session")
+                    font.pixelSize: Theme.fontSizeExtraSmall
                     color: sessionItem.highlighted ? Theme.secondaryHighlightColor : Theme.secondaryColor
                 }
+            }
+
+            Label {
+                id: timeLabel
+                anchors.right: parent.right
+                anchors.rightMargin: Theme.horizontalPageMargin
+                anchors.verticalCenter: parent.verticalCenter
+                // The day is in the section header above.
+                text: Utils.formatTime(model.date)
+                font.pixelSize: Theme.fontSizeExtraSmall
+                color: sessionItem.highlighted ? Theme.secondaryHighlightColor : Theme.secondaryColor
             }
         }
 
         ViewPlaceholder {
-            enabled: listModel.count === 0
+            enabled: page.loaded && listModel.count === 0
             text: qsTr("No meditation history")
             hintText: qsTr("Finish a session to see it here")
         }
@@ -113,7 +145,7 @@ Page {
     }
 
     onStatusChanged: {
-        if (status === PageStatus.Active) {
+        if (status === PageStatus.Active && DataManager.dataKey() !== loadedFrom) {
             refresh();
         }
     }

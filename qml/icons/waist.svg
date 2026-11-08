@@ -1,7 +1,1 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- Tape measure. Monochrome: HighlightImage recolours it to the theme. -->
-<svg width="800px" height="800px" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path fill-rule="evenodd" clip-rule="evenodd" d="M5 24a12 12 0 1 0 24 0a12 12 0 1 0-24 0ZM12.5 24a4.5 4.5 0 1 0 9 0a4.5 4.5 0 1 0-9 0Z" fill="#333333"/>
-<path fill-rule="evenodd" clip-rule="evenodd" d="M17 29h27v7H17ZM31 29h1.5v3.5H31ZM34.5 29h1.5v2H34.5ZM38 29h1.5v3.5H38ZM41.5 29h1.5v2H41.5Z" fill="#333333"/>
-<path d="M44 26.5h2.5v11H44Z" fill="#333333"/>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="11" r="6"/><circle cx="9" cy="11" r="2"/><path d="M9 17h12v-4h-5"/></svg>
