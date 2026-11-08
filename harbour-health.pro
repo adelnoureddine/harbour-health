@@ -12,7 +12,7 @@
 # The name of your application
 TARGET = harbour-health
 
-VERSION = 1.1
+VERSION = 1.9
 DEFINES += APP_VERSION=\\\"$$VERSION\\\"
 
 CONFIG += sailfishapp sailfishapp_i18n c++11

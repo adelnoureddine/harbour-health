@@ -13,7 +13,7 @@
 # - Summary of changes
 
 * Sun Nov 08 2026 Adel Noureddine 2.0-1
-- Complete overheal of the GUI with new updated interface
+- Complete overhaul of the GUI with new updated interface
 - Add waist circumference measurement and waist-to-height ratio (WHtR).
 - Many more fixes, and improve performance
 
