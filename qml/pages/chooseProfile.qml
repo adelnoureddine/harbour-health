@@ -16,6 +16,8 @@ Page {
     // What the list last loaded (see DataManager.dataKey). Coming back from a cancelled
     // dialog keeps the list as it was.
     property string loadedFrom: ""
+    // Keeps the placeholder from flashing while the page is pushed.
+    property bool loaded: false
 
     function refreshProfiles() {
         var key = DataManager.dataKey();
@@ -33,6 +35,7 @@ Page {
             });
         }
         loadedFrom = key;
+        loaded = true;
     }
 
     SilicaListView {
@@ -151,7 +154,7 @@ Page {
         }
 
         ViewPlaceholder {
-            enabled: modelProfiles.count === 0
+            enabled: root.loaded && modelProfiles.count === 0
             text: qsTr("No profiles found")
             hintText: qsTr("Pull down to create one")
         }

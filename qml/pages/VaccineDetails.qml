@@ -125,8 +125,10 @@ Page {
             // On the row, not in the menu: the menu is destroyed as soon as it closes,
             // before the remorse runs out, and its model.id with it.
             function remove() {
+                // Read now: the rows are rebuilt if anything is saved during the countdown.
+                var id = model.id;
                 injectionItem.remorseDelete(function() {
-                    DataManager.deleteVaccineLog(model.id);
+                    DataManager.deleteVaccineLog(id);
                     // Reloads rather than removing the row, so the card above
                     // counts it too.
                     page.refresh();
@@ -137,6 +139,16 @@ Page {
             // row about ten times slower to build, which showed while scrolling.
             menu: Component {
                 ContextMenu {
+                    // A wrong date or note could only be fixed by deleting the injection.
+                    MenuItem {
+                        text: qsTr("Edit")
+                        onClicked: pageStack.animatorPush(Qt.resolvedUrl("AddVaccine.qml"), {
+                            profileId: page.profileId,
+                            knownVaccineId: page.vaccineId,
+                            knownVaccineName: page.vaccineName,
+                            injectionId: model.id
+                        })
+                    }
                     MenuItem {
                         text: qsTr("Delete")
                         onClicked: injectionItem.remove()

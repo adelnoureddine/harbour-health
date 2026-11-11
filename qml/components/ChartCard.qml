@@ -16,6 +16,10 @@ Item {
     property alias bars: chart.bars
     property alias bucket: chart.bucket
     property alias averageValue: chart.averageValue
+    property alias goalValue: chart.goalValue
+    property alias goalText: chart.goalText
+    property alias rangeStart: chart.rangeStart
+    property alias rangeEnd: chart.rangeEnd
 
     height: chart.height + 2 * Theme.paddingMedium
 

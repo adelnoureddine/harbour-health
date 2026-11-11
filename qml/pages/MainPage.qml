@@ -57,55 +57,61 @@ Page {
                                        + 2 * Theme.paddingSmall
 
     /*
-     * Wide cards (weight, empty rows, the summary rows) take a whole row and the others
-     * pair up, the two of a pair made the same height, with titles of the same height
-     * so their values line up when one title takes two lines. In a free order a half
-     * card can end up alone on its row; in portrait it is stretched instead of leaving
-     * a hole.
+     * Wide cards (weight, empty rows, the summary rows) take two columns and the others
+     * one. The cards of a row are made the same height, and the half cards get titles of
+     * the same height, so their values line up when one title takes two lines. In
+     * portrait a wide card is a whole row, and a half card that would end up alone on
+     * its row is stretched instead of leaving a hole. In landscape a row holds up to
+     * four columns, which used to be left ragged: only pairs were evened out.
      *
      * Every card gets each value once per pass: a pass that changes nothing emits no
      * height change, which would start another pass.
      */
     function relayout() {
-        var pending = null;
-        function alone(card) {
-            card.wide = true;
-            card.rowHeight = 0;
-            card.titleHeight = 0;
-        }
+        var rows = [];
+        var current = null;
         for (var i = 0; i < cardRepeater.count; i++) {
             var slot = cardRepeater.itemAt(i);
             var card = slot ? slot.item : null;
             if (!card) {
                 continue;
             }
-            if (card.wantsWide) {
-                if (pending) {
-                    alone(pending);
-                    pending = null;
+            var span = card.wantsWide ? 2 : 1;
+            if (current === null || current.used + span > columns) {
+                current = { cards: [], used: 0 };
+                rows.push(current);
+            }
+            current.cards.push(card);
+            current.used += span;
+        }
+
+        for (var r = 0; r < rows.length; r++) {
+            var cards = rows[r].cards;
+            var c;
+            if (cards.length === 1) {
+                // Alone on its row: its own height. A half card fills the row in portrait.
+                cards[0].wide = cards[0].wantsWide || columns === 2;
+                cards[0].rowHeight = 0;
+                if (!cards[0].wantsWide) {
+                    cards[0].titleHeight = 0;
                 }
-                card.wide = true;
-                card.rowHeight = 0;
-            } else {
-                card.wide = false;
-                if (columns === 2 && pending) {
-                    var titleHeight = Math.max(pending.titleNaturalHeight, card.titleNaturalHeight);
-                    pending.titleHeight = titleHeight;
-                    card.titleHeight = titleHeight;
-                    var height = Math.max(pending.naturalHeight, card.naturalHeight);
-                    pending.rowHeight = height;
-                    card.rowHeight = height;
-                    pending = null;
-                } else if (columns === 2) {
-                    pending = card;
-                } else {
-                    card.rowHeight = 0;
-                    card.titleHeight = 0;
+                continue;
+            }
+            var height = 0;
+            var titleHeight = 0;
+            for (c = 0; c < cards.length; c++) {
+                height = Math.max(height, cards[c].naturalHeight);
+                if (!cards[c].wantsWide) {
+                    titleHeight = Math.max(titleHeight, cards[c].titleNaturalHeight);
                 }
             }
-        }
-        if (pending) {
-            alone(pending);
+            for (c = 0; c < cards.length; c++) {
+                cards[c].wide = cards[c].wantsWide;
+                cards[c].rowHeight = height;
+                if (!cards[c].wantsWide) {
+                    cards[c].titleHeight = titleHeight;
+                }
+            }
         }
     }
 
@@ -119,6 +125,11 @@ Page {
     }
 
     function updateData() {
+        if (appWindow.databaseError !== "") {
+            return;
+        }
+        // The units and the "what's new" marks, should this run before the window's start.
+        appWindow.ensureSettings();
         var key = DataManager.dataKey();
         if (key === builtFrom) {
             return;
@@ -133,7 +144,7 @@ Page {
         }
         var signature = id + ":" + ids.join(",");
         profile = id >= 0 ? DataManager.getProfile(id) : undefined;
-        hasReadings = id >= 0 ? DataManager.hasLogs(id) : true;
+        hasReadings = id >= 0 ? DataManager.hasAnyData(id) : true;
 
         if (signature !== builtFor) {
             // Emptied before profileId changes, so no card loads for the wrong profile.
@@ -144,9 +155,66 @@ Page {
         } else {
             refreshCards("");
         }
+        refreshWhatsNew();
         // Recorded last, so a build that failed half way is tried again next time.
         builtFrom = key;
         loaded = true;
+    }
+
+    // Called by the window when the app comes back to the foreground or the day turns:
+    // water added from the cover, or yesterday's totals, were still on screen.
+    function reloadIfStale() {
+        updateData();
+    }
+
+    /*
+     * Modules added since version 1.0 stay switched off for the profiles an update
+     * finds, so nobody's dashboard is rearranged behind their back -- which also means
+     * nobody is told they exist. Each such profile is offered them once. Whether it was
+     * is kept in the app's settings, not in the database.
+     */
+    property var newModules: []
+
+    function whatsNewSeen() {
+        appWindow.ensureSettings();
+        var seen = appWindow.settings.whatsNewSeen;
+        return seen && seen.length !== undefined ? seen : [];
+    }
+
+    function markWhatsNewSeen() {
+        var seen = whatsNewSeen().slice();
+        if (seen.indexOf(profileId) < 0) {
+            seen.push(profileId);
+            appWindow.setSetting("whatsNewSeen", seen);
+        }
+    }
+
+    function refreshWhatsNew() {
+        var offered = [];
+        if (profileId >= 0 && whatsNewSeen().indexOf(profileId) < 0) {
+            var all = DataManager.getModules(profileId, false);
+            for (var i = 0; i < all.length; i++) {
+                if (!all[i].is_on && DataManager.NEW_MODULES.indexOf(all[i].name) >= 0) {
+                    offered.push({ id: all[i].id, name: Utils.moduleDisplayName(all[i].name) });
+                }
+            }
+            if (offered.length === 0) {
+                // A profile created in this version has them all: nothing to offer, ever.
+                markWhatsNewSeen();
+            }
+        }
+        newModules = offered;
+    }
+
+    function answerWhatsNew(switchOn) {
+        if (switchOn) {
+            for (var i = 0; i < newModules.length; i++) {
+                DataManager.addProfileModule(profileId, newModules[i].id);
+            }
+        }
+        markWhatsNewSeen();
+        newModules = [];
+        updateData();
     }
 
     // Every card, or only the card of `moduleName`.
@@ -168,6 +236,8 @@ Page {
     SilicaFlickable {
         id: flickable
         anchors.fill: parent
+        // Without a database nothing here works, the pull-down menu included.
+        visible: appWindow.databaseError === ""
         contentHeight: welcome.active ? Math.max(height, welcome.height + 4 * Theme.paddingLarge)
                                       : content.height + Theme.paddingLarge
 
@@ -189,6 +259,12 @@ Page {
             MenuItem {
                 text: qsTr("Backup and restore")
                 onClicked: pageStack.animatorPush(Qt.resolvedUrl("DataTransfer.qml"))
+            }
+            MenuItem {
+                //: Menu item: choosing kg or lb, cm or inches and so on
+                text: qsTr("Units")
+                visible: mainPage.profileId >= 0
+                onClicked: pageStack.animatorPush(Qt.resolvedUrl("unitSettings.qml"))
             }
             MenuItem {
                 text: qsTr("Cover page settings")
@@ -302,6 +378,60 @@ Page {
                 width: 1
                 height: Theme.paddingMedium
                 visible: !mainPage.hasReadings && mainPage.modules.length > 0
+            }
+
+            // Offered once to a profile that an update found (see refreshWhatsNew).
+            Card {
+                visible: mainPage.newModules.length > 0
+                spacing: Theme.paddingMedium
+
+                Label {
+                    width: parent.width
+                    //: Title of the card offering the modules added by an update
+                    text: qsTr("New in this version")
+                    font.pixelSize: Theme.fontSizeSmall
+                    color: Theme.secondaryHighlightColor
+                }
+                Label {
+                    width: parent.width
+                    wrapMode: Text.Wrap
+                    //: %1 is a list of dashboard modules, e.g. "Today, Activity, Waist"
+                    text: qsTr("These are new and not on your dashboard yet: %1.").arg(
+                              mainPage.newModules.map(function (m) { return m.name; }).join(", "))
+                    font.pixelSize: Theme.fontSizeSmall
+                    color: Theme.primaryColor
+                }
+                Label {
+                    width: parent.width
+                    wrapMode: Text.Wrap
+                    text: qsTr("You can switch them on or off at any time in Arrange dashboard.")
+                    font.pixelSize: Theme.fontSizeExtraSmall
+                    color: Theme.secondaryColor
+                }
+                // Half the card each: at their own width the two reached past its edges.
+                Row {
+                    width: parent.width
+                    spacing: Theme.paddingMedium
+
+                    Button {
+                        width: (parent.width - parent.spacing) / 2
+                        //: Button of the "New in this version" card: leave the new modules off
+                        text: qsTr("Not now")
+                        onClicked: mainPage.answerWhatsNew(false)
+                    }
+                    Button {
+                        width: (parent.width - parent.spacing) / 2
+                        //: Button of the "New in this version" card: show the new modules
+                        text: qsTr("Add them")
+                        onClicked: mainPage.answerWhatsNew(true)
+                    }
+                }
+            }
+
+            Item {
+                width: 1
+                height: Theme.paddingMedium
+                visible: mainPage.newModules.length > 0
             }
 
             Flow {
@@ -553,14 +683,25 @@ Page {
         onTriggered: elapsed = true
     }
 
-    // Shown only when the database itself could not be opened or upgraded.
-    Rectangle {
+    /*
+     * Shown only when the database itself could not be opened or upgraded. It says which
+     * of the two it is -- data from a newer version only needs the app updated -- and
+     * offers the one thing still possible: copying the database file to Documents, so
+     * the data can be kept whatever happens to the app next.
+     */
+    SilicaFlickable {
+        id: errorView
         anchors.fill: parent
-        color: Theme.overlayBackgroundColor
         visible: appWindow.databaseError !== ""
+        contentHeight: errorColumn.height + 4 * Theme.paddingLarge
+
+        property string rescueMessage: ""
+        property bool rescueFailed: false
 
         Column {
-            anchors.centerIn: parent
+            id: errorColumn
+            y: 2 * Theme.paddingLarge
+            x: Theme.horizontalPageMargin
             width: parent.width - 2 * Theme.horizontalPageMargin
             spacing: Theme.paddingLarge
 
@@ -578,10 +719,46 @@ Page {
                 wrapMode: Text.Wrap
                 horizontalAlignment: Text.AlignHCenter
                 font.pixelSize: Theme.fontSizeSmall
+                color: Theme.primaryColor
+                text: appWindow.databaseErrorReason === "schema-newer"
+                      ? qsTr("This data was saved by a newer version of Health. Update the app to open it.")
+                      : qsTr("Your data has not been deleted. Restarting the phone or updating the app may help.")
+            }
+
+            Label {
+                width: parent.width
+                visible: appWindow.databaseErrorReason !== "schema-newer"
+                wrapMode: Text.Wrap
+                horizontalAlignment: Text.AlignHCenter
+                font.pixelSize: Theme.fontSizeExtraSmall
                 color: Theme.secondaryColor
                 text: appWindow.databaseError
             }
+
+            Button {
+                anchors.horizontalCenter: parent.horizontalCenter
+                //: Button on the database error screen: copy the database file to Documents
+                text: qsTr("Save a rescue copy")
+                onClicked: {
+                    var path = appWindow.files.saveRescueCopy();
+                    errorView.rescueFailed = path === "";
+                    errorView.rescueMessage = path === "" ? appWindow.files.lastError()
+                                                                          : qsTr("Saved to %1").arg(path);
+                }
+            }
+
+            Label {
+                width: parent.width
+                visible: text !== ""
+                wrapMode: Text.WrapAtWordBoundaryOrAnywhere
+                horizontalAlignment: Text.AlignHCenter
+                font.pixelSize: Theme.fontSizeExtraSmall
+                color: errorView.rescueFailed ? Theme.errorColor : Theme.highlightColor
+                text: errorView.rescueMessage
+            }
         }
+
+        VerticalScrollDecorator {}
     }
 
     // No Component.onCompleted call: the page turning Active covers startup too, and

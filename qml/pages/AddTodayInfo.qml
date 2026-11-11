@@ -32,18 +32,18 @@ Dialog {
         sleepSlider.value = sleepHours;
     }
 
-    canAccept: profileId >= 0
+    // A day's entry is about a day that has come.
+    readonly property bool inFuture: Utils.toLocalDateString(logDate) > Utils.toLocalDateString(new Date())
+
+    canAccept: profileId >= 0 && !inFuture
 
     // Day of the cycle `dateStr` falls in, counted like the cycle details page: from the
-    // latest start on or before it, while that cycle is open or not yet ended.
+    // latest start on or before it. The days count on after the period has ended.
     function dayInCycle(dateStr) {
         var cycles = DataManager.getMenstrualCycles(profileId);
         for (var i = 0; i < cycles.length; i++) {
             var c = cycles[i];
             if (c.startDate <= dateStr) {
-                if (c.endDate && dateStr > c.endDate) {
-                    return 0;
-                }
                 var days = Utils.daysBetween(c.startDate, dateStr);
                 return days === null ? 0 : days + 1;
             }
@@ -122,6 +122,16 @@ Dialog {
                 }
             }
 
+            Label {
+                x: Theme.horizontalPageMargin
+                width: parent.width - 2 * Theme.horizontalPageMargin
+                visible: dialog.inFuture
+                wrapMode: Text.Wrap
+                font.pixelSize: Theme.fontSizeExtraSmall
+                color: Theme.errorColor
+                text: qsTr("This day is in the future.")
+            }
+
             ComboBox {
                 id: flowBox
                 width: parent.width
@@ -171,7 +181,7 @@ Dialog {
                 maximumValue: 24
                 stepSize: 0.5
                 value: sleepHours
-                valueText: qsTr("%1 hours").arg(Utils.formatValue(value, 1))
+                valueText: Utils.sleepHoursText(value)
                 onValueChanged: sleepHours = value
             }
 

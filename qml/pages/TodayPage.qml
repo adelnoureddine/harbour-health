@@ -11,6 +11,8 @@ import "../js/utils.js" as Utils
  */
 Page {
     id: page
+    // Looked up by the cover, so its Today action does not open a second one.
+    objectName: "todayPage"
     allowedOrientations: Orientation.All
 
     property int profileId: -1
@@ -29,13 +31,18 @@ Page {
         openCount = plan.left;
         // Every row carries every role, so each role keeps one type in the model.
         var rows = plan.items.map(function (item) {
+            // A goal met several days running says so: "1.2 of 2 L · 5 days in a row".
+            // Worked out here, on this page only; the dashboard row and the cover use
+            // the same plan without it.
+            var streak = item.kind === "medication" ? 0
+                       : DataManager.getGoalStreak(profileId, item.metricName, item.goal);
             return {
                 kind: item.kind,
                 metricName: item.metricName ? item.metricName : "",
                 unit: item.unit ? item.unit : "",
                 medicationId: item.medicationId !== undefined ? item.medicationId : -1,
                 title: Utils.todayItemTitle(item),
-                progress: Utils.todayItemProgress(item),
+                progress: Utils.todayItemProgress(item) + (streak >= 2 ? " · " + Utils.streakText(streak) : ""),
                 leftText: Utils.todayItemLeft(item),
                 fraction: Utils.todayItemFraction(item),
                 done: item.done ? true : false
@@ -213,9 +220,16 @@ Page {
         id: listModel
     }
 
-    onStatusChanged: {
-        if (status === PageStatus.Active && DataManager.dataKey() !== loadedFrom) {
+    // Also called by the window when the app comes back or the day turns.
+    function reloadIfStale() {
+        if (DataManager.dataKey() !== loadedFrom) {
             refresh();
+        }
+    }
+
+    onStatusChanged: {
+        if (status === PageStatus.Active) {
+            reloadIfStale();
         }
     }
 

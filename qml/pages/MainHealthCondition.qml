@@ -145,11 +145,20 @@ Page {
             // On the row, not in the menu: the menu is destroyed as soon as it closes,
             // before the remorse runs out, and its model.id with it.
             function remove() {
-                conditionItem.remorseDelete(function() {
+                // Read now: the rows are rebuilt if anything is saved during the countdown.
+                var id = model.id;
+                var intakes = DataManager.countIntakesOfCondition(id);
+                function run() {
                     // Removes the condition together with its treatments.
-                    DataManager.deleteCondition(model.id);
-                    listModel.remove(index);
-                })
+                    DataManager.deleteCondition(id);
+                    root.refresh();
+                }
+                if (intakes > 0) {
+                    //: Countdown text when deleting a condition whose treatments' logged intakes are deleted with it
+                    conditionItem.remorseAction(qsTr("Deleting with %n logged intake(s)", "", intakes), run);
+                } else {
+                    conditionItem.remorseDelete(run);
+                }
             }
 
             // Built when first opened. Created with every row, the menu made each

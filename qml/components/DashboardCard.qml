@@ -26,7 +26,12 @@ ListItem {
     readonly property bool isCalc: module && module.type === DataManager.MODULE_TYPE_CALC && !isBP
     readonly property string metricName: module && module.type === DataManager.MODULE_TYPE_METRIC ? module.uses
                                        : (isBP ? DataManager.METRIC_BP_SYS : "")
+    // The stored unit (Metrics.unit), passed on to the pages. What the card shows is
+    // shownUnit: the unit chosen in Units, set with the value by refresh().
     readonly property string unit: module && module.unit ? module.unit : ""
+    property string shownUnit: unit
+    // Decimals of the value shown: as typed in the stored unit, rounded once converted.
+    property int decimals: 2
     readonly property string iconSource: Qt.resolvedUrl("../icons/" + Utils.moduleIcon(moduleName, module.icon))
     readonly property string title: Utils.moduleDisplayName(moduleName)
 
@@ -74,11 +79,16 @@ ListItem {
         var match = null;
         var points = [];
         var change = "";
+        // Bands are matched on the stored value; only what is shown is converted.
+        var shown = isBP || isCalc ? unit : DataManager.displayUnit(metricName, unit);
 
         if (isBP) {
+            // One half alone still shows, as "120/—": the history lists it that way, and
+            // the card used to say "No readings yet" above it.
             var bp = DataManager.getLatestBloodPressure(profileId);
-            if (bp !== null && bp.systolic !== null && bp.diastolic !== null) {
-                v = bp.systolic + "/" + bp.diastolic;
+            if (bp !== null) {
+                v = Utils.formatBloodPressure(bp, "");
+                ts = bp.timestamp;
                 match = DataManager.matchWorstConstraint([
                     { metricName: DataManager.METRIC_BP_SYS, value: bp.systolic },
                     { metricName: DataManager.METRIC_BP_DIA, value: bp.diastolic }
@@ -88,30 +98,37 @@ ListItem {
             v = DataManager.calculateMetrics(profileId, module.uses);
             if (v !== null) {
                 match = DataManager.matchConstraint(moduleName, v);
+                // As old as the weight or waist it was worked out from.
+                var source = DataManager.getLatestLog(profileId, module.uses === DataManager.CALC_WHTR
+                                                      ? DataManager.METRIC_WAIST : DataManager.METRIC_WEIGHT);
+                ts = source ? source.timestamp : "";
             }
         } else if (metricName === DataManager.METRIC_WEIGHT) {
             // The trend ends with the latest reading, so it is the reading too.
             var series = DataManager.getTrend(profileId, metricName);
             if (series.length > 0) {
                 var last = series[series.length - 1];
-                v = last.v;
+                v = DataManager.toDisplay(metricName, last.v);
                 ts = DataManager.toTimestamp(new Date(last.t));
-                match = DataManager.matchConstraint(metricName, v);
+                match = DataManager.matchConstraint(metricName, last.v);
                 for (var i = 0; i < series.length; i++) {
                     points.push(series[i].v);
                 }
-                change = Utils.changeSinceText(series, unit, Utils.metricDecimals(metricName));
+                change = Utils.changeSinceText(DataManager.displayPoints(metricName, series), shown,
+                                               DataManager.displayDecimals(metricName, Utils.metricDecimals(metricName)));
             }
         } else if (metricName !== "") {
             var log = DataManager.getLatestLog(profileId, metricName);
             if (log) {
-                v = log.value;
+                v = DataManager.toDisplay(metricName, log.value);
                 ts = log.timestamp;
-                match = DataManager.matchConstraint(metricName, v);
+                match = DataManager.matchConstraint(metricName, log.value);
             }
         }
 
         var band = Utils.bandFor(match);
+        shownUnit = shown;
+        decimals = isBP || isCalc ? 2 : DataManager.displayDecimals(metricName, 2);
         timestamp = ts;
         trend = points;
         changeText = change;
@@ -279,7 +296,7 @@ ListItem {
                     id: heroTime
                     anchors.right: parent.right
                     anchors.verticalCenter: parent.verticalCenter
-                    text: Utils.measuredWhen(card.timestamp)
+                    text: Utils.measuredWhen(card.timestamp, appWindow.today)
                     font.pixelSize: Theme.fontSizeExtraSmall
                     color: card.highlighted ? Theme.secondaryHighlightColor : Theme.secondaryColor
                 }
@@ -290,7 +307,7 @@ ListItem {
                 height: heroValue.height
                 Label {
                     id: heroValue
-                    text: Utils.formatValue(card.value)
+                    text: Utils.formatValue(card.value, card.decimals)
                     // The regular face: the light heading face was too thin to read
                     // against a textured wallpaper.
                     font.pixelSize: Theme.fontSizeHuge
@@ -300,7 +317,7 @@ ListItem {
                     anchors.left: heroValue.right
                     anchors.leftMargin: Theme.paddingSmall
                     anchors.baseline: heroValue.baseline
-                    text: card.unit
+                    text: card.shownUnit
                     font.pixelSize: Theme.fontSizeMedium
                     color: card.highlighted ? Theme.secondaryHighlightColor : Theme.secondaryColor
                 }
@@ -368,21 +385,26 @@ ListItem {
                 Label {
                     id: cardValue
                     width: Math.min(implicitWidth, parent.width - (cardUnit.text !== "" ? cardUnit.width + parent.spacing : 0))
+                    // Shrinks before it is cut: in landscape a card is narrower, and
+                    // "124/76 mmHg" lost the last digit of the blood pressure.
+                    fontSizeMode: Text.HorizontalFit
+                    minimumPixelSize: Theme.fontSizeMedium
                     truncationMode: TruncationMode.Fade
-                    text: card.isBP ? String(card.value) : Utils.formatValue(card.value)
+                    text: card.isBP ? String(card.value) : Utils.formatValue(card.value, card.decimals)
                     font.pixelSize: Theme.fontSizeExtraLarge
                     color: card.highlighted ? Theme.highlightColor : Theme.primaryColor
                 }
                 Label {
                     id: cardUnit
                     anchors.baseline: cardValue.baseline
-                    text: card.unit
+                    text: card.shownUnit
                     font.pixelSize: Theme.fontSizeSmall
                     color: card.highlighted ? Theme.secondaryHighlightColor : Theme.secondaryColor
                 }
             }
 
-            // Its reference band when it has one, otherwise when it was measured.
+            // Its reference band when it has one, and when it was measured: with the band
+            // alone, a blood pressure from two years ago read "Normal" like today's.
             StatusPill {
                 text: card.bandLabel
                 dotColor: card.bandColor
@@ -390,10 +412,14 @@ ListItem {
                 highlighted: card.highlighted
             }
             Label {
-                visible: card.bandLabel === "" && card.timestamp !== ""
+                visible: card.timestamp !== ""
                 width: parent.width
-                truncationMode: TruncationMode.Fade
-                text: Utils.measuredWhen(card.timestamp)
+                // A second line before it is cut: in Swedish "Uppmätt för 3 dagar sedan"
+                // is wider than half a card and lost its end.
+                wrapMode: Text.Wrap
+                maximumLineCount: 2
+                truncationMode: TruncationMode.Elide
+                text: Utils.measuredWhen(card.timestamp, appWindow.today)
                 font.pixelSize: Theme.fontSizeExtraSmall
                 color: card.highlighted ? Theme.secondaryHighlightColor : Theme.secondaryColor
             }

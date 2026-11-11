@@ -17,6 +17,11 @@ Dialog {
 
     readonly property bool knownVaccine: knownVaccineId >= 0
 
+    // Set to correct an injection already recorded (its date or its note), together
+    // with the vaccine it belongs to. An injection could only be deleted and added again.
+    property int injectionId: -1
+    readonly property bool editing: injectionId >= 0
+
     // The profile's vaccines with their doses ({id, name, doses, lastDate}), to say
     // what is already recorded.
     property var recorded: []
@@ -66,9 +71,16 @@ Dialog {
     }
 
     onAccepted: {
-        var vaccineId = knownVaccine ? knownVaccineId
-                                     // Trimmed: "Tetanus " used to become a second vaccine.
-                                     : DataManager.getOrCreateVaccine(vaccineName.text.trim(), false);
+        if (editing) {
+            DataManager.updateVaccineLog(injectionId, Utils.toLocalDateString(injectionDate),
+                                         notesField.text.trim());
+            return;
+        }
+        // By name also for a vaccine that is known: its name is found again, or created
+        // again should its last injection have been deleted in the meantime.
+        // Trimmed: "Tetanus " used to become a second vaccine.
+        var vaccineId = DataManager.getOrCreateVaccine(knownVaccine ? knownVaccineName
+                                                                    : vaccineName.text.trim(), false);
         DataManager.addVaccineLog(profileId, vaccineId,
                                   Utils.toLocalDateString(injectionDate), notesField.text.trim());
     }
@@ -83,7 +95,8 @@ Dialog {
             spacing: Theme.paddingLarge
 
             DialogHeader {
-                title: dialog.knownVaccine ? qsTr("Record injection") : qsTr("Add vaccine record")
+                title: dialog.editing ? qsTr("Edit injection")
+                     : dialog.knownVaccine ? qsTr("Record injection") : qsTr("Add vaccine record")
                 acceptText: qsTr("Save")
             }
 
@@ -192,7 +205,19 @@ Dialog {
         VerticalScrollDecorator {}
     }
 
-    Component.onCompleted: loadRecorded()
+    Component.onCompleted: {
+        loadRecorded();
+        if (editing) {
+            var injection = DataManager.getVaccineLog(injectionId);
+            if (injection) {
+                var when = Utils.fromLocalDateString(injection.date);
+                if (when !== null) {
+                    injectionDate = when;
+                }
+                notesField.text = injection.note ? injection.note : "";
+            }
+        }
+    }
 }
 
 // vim:et:ts=4:sw=4

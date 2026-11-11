@@ -55,6 +55,13 @@ Page {
         }
     }
 
+    // Also called by the window when the app comes back or the day turns.
+    function reloadIfStale() {
+        if (DataManager.dataKey() !== loadedFrom) {
+            refresh();
+        }
+    }
+
     function refresh() {
         loadedFrom = DataManager.dataKey();
         refreshHeader();
@@ -63,12 +70,16 @@ Page {
         // a second time in a section of their own.
         var history = DataManager.getMedicationLogsHistory(profileId, medicationId);
         // Today's intakes are counted from the history instead of a second query.
-        // Timestamps are local, so "today" is the local day.
-        var today = Utils.toLocalDateString(new Date());
+        // "Today" starts at DAY_START_TIME, as on the Today page and the medication
+        // list: at half past midnight this page used to say "Taken today 0" for a dose
+        // the list still counted as today's.
+        var dayStart = DataManager.dayStart().getTime();
+        var dayEnd = dayStart + 86400000;
         var count = 0;
         history.forEach(function(l) {
             var timestamp = String(l.timestamp);
-            if (Utils.toLocalDateString(Utils.parseTimestamp(timestamp)) === today) {
+            var ms = DataManager.timestampToMs(timestamp);
+            if (ms >= dayStart && ms < dayEnd) {
                 count++;
             }
             historyModel.append({
@@ -244,7 +255,9 @@ Page {
     ListModel { id: historyModel }
 
     onStatusChanged: {
-        if (status === PageStatus.Active && DataManager.dataKey() !== loadedFrom) refresh();
+        if (status === PageStatus.Active) {
+            reloadIfStale();
+        }
     }
 
     Component.onCompleted: refresh()

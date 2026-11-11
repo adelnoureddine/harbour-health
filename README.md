@@ -1,54 +1,66 @@
-# Health for SailfishOS
+<p align="center">
+  <img src="icons/172x172/harbour-health.png" width="96" alt="">
+</p>
 
-Health is a private health tracker for SailfishOS. All health data is stored locally on the device, and the application has no network permissions.
+<h1 align="center">Health for Sailfish OS</h1>
+
+<p align="center">
+  <b>Track your health, privately on your Sailfish OS phone.</b><br>
+  Weight, blood pressure, water, medication, cycle and more, with clear charts and daily goals.<br>
+  No account, no cloud, no network permission. All locally on your phone.
+</p>
+
+<table>
+  <tr>
+    <td><a href="docs/images/dashboard.jpg"><img src="docs/images/dashboard.jpg" alt="The dashboard: a card for everything you track, with its trend" width="270"></a></td>
+    <td><a href="docs/images/today.jpg"><img src="docs/images/today.jpg" alt="The Today page: what is left for the day, and streaks" width="270"></a></td>
+    <td><a href="docs/images/weight.jpg"><img src="docs/images/weight.jpg" alt="Weight history with a target line" width="270"></a></td>
+  </tr>
+  <tr>
+    <td><a href="docs/images/dashboard-light.jpg"><img src="docs/images/dashboard-light.jpg" alt="Goal rings on the dashboard, in a light ambience" width="270"></a></td>
+    <td><a href="docs/images/blood-pressure-light.jpg"><img src="docs/images/blood-pressure-light.jpg" alt="Blood pressure history over its reference ranges, in a light ambience" width="270"></a></td>
+    <td><a href="docs/images/cycle.jpg"><img src="docs/images/cycle.jpg" alt="Menstrual cycle tracking" width="270"></a></td>
+  </tr>
+</table>
+
+## What you get
+
+- **A dashboard that you can customize.** One card for everything you track, with its trend or its goal ring. Arrange it, hide what you do not use, and give every member of the family their own.
+- **Today at a glance.** What is left for the day: water and calories, meditation, the medications you are on. Keep a goal several days running and watch the streak grow.
+- **Charts.** Every measurement by week, month or year, over its reference ranges, with a line for your daily goal or your target weight.
+- **Everything in one place.** Weight, height, BMI, waist, water, calories eaten and burned, heart rate, blood pressure and glucose, in your units: kg or lb, cm or in, L or fl oz, mg/dL or mmol/L.
+- **More than numbers.** Health conditions, treatments and medication intakes, vaccines, a meditation timer, and menstrual cycle tracking.
+- **Cover support.** Two measurements or the day's list, without opening the app, and a glass of water in one tap.
+- **Private and safe.** Your data never leaves the device. Health keeps automatic copies of the last days, backs up to a file you can restore on another phone, and exports CSV files.
 
 Health is not medical advice and must not be used for diagnosis or treatment decisions.
 
-# Features
+## Get it
 
-- Multiple profiles, each with its own data and its own dashboard
-- Track weight, height, BMI, waist circumference, waist-to-height ratio, water, calories eaten and burned, heart rate, blood pressure and glucose
-- History graphs for every metric, with editable reference ranges shaded behind them; daily totals as bars, by week or month over long ranges
-- A Today page with what is left for the day: daily goals, a meditation goal and the medications you are on
-- Health conditions, treatments and medication intake logs
-- Vaccination records, meditation sessions and menstrual cycle tracking
-- Configurable cover page showing two metrics, or the day's to-do list, at a glance
-- Backup and restore to a JSON file, plus CSV export of all measurements
+Health is in the Jolla Store and in OpenRepos. It follows your ambience, light or dark, and is available in multiple languages.
 
-# Authors
+## For developers
 
-This project was initially built during software engineering course in 2022 at the Université de Pau et des Pays de l'Adour (France), by students and under the supervision of Prof. Adel Noureddine.
-It has been then updated with contribution from the open source community.
-
-# Contributors
-
-- Adel Noureddine (project lead and maintainer) © 2022
-- Dylan Mignot-Bousseau (student) © 2022
-- Lucille Rey (student) © 2022
-- Mathieu Vazquez (student) © 2022
-- Angel Gezat (student) © 2022
-- Bienvenu Akoun (student) © 2022
-- Thomas Abadie (student) © 2022
-- Ashraf Ajouka (student) © 2022
-- Jose Buepoyo Sopale (student) © 2022
-- Charlotte Ortali (student) © 2022
-- Maarten Vanraes © 2026
-- Ilies Hamadene (student) © 2026
-
-# Building
-
-Build with the Sailfish OS SDK:
+Build and validate with the Sailfish SDK (`sfdk tools list` shows your targets), or with the Sailfish IDE:
 
 ```
-mb2 -t SailfishOS-latest-armv7hl build
+sfdk -c target=SailfishOS-5.1.0.11-aarch64 build
+sfdk -c target=SailfishOS-5.1.0.11-aarch64 check
 ```
 
-Before a release, refresh the translation catalogue from the SDK shell:
+The package version comes from the latest git tag, so tag the release commit (for example `2.0`) before building it; the About page shows the same version. The build also refreshes the translation catalogues in `translations/`, where new languages are welcome.
 
-```
-lupdate harbour-health.pro
-```
+## Authors
 
-# License
+Health started in 2022 as a software engineering course project at the Université de Pau et des Pays de l'Adour (France), by students under the supervision of Prof. Adel Noureddine, and has grown since with contributions from the open source community.
 
-The project is licensed under the GNU GPL 3 license only (GPL-3.0-only).
+Adel Noureddine (project lead and maintainer, © 2022).
+
+Dylan Mignot-Bousseau, Lucille Rey, Mathieu Vazquez, Angel Gezat, Bienvenu Akoun, Thomas Abadie, Ashraf Ajouka, Jose Buepoyo Sopale and Charlotte Ortali (students, © 2022). Maarten Vanraes (© 2026). Ilies Hamadene (student, © 2026).
+
+## License
+
+Health is licensed under the GNU GPL 3 license only (GPL-3.0-only).
+
+Copyright (c) 2022-2026, Adel Noureddine, and contributors.
+All rights reserved. This program and the accompanying materials are made available under the terms of the GNU General Public License v3.0 only (GPL-3.0-only) which accompanies this distribution, and is available at: https://www.gnu.org/licenses/gpl-3.0.en.html

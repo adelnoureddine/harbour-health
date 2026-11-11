@@ -23,8 +23,9 @@ ListItem {
     property bool wide: true
     width: fullWidth
     readonly property real naturalHeight: Theme.itemSizeMedium
+    // Set by the dashboard in landscape, where a row shares its line with cards.
     property real rowHeight: 0
-    contentHeight: naturalHeight
+    contentHeight: Math.max(naturalHeight, rowHeight)
     highlightedColor: "transparent"
 
     function conditionStatus() {
@@ -58,7 +59,9 @@ ListItem {
         if (cycle.last === null) {
             return qsTr("No cycle recorded");
         }
-        if (!cycle.open) {
+        // The days count on after the period ends, until the next cycle starts. Only a
+        // start date in the future has no day yet.
+        if (cycle.dayOfCycle < 1) {
             return qsTr("Last cycle started %1").arg(Utils.formatDate(cycle.last.startDate));
         }
         var text = qsTr("Day %1").arg(cycle.dayOfCycle);

@@ -9,14 +9,23 @@ Dialog {
     allowedOrientations: Orientation.All
 
     property string metricName: ""
+    // The stored unit. The bounds are typed in shownUnit (the unit chosen in Units) and
+    // saved in the stored one.
     property string metricUnit: ""
+    readonly property string shownUnit: DataManager.displayUnit(metricName, metricUnit)
 
-    // Set when editing an existing range rather than adding one.
+    // Set when editing an existing range rather than adding one. minValue and maxValue
+    // are the stored bounds.
     property int constraintId: -1
     property string labelText: ""
     property var minValue: null
     property var maxValue: null
     property string colorName: "green"
+
+    // What the bound fields opened with: a bound left as it was is saved back as it is
+    // stored, not converted to the shown unit and back.
+    property string originalMinText: ""
+    property string originalMaxText: ""
 
     readonly property bool editing: constraintId >= 0
     readonly property var colorNames: ["green", "orange", "red", "blue"]
@@ -39,13 +48,27 @@ Dialog {
                && (minField.text !== "" || maxField.text !== "")
                && (parsedMin() === null || parsedMax() === null || parsedMin() < parsedMax())
 
+    function storedBound(text, originalText, originalValue) {
+        if (text === "") {
+            return null;
+        }
+        if (editing && text === originalText && originalValue !== null && originalValue !== undefined) {
+            return originalValue;
+        }
+        return DataManager.fromDisplay(metricName, parseFloat(text.replace(',', '.')));
+    }
+
     function load() {
         // Built-in labels are stored in English and shown translated in the list, so
         // they are edited translated too (see savedLabel()).
         labelField.text = Utils.constraintLabelDisplayName(labelText);
         // A threshold of exactly 0 is meaningful and must survive the round trip.
-        minField.text = (minValue === null || minValue === undefined) ? "" : Utils.formatInput(minValue);
-        maxField.text = (maxValue === null || maxValue === undefined) ? "" : Utils.formatInput(maxValue);
+        minField.text = (minValue === null || minValue === undefined) ? ""
+                      : Utils.formatInput(DataManager.toDisplay(metricName, minValue));
+        maxField.text = (maxValue === null || maxValue === undefined) ? ""
+                      : Utils.formatInput(DataManager.toDisplay(metricName, maxValue));
+        originalMinText = minField.text;
+        originalMaxText = maxField.text;
         var index = colorNames.indexOf(colorName);
         colorCombo.currentIndex = index >= 0 ? index : 0;
     }
@@ -57,10 +80,12 @@ Dialog {
     }
 
     onAccepted: {
+        var lower = storedBound(minField.text, originalMinText, minValue);
+        var upper = storedBound(maxField.text, originalMaxText, maxValue);
         if (editing) {
-            DataManager.updateConstraint(constraintId, savedLabel(), parsedMin(), parsedMax(), selectedColor);
+            DataManager.updateConstraint(constraintId, savedLabel(), lower, upper, selectedColor);
         } else {
-            DataManager.addConstraint(metricName, savedLabel(), parsedMin(), parsedMax(), selectedColor);
+            DataManager.addConstraint(metricName, savedLabel(), lower, upper, selectedColor);
         }
     }
 
@@ -154,7 +179,7 @@ Dialog {
                 TextField {
                     id: minField
                     width: parent.width
-                    label: dialog.metricUnit ? qsTr("Minimum (%1)").arg(dialog.metricUnit) : qsTr("Minimum")
+                    label: dialog.shownUnit ? qsTr("Minimum (%1)").arg(dialog.shownUnit) : qsTr("Minimum")
                     placeholderText: qsTr("Optional")
                     inputMethodHints: Qt.ImhFormattedNumbersOnly
                     validator: RegExpValidator { regExp: /^\d{1,6}([.,]\d{1,3})?$/ }
@@ -165,7 +190,7 @@ Dialog {
                 TextField {
                     id: maxField
                     width: parent.width
-                    label: dialog.metricUnit ? qsTr("Maximum (%1)").arg(dialog.metricUnit) : qsTr("Maximum")
+                    label: dialog.shownUnit ? qsTr("Maximum (%1)").arg(dialog.shownUnit) : qsTr("Maximum")
                     placeholderText: qsTr("Optional")
                     inputMethodHints: Qt.ImhFormattedNumbersOnly
                     validator: RegExpValidator { regExp: /^\d{1,6}([.,]\d{1,3})?$/ }

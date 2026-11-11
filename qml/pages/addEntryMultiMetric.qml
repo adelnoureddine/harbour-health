@@ -27,6 +27,29 @@ Dialog {
                && value1Field.acceptableInput && value2Field.acceptableInput
                && !isNaN(parseFloat(value1Field.text.replace(',', '.')))
                && !isNaN(parseFloat(value2Field.text.replace(',', '.')))
+               && (untouched || (rangeError(value1Field.text, limits1) === ""
+                                 && rangeError(value2Field.text, limits2) === ""))
+               && !whenRow.inFuture
+
+    // What each half can plausibly be (DataManager.METRIC_LIMITS): 12 for 120 passed.
+    readonly property var limits1: DataManager.metricLimits(metricName1)
+    readonly property var limits2: DataManager.metricLimits(metricName2)
+    // A pair saved before there were limits can still have its time or note edited.
+    property string originalText: ""
+    readonly property bool untouched: editing && originalText !== ""
+                                      && value1Field.text + "/" + value2Field.text === originalText
+
+    // "" when the text is a value within the limits (or not a value yet).
+    function rangeError(text, limits) {
+        if (text === "" || limits === null) {
+            return "";
+        }
+        var v = parseFloat(text.replace(',', '.'));
+        if (isNaN(v) || (v >= limits.min && v <= limits.max)) {
+            return "";
+        }
+        return Utils.rangeText(limits.min, limits.max, metricUnit, 0);
+    }
 
     // Systolic below diastolic is a transposed entry, not a reading.
     readonly property bool valuesLookSwapped: {
@@ -65,6 +88,7 @@ Dialog {
         if (log2) {
             value2Field.text = Utils.formatInput(log2.value);
         }
+        originalText = value1Field.text + "/" + value2Field.text;
     }
 
 
@@ -148,9 +172,21 @@ Dialog {
                     color: Theme.errorColor
                     text: qsTr("Systolic is usually the higher of the two — check the order.")
                 }
+
+                Label {
+                    x: Theme.horizontalPageMargin
+                    width: parent.width - 2 * Theme.horizontalPageMargin
+                    wrapMode: Text.Wrap
+                    visible: text !== "" && !dialog.untouched
+                    font.pixelSize: Theme.fontSizeExtraSmall
+                    color: Theme.errorColor
+                    text: dialog.rangeError(value1Field.text, dialog.limits1)
+                          || dialog.rangeError(value2Field.text, dialog.limits2)
+                }
             }
 
             DateTimeRow {
+                id: whenRow
                 width: parent.width
                 selectedDate: dialog.selectedDate
                 onPicked: dialog.selectedDate = when

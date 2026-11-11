@@ -223,10 +223,21 @@ Page {
             // On the row, not in the menu: the menu is destroyed as soon as it closes,
             // before the remorse runs out, and its model.id with it.
             function remove() {
-                treatmentItem.remorseDelete(function() {
-                    DataManager.deleteTreatment(model.id);
-                    listModel.remove(index);
-                })
+                // Read now: the rows are rebuilt if anything is saved during the countdown.
+                var id = model.id;
+                // The intakes logged for its medication go with the last treatment using
+                // it. The countdown says so; it used to say only "Deleting".
+                var intakes = DataManager.countIntakesOfTreatment(id);
+                function run() {
+                    DataManager.deleteTreatment(id);
+                    page.refresh();
+                }
+                if (intakes > 0) {
+                    //: Countdown text when deleting a treatment whose logged intakes are deleted with it
+                    treatmentItem.remorseAction(qsTr("Deleting with %n logged intake(s)", "", intakes), run);
+                } else {
+                    treatmentItem.remorseDelete(run);
+                }
             }
 
             // Built when first opened. Created with every row, the menu made each

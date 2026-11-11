@@ -10,13 +10,23 @@ import "../js/utils.js" as Utils
  *
  * It only shows selectedDate; a pick is reported through picked(), so the dialog's
  * binding to it is never broken.
+ *
+ * A reading is something that happened: inFuture is true while the moment chosen is
+ * still ahead, and says so under the row. The dialogs add it to canAccept. A reading
+ * dated next week used to become "the latest" and was shown as measured today.
  */
-Row {
+Column {
     id: row
 
     property date selectedDate: new Date()
 
     signal picked(date when)
+
+    // The clock, looked at again every few seconds: a binding on new Date() is only
+    // ever evaluated once, so a time picked a minute ahead stayed refused for good.
+    property double now: Date.now()
+    // A minute of slack for the seconds the pickers drop and a clock just corrected.
+    readonly property bool inFuture: selectedDate.getTime() > now + 60000
 
     readonly property real cellHeight: Math.max(Theme.itemSizeMedium,
                                                 dateColumn.height + 2 * Theme.paddingMedium,
@@ -28,6 +38,7 @@ Row {
         });
         dateDialog.accepted.connect(function () {
             // A new day keeps the time of day already chosen.
+            row.now = Date.now();
             row.picked(new Date(dateDialog.date.getFullYear(), dateDialog.date.getMonth(),
                                 dateDialog.date.getDate(), row.selectedDate.getHours(),
                                 row.selectedDate.getMinutes(), 0));
@@ -42,67 +53,89 @@ Row {
         timeDialog.accepted.connect(function () {
             // timeText is locale formatted -- in a 12-hour locale, parsing it recorded
             // 1 pm as 01:00. The numeric properties are exact.
+            row.now = Date.now();
             row.picked(new Date(row.selectedDate.getFullYear(), row.selectedDate.getMonth(),
                                 row.selectedDate.getDate(), timeDialog.hour, timeDialog.minute, 0));
         });
     }
 
-    BackgroundItem {
-        id: dateButton
-        width: Math.round(parent.width / 2)
-        height: row.cellHeight
-        onClicked: row.pickDate()
+    Timer {
+        interval: 10000
+        repeat: true
+        running: row.inFuture
+        onTriggered: row.now = Date.now()
+    }
 
-        Column {
-            id: dateColumn
-            x: Theme.horizontalPageMargin
-            width: parent.width - x - Theme.paddingMedium
-            anchors.verticalCenter: parent.verticalCenter
+    Row {
+        width: parent.width
 
-            Label {
-                width: parent.width
-                truncationMode: TruncationMode.Fade
-                text: qsTr("Date")
-                font.pixelSize: Theme.fontSizeSmall
-                color: Theme.secondaryHighlightColor
+        BackgroundItem {
+            id: dateButton
+            width: Math.round(parent.width / 2)
+            height: row.cellHeight
+            onClicked: row.pickDate()
+
+            Column {
+                id: dateColumn
+                x: Theme.horizontalPageMargin
+                width: parent.width - x - Theme.paddingMedium
+                anchors.verticalCenter: parent.verticalCenter
+
+                Label {
+                    width: parent.width
+                    truncationMode: TruncationMode.Fade
+                    text: qsTr("Date")
+                    font.pixelSize: Theme.fontSizeSmall
+                    color: Theme.secondaryHighlightColor
+                }
+                Label {
+                    width: parent.width
+                    wrapMode: Text.Wrap
+                    // "Today", "Yesterday", else the weekday and date.
+                    text: Utils.dayTitle(Utils.toLocalDateString(row.selectedDate))
+                    color: dateButton.highlighted ? Theme.highlightColor : Theme.primaryColor
+                }
             }
-            Label {
-                width: parent.width
-                wrapMode: Text.Wrap
-                // "Today", "Yesterday", else the weekday and date.
-                text: Utils.dayTitle(Utils.toLocalDateString(row.selectedDate))
-                color: dateButton.highlighted ? Theme.highlightColor : Theme.primaryColor
+        }
+
+        BackgroundItem {
+            id: timeButton
+            width: parent.width - dateButton.width
+            height: row.cellHeight
+            onClicked: row.pickTime()
+
+            Column {
+                id: timeColumn
+                x: Theme.paddingMedium
+                width: parent.width - x - Theme.horizontalPageMargin
+                anchors.verticalCenter: parent.verticalCenter
+
+                Label {
+                    width: parent.width
+                    truncationMode: TruncationMode.Fade
+                    text: qsTr("Time")
+                    font.pixelSize: Theme.fontSizeSmall
+                    color: Theme.secondaryHighlightColor
+                }
+                Label {
+                    width: parent.width
+                    truncationMode: TruncationMode.Fade
+                    // Follows the system 12/24-hour setting.
+                    text: Utils.formatTime(row.selectedDate)
+                    color: timeButton.highlighted ? Theme.highlightColor : Theme.primaryColor
+                }
             }
         }
     }
 
-    BackgroundItem {
-        id: timeButton
-        width: parent.width - dateButton.width
-        height: row.cellHeight
-        onClicked: row.pickTime()
-
-        Column {
-            id: timeColumn
-            x: Theme.paddingMedium
-            width: parent.width - x - Theme.horizontalPageMargin
-            anchors.verticalCenter: parent.verticalCenter
-
-            Label {
-                width: parent.width
-                truncationMode: TruncationMode.Fade
-                text: qsTr("Time")
-                font.pixelSize: Theme.fontSizeSmall
-                color: Theme.secondaryHighlightColor
-            }
-            Label {
-                width: parent.width
-                truncationMode: TruncationMode.Fade
-                // Follows the system 12/24-hour setting.
-                text: Utils.formatTime(row.selectedDate)
-                color: timeButton.highlighted ? Theme.highlightColor : Theme.primaryColor
-            }
-        }
+    Label {
+        x: Theme.horizontalPageMargin
+        width: parent.width - 2 * Theme.horizontalPageMargin
+        visible: row.inFuture
+        wrapMode: Text.Wrap
+        font.pixelSize: Theme.fontSizeExtraSmall
+        color: Theme.errorColor
+        text: qsTr("This date and time are in the future.")
     }
 }
 

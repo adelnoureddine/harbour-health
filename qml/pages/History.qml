@@ -80,9 +80,11 @@ Page {
             // On the row, not in the menu: the menu is destroyed as soon as it closes,
             // before the remorse runs out, and its model.id with it.
             function remove() {
+                // Read now: the row may have moved or gone by the time the countdown ends.
+                var id = model.id;
                 sessionItem.remorseDelete(function() {
-                    DataManager.deleteMeditationSession(model.id);
-                    listModel.remove(index);
+                    DataManager.deleteMeditationSession(id);
+                    page.refresh();
                 })
             }
 

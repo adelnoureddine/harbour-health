@@ -21,10 +21,8 @@
 #include <sailfishapp.h>
 
 #include "filewriter.h"
-
-#ifndef APP_VERSION
-#define APP_VERSION "0.0"
-#endif
+// APP_VERSION, written by qmake into the build folder (src/version.h.in).
+#include "version.h"
 
 int main(int argc, char *argv[])
 {

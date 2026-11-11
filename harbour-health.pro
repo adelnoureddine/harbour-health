@@ -12,8 +12,18 @@
 # The name of your application
 TARGET = harbour-health
 
-VERSION = 1.9
-DEFINES += APP_VERSION=\\\"$$VERSION\\\"
+# The version shown on the About page. A package build passes the RPM's own version
+# (QMakeOptions in rpm/harbour-health.yaml), so the two cannot differ; the value here
+# is only for a build run by hand.
+isEmpty(APP_VERSION): APP_VERSION = 2.0
+
+# It reaches the code through a header written into the build folder (see
+# src/version.h.in for why it is not a -D option).
+version_header.input = $$PWD/src/version.h.in
+version_header.output = $$OUT_PWD/version.h
+QMAKE_SUBSTITUTES += version_header
+INCLUDEPATH += $$OUT_PWD
+DEPENDPATH += $$OUT_PWD
 
 CONFIG += sailfishapp sailfishapp_i18n c++11
 
@@ -24,13 +34,18 @@ SOURCES += \
 HEADERS += \
     src/filewriter.h
 
+OTHER_FILES += \
+    src/version.h.in
+
 TRANSLATIONS += \
     translations/harbour-health.ts \
+    translations/harbour-health-fr.ts \
     translations/harbour-health-sv.ts
 
 DISTFILES += \
     qml/harbour-health.qml \
     qml/cover/CoverPage.qml \
+    qml/components/BackupStore.qml \
     qml/components/ChartRangeSelector.qml \
     qml/components/CoverToday.qml \
     qml/components/ChartStats.qml \
@@ -44,6 +59,8 @@ DISTFILES += \
     qml/components/DashboardCard.qml \
     qml/components/GoalCard.qml \
     qml/components/HistoryHero.qml \
+    qml/components/SessionBuzz.qml \
+    qml/components/SessionKeepAwake.qml \
     qml/components/Sparkline.qml \
     qml/components/SummaryRow.qml \
     qml/js/DataManager.js \
@@ -82,11 +99,12 @@ DISTFILES += \
     qml/pages/metricConstraints.qml \
     qml/pages/modifyProfile.qml \
     qml/pages/moduleSettings.qml \
+    qml/pages/pickBackupFile.qml \
     qml/pages/pickMeasurement.qml \
     qml/pages/setGoal.qml \
     qml/pages/TodayPage.qml \
-    rpm/harbour-health.changes.in \
-    rpm/harbour-health.changes.run.in \
+    qml/pages/unitSettings.qml \
+    rpm/harbour-health.changes \
     rpm/harbour-health.spec \
     rpm/harbour-health.yaml \
     harbour-health.desktop \

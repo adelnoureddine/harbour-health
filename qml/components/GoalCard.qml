@@ -22,12 +22,19 @@ ListItem {
 
     readonly property string moduleName: module && module.name ? module.name : ""
     readonly property string metricName: module && module.uses ? module.uses : ""
+    // The stored unit (Metrics.unit), passed on to the pages; the card shows shownUnit.
     readonly property string unit: module && module.unit ? module.unit : ""
-    // Water is logged in litres, so its quick amounts are glasses.
-    readonly property bool litres: unit === "L" || unit === "l"
+    // Water has quick amounts: glasses.
+    readonly property bool water: metricName === DataManager.METRIC_WATER
 
+    // Today's total and the goal as shown, in shownUnit (the unit chosen in Units). The
+    // goal is null when there is none or it is switched off.
     property real total: 0
     property var goal: null
+    property string shownUnit: unit
+    property int decimals: 2
+    // The quick-add glass in the unit shown (DataManager.waterGlass).
+    property var glass: ({ litres: 0.25, amount: 250, unit: "ml" })
 
     // Half width, unless the dashboard widens it because it would sit alone on a row.
     readonly property bool wantsWide: false
@@ -49,14 +56,27 @@ ListItem {
             return;
         }
         var t = DataManager.getTodayTotal(profileId, metricName);
-        total = t === null ? 0 : t;
-        goal = DataManager.getGoal(profileId, metricName);
+        var g = DataManager.getActiveGoal(profileId, metricName);
+        shownUnit = DataManager.displayUnit(metricName, unit);
+        decimals = DataManager.displayDecimals(metricName, Utils.metricDecimals(metricName));
+        glass = DataManager.waterGlass();
+        total = DataManager.toDisplay(metricName, t === null ? 0 : t);
+        goal = g === null ? null : DataManager.toDisplay(metricName, g);
     }
 
-    function quickAdd(amount) {
-        DataManager.addLog(profileId, metricName, amount, new Date(), "");
+    // `glasses` of water, in litres whatever unit is shown.
+    function quickAdd(glasses) {
+        DataManager.addLog(profileId, metricName, glasses * glass.litres, new Date(), "");
         refresh();
         saved();
+    }
+
+    function quickAddText(glasses) {
+        var amount = glasses * card.glass.amount;
+        //: Quick add on the water card; %1 is an amount in millilitres
+        return card.glass.unit === "ml" ? qsTr("Add %1 ml").arg(amount)
+                                        //: Quick add on the water card; %1 is an amount in US fluid ounces
+                                        : qsTr("Add %1 fl oz").arg(amount);
     }
 
     function openAdd() {
@@ -82,18 +102,17 @@ ListItem {
     menu: Component {
         ContextMenu {
             MenuItem {
-                visible: card.litres
-                //: Quick add on the water card; %1 is an amount in millilitres
-                text: qsTr("Add %1 ml").arg(250)
-                onClicked: card.quickAdd(0.25)
+                visible: card.water
+                text: card.quickAddText(1)
+                onClicked: card.quickAdd(1)
             }
             MenuItem {
-                visible: card.litres
-                text: qsTr("Add %1 ml").arg(500)
-                onClicked: card.quickAdd(0.5)
+                visible: card.water
+                text: card.quickAddText(2)
+                onClicked: card.quickAdd(2)
             }
             MenuItem {
-                text: card.litres ? qsTr("Other amount…") : qsTr("Add entry")
+                text: card.water ? qsTr("Other amount…") : qsTr("Add entry")
                 onClicked: card.openAdd()
             }
             MenuItem {
@@ -173,15 +192,23 @@ ListItem {
                 anchors.centerIn: ring
                 Label {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    text: Utils.formatValue(card.total, Utils.metricDecimals(card.metricName))
+                    text: Utils.formatValue(card.total, card.decimals)
                     font.pixelSize: Theme.fontSizeLarge
                     color: card.highlighted ? Theme.highlightColor : Theme.primaryColor
+                }
+                // Without a goal (switched off): the unit alone under the total.
+                Label {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    visible: card.goal === null && card.shownUnit !== ""
+                    text: card.shownUnit
+                    font.pixelSize: Theme.fontSizeTiny
+                    color: card.highlighted ? Theme.secondaryHighlightColor : Theme.primaryColor
                 }
                 Label {
                     anchors.horizontalCenter: parent.horizontalCenter
                     visible: card.goal !== null
                     //: Under today's total in the ring, e.g. "of 2 L"
-                    text: card.goal === null ? "" : qsTr("of %1 %2").arg(Utils.formatValue(card.goal)).arg(card.unit)
+                    text: card.goal === null ? "" : qsTr("of %1 %2").arg(Utils.formatValue(card.goal, card.decimals)).arg(card.shownUnit)
                     font.pixelSize: Theme.fontSizeTiny
                     color: card.highlighted ? Theme.secondaryHighlightColor : Theme.primaryColor
                 }

@@ -28,6 +28,8 @@ CoverBackground {
     property string loadedFrom: ""
 
     function refresh() {
+        // The units, should the cover be drawn before the window's start.
+        appWindow.ensureSettings();
         var key = DataManager.dataKey();
         if (key === loadedFrom) {
             return;
@@ -51,20 +53,35 @@ CoverBackground {
 
     // A glass of water, logged without opening the app.
     function addGlass() {
-        DataManager.addLog(cover.profileId, DataManager.METRIC_WATER, 0.25, new Date(), "");
+        DataManager.addLog(cover.profileId, DataManager.METRIC_WATER, DataManager.waterGlass().litres, new Date(), "");
         cover.refresh();
+    }
+
+    // A form on top of the stack: something half typed that a new page must not bury.
+    function formOnTop() {
+        var top = pageStack.currentPage;
+        return top && top.canAccept !== undefined ? true : false;
     }
 
     function openToday() {
         if (cover.profileId < 0) {
             return;
         }
-        pageStack.animatorPush(Qt.resolvedUrl("../pages/TodayPage.qml"), { profileId: cover.profileId });
+        // Already on the Today page, or in the middle of a form: only come forward.
+        // Every tap used to push another Today page onto the one already open.
+        var top = pageStack.currentPage;
+        if (!pageStack.busy && !formOnTop() && !(top && top.objectName === "todayPage")) {
+            pageStack.animatorPush(Qt.resolvedUrl("../pages/TodayPage.qml"), { profileId: cover.profileId });
+        }
         appWindow.activate();
     }
 
     function openAddEntry() {
         if (cover.profileId < 0) {
+            return;
+        }
+        if (pageStack.busy || formOnTop()) {
+            appWindow.activate();
             return;
         }
         if (cover.todayMode) {
@@ -92,10 +109,41 @@ CoverBackground {
     onStatusChanged: {
         if (status === Cover.Active) {
             refresh();
+            dayTimer.arm();
+        } else {
+            dayTimer.stop();
         }
     }
 
-    Component.onCompleted: refresh()
+    // The app was used, or the day turned in it, while the cover is showing.
+    Connections {
+        target: appWindow
+        onDataRefreshRequested: {
+            if (cover.status === Cover.Active) {
+                cover.refresh();
+            }
+        }
+    }
+
+    // "Today" changes at midnight and at DAY_START_TIME, also for a cover left showing.
+    Timer {
+        id: dayTimer
+        function arm() {
+            interval = DataManager.msUntilNextDay() + 1000;
+            restart();
+        }
+        onTriggered: {
+            cover.refresh();
+            arm();
+        }
+    }
+
+    Component.onCompleted: {
+        refresh();
+        if (status === Cover.Active) {
+            dayTimer.arm();
+        }
+    }
 
     Column {
         x: Theme.paddingLarge

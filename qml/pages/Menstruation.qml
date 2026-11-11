@@ -21,9 +21,16 @@ Page {
     property string loadedFrom: ""
     property bool loaded: false
 
-    readonly property bool cycleOpen: lastCycle !== null && !lastCycle.endDate
+    /*
+     * A cycle runs from the first day of a period to the day before the next one
+     * starts. Its end date is the last day of the period, not of the cycle: the day
+     * counter, the ring and "Next expected" go on after it. The page used to treat the
+     * end date as the end of the cycle -- "Cycle ended", no day, no ring -- while the
+     * average and the expected date kept counting from start to start.
+     */
+    readonly property bool periodOpen: lastCycle !== null && !lastCycle.endDate
     readonly property bool hasAverage: averageCycleLength !== null
-    readonly property bool ringShown: cycleOpen && hasAverage && dayOfCycle > 0
+    readonly property bool ringShown: lastCycle !== null && hasAverage && dayOfCycle > 0
     // Days until the expected start; 0 is today, negative once it has passed.
     readonly property int daysToNext: hasAverage ? averageCycleLength - dayOfCycle + 1 : 0
 
@@ -47,13 +54,19 @@ Page {
         loadedFrom = key;
     }
 
-    function endCurrentCycle() {
+    // The period's last day: the cycle's dialog with today filled in, to adjust. It
+    // used to be set to today after a countdown, though a period often ended days ago.
+    function endPeriod() {
         if (lastCycle === null) {
             return;
         }
-        DataManager.updateMenstrualCycle(lastCycle.id, lastCycle.startDate,
-                                         Utils.toLocalDateString(new Date()), lastCycle.note);
-        refresh();
+        pageStack.animatorPush(Qt.resolvedUrl("AddNewCycle.qml"), {
+            profileId: page.profileId,
+            cycleId: lastCycle.id,
+            initialStart: lastCycle.startDate,
+            initialEnd: Utils.toLocalDateString(new Date()),
+            note: lastCycle.note ? lastCycle.note : ""
+        });
     }
 
     SilicaFlickable {
@@ -71,9 +84,10 @@ Page {
                 onClicked: pageStack.animatorPush(Qt.resolvedUrl("AddNewCycle.qml"), {profileId: page.profileId})
             }
             MenuItem {
-                text: qsTr("End current cycle")
-                visible: page.cycleOpen
-                onClicked: endRemorse.execute(qsTr("Ending cycle"), function() { page.endCurrentCycle(); })
+                //: Menu item: record the last day of the current period
+                text: qsTr("Period ended")
+                visible: page.periodOpen
+                onClicked: page.endPeriod()
             }
             MenuItem {
                 // The dialog loads what is already saved for the day.
@@ -113,7 +127,7 @@ Page {
                         width: parent.width - cycleIcon.width - parent.spacing
                         anchors.verticalCenter: parent.verticalCenter
                         truncationMode: TruncationMode.Fade
-                        text: page.cycleOpen ? qsTr("Current cycle") : qsTr("Last cycle")
+                        text: qsTr("Current cycle")
                         font.pixelSize: Theme.fontSizeSmall
                         color: Theme.secondaryHighlightColor
                     }
@@ -166,7 +180,7 @@ Page {
                     width: parent.width
                     visible: !page.ringShown
                     truncationMode: TruncationMode.Fade
-                    text: page.cycleOpen ? qsTr("Day %1").arg(page.dayOfCycle) : qsTr("Cycle ended")
+                    text: qsTr("Day %1").arg(page.dayOfCycle)
                     font.pixelSize: Theme.fontSizeHuge
                     color: Theme.primaryColor
                 }
@@ -203,7 +217,8 @@ Page {
                         Label {
                             width: parent.width
                             truncationMode: TruncationMode.Fade
-                            text: qsTr("Ended on")
+                            //: Caption over the last day of the current period
+                            text: qsTr("Period ended on")
                             font.pixelSize: Theme.fontSizeSmall
                             color: Theme.secondaryHighlightColor
                         }
@@ -269,8 +284,8 @@ Page {
                     font.pixelSize: Theme.fontSizeExtraSmall
                     color: Theme.secondaryColor
                     // Without this the day counter just kept climbing indefinitely.
-                    visible: page.cycleOpen && page.dayOfCycle > 60
-                    text: qsTr("This cycle has been open for a long time. Pull down to end it or start a new one.")
+                    visible: page.dayOfCycle > 60
+                    text: qsTr("No new cycle for a long time. Pull down and choose New cycle when your next period starts.")
                 }
             }
 
@@ -347,7 +362,7 @@ Page {
                             color: Theme.secondaryHighlightColor
                         }
                         Label {
-                            text: page.todayLog ? qsTr("%1 hours").arg(Utils.formatValue(page.todayLog.sleepTime, 1)) : ""
+                            text: page.todayLog ? Utils.sleepHoursText(page.todayLog.sleepTime) : ""
                             color: Theme.primaryColor
                         }
                     }
@@ -380,11 +395,16 @@ Page {
         VerticalScrollDecorator {}
     }
 
-    RemorsePopup { id: endRemorse }
+    // Also called by the window when the app comes back or the day turns.
+    function reloadIfStale() {
+        if (DataManager.dataKey() !== loadedFrom) {
+            refresh();
+        }
+    }
 
     onStatusChanged: {
-        if (status === PageStatus.Active && DataManager.dataKey() !== loadedFrom) {
-            refresh();
+        if (status === PageStatus.Active) {
+            reloadIfStale();
         }
     }
 }

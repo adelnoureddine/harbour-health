@@ -1,6 +1,6 @@
 Name: harbour-health
 Summary: Health
-Version: 1.1
+Version: 2.0
 Release: 1
 # The contents of the Group field should be one of the groups listed here:
 # https://github.com/mer-tools/spectacle/blob/master/data/GROUPS
@@ -13,8 +13,12 @@ Sources:
 - '%{name}-%{version}.tar.bz2'
 Description: |
   Health is a private, on-device health tracker for SailfishOS.
-  It is not medical advice and must not be used for diagnosis or treatment decisions.
+  It is not medical advice and must not be used for diagnosis or treatment
+  decisions.
 Builder: qmake5
+# The About page shows this version: see APP_VERSION in harbour-health.pro.
+QMakeOptions:
+  - APP_VERSION=%{version}
 
 # This section specifies build dependencies that are resolved using pkgconfig.
 # This is the preferred way of specifying build dependencies for your package.
@@ -30,7 +34,9 @@ PkgBR:
 
 # Runtime dependencies which are not automatically detected
 Requires:
-  - sailfishsilica-qt5 >= 0.10.9 
+  - sailfishsilica-qt5 >= 0.10.9
+  # Nemo.KeepAlive: the screen stays on during a meditation session.
+  - libkeepalive
 
 # All installed files
 Files:

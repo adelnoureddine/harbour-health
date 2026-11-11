@@ -14,9 +14,19 @@ Dialog {
     // What was already taken today, so a dose is not logged twice by mistake.
     property string todayText: ""
 
-    // An intake is something that happened. Re-evaluated whenever the date or the
-    // time changes.
-    readonly property bool inFuture: selectedDate > new Date()
+    // An intake is something that happened. The clock is looked at again every few
+    // seconds while the time is ahead: a binding on new Date() is evaluated once, so a
+    // time picked a minute too far stayed refused until it was picked again.
+    property double now: Date.now()
+    readonly property bool inFuture: selectedDate.getTime() > now + 60000
+    onSelectedDateChanged: now = Date.now()
+
+    Timer {
+        interval: 10000
+        repeat: true
+        running: dialog.inFuture
+        onTriggered: dialog.now = Date.now()
+    }
 
     canAccept: profileId >= 0 && medicationId >= 0 && !inFuture
 

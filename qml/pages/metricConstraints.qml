@@ -8,6 +8,9 @@ Page {
     id: page
     allowedOrientations: Orientation.All
 
+    // A metric's name, or a module's for the derived values (BMI, WHtR), which have no
+    // unit. metricUnit is the stored unit: the bounds are kept in it and shown, like
+    // every value, in the unit chosen in Units.
     property string metricName: ""
     property string metricUnit: ""
 
@@ -44,19 +47,24 @@ Page {
     function rangeText(minValue, maxValue) {
         var hasMin = minValue !== null && minValue !== undefined;
         var hasMax = maxValue !== null && maxValue !== undefined;
-        var unit = page.metricUnit ? " " + page.metricUnit : "";
+        var shownUnit = DataManager.displayUnit(page.metricName, page.metricUnit);
+        var unit = shownUnit ? " " + shownUnit : "";
+        var decimals = DataManager.displayDecimals(page.metricName, 2);
+        function shown(value) {
+            return Utils.formatValue(DataManager.toDisplay(page.metricName, value), decimals);
+        }
         // A threshold of exactly 0 is a real bound; it used to be treated as absent.
         if (hasMin && hasMax) {
             //: Reference range from a minimum (%1) to a maximum (%2) value
-            return qsTr("%1 to %2").arg(Utils.formatValue(minValue)).arg(Utils.formatValue(maxValue)) + unit;
+            return qsTr("%1 to %2").arg(shown(minValue)).arg(shown(maxValue)) + unit;
         }
         if (hasMin) {
             //: Reference range with only a minimum value (%1)
-            return qsTr("%1 and above").arg(Utils.formatValue(minValue)) + unit;
+            return qsTr("%1 and above").arg(shown(minValue)) + unit;
         }
         if (hasMax) {
             //: Reference range with only a maximum value (%1)
-            return qsTr("Below %1").arg(Utils.formatValue(maxValue)) + unit;
+            return qsTr("Below %1").arg(shown(maxValue)) + unit;
         }
         return "";
     }

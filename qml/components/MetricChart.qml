@@ -15,6 +15,11 @@ import "../js/utils.js" as Utils
  * With `bars`, every point is one period -- a day, a week or a month (`bucket`) that
  * starts at t -- drawn as a bar from zero. Readings stay lines: a bar per reading would
  * say they add up, which only daily totals do.
+ *
+ * goalValue draws the line to reach (a daily goal, a weight target), named by goalText.
+ * rangeStart and rangeEnd (ms) are the period the page asked for: the time axis then
+ * spans that period, where it used to shrink to the data, so "Month" with three
+ * readings from last week looked the same as "Week".
  */
 Item {
     id: root
@@ -32,6 +37,12 @@ Item {
     // The dashed average when the page has it from the database. Weekly bars are each
     // an average of their days, and the mean of those is not the average day.
     property var averageValue: null
+    // The value to reach, drawn as a long-dashed line across the plot; null for none.
+    property var goalValue: null
+    property string goalText: ""
+    // The period shown, in ms since the epoch; null to span the data (the "All" range).
+    property var rangeStart: null
+    property var rangeEnd: null
 
     // Point nearest the finger while the chart is being touched, or null.
     property var highlightedPoint: null
@@ -93,8 +104,8 @@ Item {
      * Bars start at zero, and reach to the end of the last period so the last bar is
      * whole; there is nothing to pad below them.
      */
-    function bounds(seriesList, precision, asBars, bucketMs) {
-        var b = { xMin: 0, xMax: 1, yMin: 0, yMax: 1, valid: false };
+    function bounds(seriesList, precision, asBars, bucketMs, goal, rangeStart, rangeEnd) {
+        var b = { xMin: 0, xMax: 1, yMin: 0, yMax: 1, valid: false, single: false, onlyT: 0 };
         var first = true;
 
         for (var i = 0; i < seriesList.length; i++) {
@@ -124,8 +135,25 @@ Item {
             return b;
         }
 
+        var ranged = rangeStart !== null && rangeStart !== undefined && !isNaN(rangeStart)
+                && rangeEnd !== null && rangeEnd !== undefined && !isNaN(rangeEnd);
+        // Everything at one moment and no period to place it in: one date label, in the
+        // middle. (It used to get one at each end, so a first day of water read
+        // "10 Nov10 Nov".)
+        b.single = b.xMax === b.xMin && !ranged;
+        b.onlyT = b.xMin;
+        // The line to reach is always on the plot, however far the readings are from it.
+        if (goal !== null && goal !== undefined && !isNaN(goal)) {
+            if (goal < b.yMin) b.yMin = goal;
+            if (goal > b.yMax) b.yMax = goal;
+        }
+
         if (asBars) {
             b.xMax += bucketMs;
+            if (ranged) {
+                b.xMin = Math.min(b.xMin, rangeStart);
+                b.xMax = Math.max(b.xMax, rangeEnd);
+            }
             b.yMin = Math.min(0, b.yMin);
             if (b.yMax <= b.yMin) {
                 // Nothing but zeros: still an axis to draw them against.
@@ -137,6 +165,10 @@ Item {
             return roundAxis(b, precision);
         }
 
+        if (ranged) {
+            b.xMin = Math.min(b.xMin, rangeStart);
+            b.xMax = Math.max(b.xMax, rangeEnd);
+        }
         if (b.xMax === b.xMin) {
             // A single reading: give it a day of room so it lands mid-chart.
             b.xMin -= 43200000;
@@ -204,7 +236,7 @@ Item {
 
     // Computed once per data change. The touch handler used to rescan every point for
     // the extent on each finger movement.
-    readonly property var _bounds: bounds(series, decimals, bars, _bucketMs)
+    readonly property var _bounds: bounds(series, decimals, bars, _bucketMs, goalValue, rangeStart, rangeEnd)
 
     function xAt(t) {
         return _plotX + ((t - _bounds.xMin) / (_bounds.xMax - _bounds.xMin)) * _plotWidth;
@@ -259,6 +291,10 @@ Item {
     onBarsChanged: canvas.requestPaint()
     onBucketChanged: canvas.requestPaint()
     onAverageValueChanged: canvas.requestPaint()
+    onGoalValueChanged: canvas.requestPaint()
+    onGoalTextChanged: canvas.requestPaint()
+    onRangeStartChanged: canvas.requestPaint()
+    onRangeEndChanged: canvas.requestPaint()
     onThemeColorSentinelChanged: canvas.requestPaint()
     onWidthChanged: canvas.requestPaint()
     onHeightChanged: canvas.requestPaint()
@@ -306,7 +342,8 @@ Item {
             }
 
             // --- gridlines and value labels --------------------------------------
-            ctx.font = Math.round(Theme.fontSizeExtraSmall) + "px sans-serif";
+            // The system font: "sans-serif" was whatever the canvas fell back to.
+            ctx.font = Math.round(Theme.fontSizeExtraSmall) + "px '" + Theme.fontFamily + "'";
             ctx.textAlign = "right";
             ctx.textBaseline = "middle";
             ctx.lineWidth = 1;
@@ -329,7 +366,10 @@ Item {
             // Under bars the labels name periods, from the first bar to the last: the
             // right edge of the plot is when the last period ends ("1 Dec" under November).
             var labelSpan = (b.xMax - b.xMin) - (root.bars ? root._bucketMs : 0);
-            var labels = root.dateLabels(ctx, b.xMin, labelSpan, pw > Theme.itemSizeHuge * 3 ? 3 : 2, longSpan);
+            var labels = b.single || labelSpan <= 0
+                    ? [{ text: Format.formatDate(new Date(b.onlyT), Formatter.DateMediumWithoutYear),
+                         x: xAt(root._cx(b.onlyT)), align: "center" }]
+                    : root.dateLabels(ctx, b.xMin, labelSpan, pw > Theme.itemSizeHuge * 3 ? 3 : 2, longSpan);
             for (var d = 0; d < labels.length; d++) {
                 ctx.textAlign = labels[d].align;
                 ctx.fillText(labels[d].text, labels[d].x, py + ph + Theme.paddingSmall);
@@ -438,6 +478,30 @@ Item {
                     ctx.stroke();
                 }
             }
+
+            // --- the value to reach ---------------------------------------------------
+            if (root.goalValue !== null && root.goalValue !== undefined && !isNaN(root.goalValue)) {
+                var goalY = yAt(root.goalValue);
+                // Longer dashes and the text colour, so it is not taken for the average.
+                ctx.strokeStyle = Theme.rgba(Theme.primaryColor, 0.75);
+                ctx.lineWidth = Math.max(1, Math.round(1.5 * Theme.pixelRatio));
+                ctx.beginPath();
+                var goalDash = 24 * Theme.pixelRatio;
+                for (var gd = px; gd < px + pw; gd += goalDash) {
+                    ctx.moveTo(gd, goalY);
+                    ctx.lineTo(Math.min(gd + goalDash * 0.6, px + pw), goalY);
+                }
+                ctx.stroke();
+                if (root.goalText !== "") {
+                    // Above the line, or below it when the line is at the top of the plot.
+                    var above = goalY - py > Theme.fontSizeExtraSmall * 1.5;
+                    ctx.fillStyle = Theme.primaryColor;
+                    ctx.textAlign = "right";
+                    ctx.textBaseline = above ? "bottom" : "top";
+                    ctx.fillText(root.goalText, px + pw - Theme.paddingSmall,
+                                 goalY + (above ? -Theme.paddingSmall / 2 : Theme.paddingSmall / 2));
+                }
+            }
         }
     }
 
@@ -470,7 +534,10 @@ Item {
         anchors.fill: parent
         enabled: root.pointCount() > 0
 
-        function pick(mouseX) {
+        // The nearest point in time; of several at the same time (systolic and diastolic
+        // share theirs) the one nearest the finger, so both lines can be read. The first
+        // series used to win every tie, and the diastolic value could not be read at all.
+        function pick(mouseX, mouseY) {
             var b = root._bounds;
             if (!b.valid) {
                 return;
@@ -489,7 +556,11 @@ Item {
                 }
                 for (var i = 0; i < points.length; i++) {
                     var distance = Math.abs(points[i].t - target);
-                    if (distance < bestDistance) {
+                    var nearer = distance < bestDistance;
+                    if (!nearer && best !== null && distance === bestDistance) {
+                        nearer = Math.abs(root.yAt(points[i].v) - mouseY) < Math.abs(root.yAt(best.v) - mouseY);
+                    }
+                    if (nearer) {
                         bestDistance = distance;
                         best = points[i];
                         bestSeries = s;
@@ -500,8 +571,8 @@ Item {
             root.highlightedSeries = bestSeries;
         }
 
-        onPressed: pick(mouse.x)
-        onPositionChanged: pick(mouse.x)
+        onPressed: pick(mouse.x, mouse.y)
+        onPositionChanged: pick(mouse.x, mouse.y)
         onReleased: {
             root.highlightedPoint = null;
             root.highlightedSeries = -1;

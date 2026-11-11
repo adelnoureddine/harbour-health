@@ -18,6 +18,9 @@ Page {
     property var chartBands: []
     property var chartStats: null
     property var chartStats2: null
+    // The period the chart spans (ms), null for "All".
+    property var rangeStart: null
+    property var rangeEnd: null
 
     // The top of the page: the latest pair, when it was taken and its band.
     property string profileName: ""
@@ -45,6 +48,8 @@ Page {
         var mode = (rangeDays === 0 || rangeDays > 90) ? DataManager.SERIES_DAILY_AVG
                                                        : DataManager.SERIES_RAW;
         var since = DataManager.sinceForDays(rangeDays, mode !== DataManager.SERIES_RAW);
+        rangeStart = since === null ? null : DataManager.timestampToMs(since);
+        rangeEnd = since === null ? null : Date.now();
         chartSeries = [
             {
                 points: DataManager.getSeries(profileId, metricName1, since, mode),
@@ -57,9 +62,12 @@ Page {
                 label: Utils.metricDisplayName(metricName2)
             }
         ];
-        // Min / average / max of each half, shown as pairs like the readings.
-        chartStats = DataManager.getSeriesStats(profileId, metricName1, since, mode);
-        chartStats2 = DataManager.getSeriesStats(profileId, metricName2, since, mode);
+        // Min / average / max of each half, shown as pairs like the readings. Of the
+        // readings themselves on every range: past three months the chart plots daily
+        // averages, and "Max" was the highest daily average -- 135 for a day of 150
+        // and 120 -- which is not what a highest blood pressure means.
+        chartStats = DataManager.getSeriesStats(profileId, metricName1, since, DataManager.SERIES_RAW);
+        chartStats2 = DataManager.getSeriesStats(profileId, metricName2, since, DataManager.SERIES_RAW);
         // Systolic and diastolic share one axis, so both sets of bands are drawn.
         chartBands = DataManager.getConstraintsForMetric(metricName1)
                 .concat(DataManager.getConstraintsForMetric(metricName2));
@@ -194,7 +202,7 @@ Page {
                 visible: page.hasData
                 valueText: page.latestText
                 unit: page.metricUnit
-                detailText: Utils.measuredWhen(page.latestTimestamp)
+                detailText: Utils.measuredWhen(page.latestTimestamp, appWindow.today)
                 bandLabel: page.bandLabel
                 bandColor: page.bandColor
             }
@@ -208,6 +216,8 @@ Page {
                 unit: page.metricUnit
                 decimals: Utils.metricDecimals(page.metricName1)
                 emptyText: qsTr("No data in this period")
+                rangeStart: page.rangeStart
+                rangeEnd: page.rangeEnd
             }
 
             ChartRangeSelector {
@@ -281,9 +291,11 @@ Page {
             // On the row, not in the menu: the menu is destroyed as soon as it closes,
             // before the remorse runs out, and model.id1/id2 with it.
             function remove() {
+                // The ids are read now: a refresh during the countdown rebuilds the rows.
+                var ids = [model.id1, model.id2];
                 listItem.remorseDelete(function() {
                     // Both halves in one transaction; a missing half is -1.
-                    DataManager.deleteLogs([model.id1, model.id2]);
+                    DataManager.deleteLogs(ids);
                     page.refresh();
                 })
             }
@@ -384,9 +396,16 @@ Page {
         }
     }
 
-    onStatusChanged: {
-        if (status === PageStatus.Active && DataManager.dataKey() !== loadedFrom) {
+    // Also called by the window when the app comes back or the day turns.
+    function reloadIfStale() {
+        if (DataManager.dataKey() !== loadedFrom) {
             refresh();
+        }
+    }
+
+    onStatusChanged: {
+        if (status === PageStatus.Active) {
+            reloadIfStale();
         }
     }
 }

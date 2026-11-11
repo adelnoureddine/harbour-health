@@ -24,9 +24,41 @@ Dialog {
     // the value being edited is the last one.
     property string contextText: ""
 
+    /*
+     * metricUnit is the stored unit (Metrics.unit). The value is typed in shownUnit,
+     * the unit chosen in Units, and converted back on saving; limits are what the
+     * measurement can plausibly be, in that same unit (null without any).
+     */
+    property string shownUnit: ""
+    property var limits: null
+    property int limitDecimals: 2
+
+    /*
+     * Editing: the stored value and the text the field opened with. When the text was
+     * not touched, the stored value is saved back as it is. Converted to pounds, shown
+     * rounded and converted back, 72.5 kg would otherwise come back as 72.4999 after
+     * changing nothing but the time.
+     */
+    property var originalValue: null
+    property string originalText: ""
+    readonly property bool untouched: editing && originalValue !== null && metricValue.text === originalText
+
+    function typedValue() {
+        return parseFloat(metricValue.text.replace(',', '.'));
+    }
+
+    readonly property bool inRange: {
+        if (limits === null || metricValue.text === "" || !metricValue.acceptableInput) {
+            return true;
+        }
+        var v = typedValue();
+        return isNaN(v) || (v >= limits.min - 1e-9 && v <= limits.max + 1e-9);
+    }
+
+    // A value saved before there were limits can still have its time or note edited.
     canAccept: profileId >= 0 && metricValue.text !== "" && dialog.metricName !== ""
-               && metricValue.acceptableInput
-               && !isNaN(parseFloat(metricValue.text.replace(',', '.')))
+               && metricValue.acceptableInput && !isNaN(typedValue())
+               && (untouched || inRange) && !whenRow.inFuture
 
     /*
      * Systolic and diastolic are one reading, logged together in the blood pressure
@@ -57,15 +89,17 @@ Dialog {
             return "";
         }
         var suffix = unit ? " " + unit : "";
+        var decimals = DataManager.displayDecimals(name, 2);
         if (grouped) {
             var total = DataManager.getTodayTotal(profileId, name);
             if (total !== null) {
                 //: Under the value field: today's total so far, %1 is the amount with its unit
-                return qsTr("Today so far: %1").arg(Utils.formatValue(total) + suffix);
+                return qsTr("Today so far: %1").arg(Utils.formatValue(DataManager.toDisplay(name, total), decimals) + suffix);
             }
         }
         var log = DataManager.getLatestLog(profileId, name);
-        return log ? Utils.lastReadingText(Utils.formatValue(log.value) + suffix, log.timestamp) : "";
+        return log ? Utils.lastReadingText(Utils.formatValue(DataManager.toDisplay(name, log.value), decimals) + suffix,
+                                           log.timestamp) : "";
     }
 
     // Once name and unit are both set: a binding ran the queries for each of them, the
@@ -78,7 +112,12 @@ Dialog {
                 break;
             }
         }
-        contextText = lastReadingText(dialog.metricName, dialog.metricUnit, grouped);
+        shownUnit = DataManager.displayUnit(dialog.metricName, dialog.metricUnit);
+        var stored = DataManager.metricLimits(dialog.metricName);
+        limits = stored === null ? null : { min: DataManager.toDisplay(dialog.metricName, stored.min),
+                                            max: DataManager.toDisplay(dialog.metricName, stored.max) };
+        limitDecimals = DataManager.displayDecimals(dialog.metricName, 2);
+        contextText = lastReadingText(dialog.metricName, shownUnit, grouped);
     }
 
     function load() {
@@ -97,7 +136,9 @@ Dialog {
                 dialog.metricUnit = log.unit;
                 // Three decimals, as many as the field accepts: rounding to two here
                 // silently changed 1.755 to 1.76 when only the time was edited.
-                metricValue.text = Utils.formatInput(log.value);
+                metricValue.text = Utils.formatInput(DataManager.toDisplay(log.metricName, log.value));
+                originalValue = log.value;
+                originalText = metricValue.text;
                 noteField.text = log.note ? log.note : "";
                 var parsed = Utils.parseTimestamp(log.timestamp);
                 if (parsed !== null) {
@@ -120,7 +161,7 @@ Dialog {
 
 
     onAccepted: {
-        var value = parseFloat(metricValue.text.replace(',', '.'));
+        var value = untouched ? originalValue : DataManager.fromDisplay(dialog.metricName, typedValue());
         if (editing) {
             DataManager.updateLog(logId, value, selectedDate, noteField.text);
         } else {
@@ -180,7 +221,7 @@ Dialog {
                 TextField {
                     id: metricValue
                     width: parent.width
-                    label: dialog.metricUnit ? qsTr("Value (%1)").arg(dialog.metricUnit) : qsTr("Value")
+                    label: dialog.shownUnit ? qsTr("Value (%1)").arg(dialog.shownUnit) : qsTr("Value")
                     placeholderText: qsTr("Enter %1").arg(Utils.metricDisplayName(dialog.metricName))
                     inputMethodHints: Qt.ImhFormattedNumbersOnly
                     // The old pattern was [\.|,], a character class that also accepted a
@@ -201,6 +242,18 @@ Dialog {
                     color: Theme.secondaryColor
                 }
 
+                // 250 typed into a field of litres, a height in metres, 665 for 66.5.
+                Label {
+                    x: Theme.horizontalPageMargin
+                    width: parent.width - 2 * Theme.horizontalPageMargin
+                    visible: dialog.limits !== null && !dialog.inRange && !dialog.untouched
+                    wrapMode: Text.Wrap
+                    font.pixelSize: Theme.fontSizeExtraSmall
+                    color: Theme.errorColor
+                    text: dialog.limits === null ? ""
+                          : Utils.rangeText(dialog.limits.min, dialog.limits.max, dialog.shownUnit, dialog.limitDecimals)
+                }
+
                 // Where to measure, for metrics whose reading depends on it (waist).
                 // Follows the type picker, so it appears and disappears with the metric.
                 Label {
@@ -215,6 +268,7 @@ Dialog {
             }
 
             DateTimeRow {
+                id: whenRow
                 width: parent.width
                 selectedDate: dialog.selectedDate
                 onPicked: dialog.selectedDate = when

@@ -335,13 +335,17 @@ function moduleIcon(name, storedIcon) {
  * How long ago a reading was, the way the dashboard says it: "Today, 07:40" (or just
  * "Today"), "Yesterday", "3 days ago", then the date. Calendar days, not the 04:00
  * border: this is about when it was measured, not which day's total it counts for.
+ *
+ * `today` is the day to count from, "YYYY-MM-DD" (the window's `today`; the clock's day
+ * without it). A binding that passes it is worked out again when the day changes: one
+ * on the reading alone is not, and "Today, 07:40" stayed under yesterday's session.
  */
-function relativeTime(s, withTime) {
+function relativeTime(s, withTime, today) {
     var d = parseTimestamp(s);
     if (d === null) {
         return "";
     }
-    var days = daysBetween(d, new Date());
+    var days = daysBetween(d, today ? today : new Date());
     if (days <= 0) {
         return withTime ? qsTr("Today, %1").arg(Format.formatDate(d, Formatter.TimeValue)) : qsTr("Today");
     }
@@ -356,14 +360,14 @@ function relativeTime(s, withTime) {
 
 /*
  * When a card's reading was taken, spelled out: a bare "17 Aug" or "Today" under a
- * value did not say what the date was.
+ * value did not say what the date was. `today` as for relativeTime.
  */
-function measuredWhen(s) {
+function measuredWhen(s, today) {
     var d = parseTimestamp(s);
     if (d === null) {
         return "";
     }
-    var days = daysBetween(d, new Date());
+    var days = daysBetween(d, today ? today : new Date());
     if (days <= 0) {
         return qsTr("Measured today");
     }
@@ -451,6 +455,14 @@ function formatBloodPressure(bp, unit) {
     return (bp.systolic !== null ? formatValue(bp.systolic, 0) : "—") + "/"
             + (bp.diastolic !== null ? formatValue(bp.diastolic, 0) : "—")
             + (unit ? " " + unit : "");
+}
+
+// Under a number field whose value is outside what the measurement can be:
+// "Enter a value between 0.01 and 10 L".
+function rangeText(min, max, unit, decimals) {
+    //: Shown under a number field; %1 and %2 are the lowest and highest value accepted, %2 with its unit
+    return qsTr("Enter a value between %1 and %2").arg(formatValue(min, decimals))
+            .arg(formatValue(max, decimals) + (unit ? " " + unit : ""));
 }
 
 // The previous reading to type a new one against: "Last: 66.5 kg, 19/08/2026".
@@ -543,6 +555,19 @@ function cycleLevelColor(kind, value) {
     return colour !== "" ? colour : Theme.highlightColor;
 }
 
+// Hours of sleep in a day's cycle entry: "7.5 hours".
+function sleepHoursText(hours) {
+    // The count picks the plural form; the number shown keeps its half hours.
+    //: Hours of sleep; %1 is the number, e.g. "7.5 hours" (the form follows %n)
+    return qsTr("%1 hour(s)", "", hours === 1 ? 1 : Math.max(2, Math.round(hours))).arg(formatValue(hours, 1));
+}
+
+// "5 days in a row", for a daily goal met that many days running.
+function streakText(days) {
+    //: A daily goal met this many days running, on the Today page
+    return qsTr("%n day(s) in a row", "", days);
+}
+
 // A meditation session's length: "45 s", "10 min", "10 min 30 s".
 function formatDuration(seconds) {
     if (seconds === null || seconds === undefined) {
@@ -584,6 +609,25 @@ function todayItemTitle(item) {
     return item.kind === "medication" ? item.name : metricDisplayName(item.metricName);
 }
 
+/*
+ * A goal item's amounts are stored values; these turn them into what is shown, in the
+ * unit chosen in Units (DataManager.getTodayPlan sends shownUnit, factor and
+ * unitDecimals along, as this file cannot import the library).
+ */
+function _todayItemShown(item, value) {
+    return value * (item.factor ? item.factor : 1);
+}
+
+function _todayItemDecimals(item) {
+    return item.unitDecimals !== undefined && item.unitDecimals >= 0 ? item.unitDecimals
+                                                                    : metricDecimals(item.metricName);
+}
+
+function _todayItemUnit(item) {
+    var unit = item.shownUnit !== undefined ? item.shownUnit : item.unit;
+    return unit ? " " + unit : "";
+}
+
 // Where it stands: "1.2 of 2 L", "5 of 10 min", "Taken 2 times today, last at 08:30".
 function todayItemProgress(item) {
     if (item.kind === "medication") {
@@ -593,10 +637,10 @@ function todayItemProgress(item) {
         //: Minutes meditated today against the daily goal, e.g. "5 of 10 min"
         return qsTr("%1 of %2 min").arg(Math.floor(item.total)).arg(formatValue(item.goal, 1));
     }
-    var decimals = metricDecimals(item.metricName);
+    var decimals = _todayItemDecimals(item);
     //: Today's total against its daily goal, e.g. "1.2 of 2 L"
-    return qsTr("%1 of %2").arg(formatValue(item.total, decimals))
-            .arg(formatValue(item.goal, decimals) + (item.unit ? " " + item.unit : ""));
+    return qsTr("%1 of %2").arg(formatValue(_todayItemShown(item, item.total), decimals))
+            .arg(formatValue(_todayItemShown(item, item.goal), decimals) + _todayItemUnit(item));
 }
 
 // The amount still to go for a goal: "0.8 L", "5 min"; "" for a medication.
@@ -608,8 +652,8 @@ function todayItemRemaining(item) {
         //: Minutes still to meditate today
         return qsTr("%n min", "", Math.max(1, Math.ceil(item.goal - item.total)));
     }
-    return formatValue(Math.max(0, item.goal - item.total), metricDecimals(item.metricName))
-            + (item.unit ? " " + item.unit : "");
+    return formatValue(_todayItemShown(item, Math.max(0, item.goal - item.total)), _todayItemDecimals(item))
+            + _todayItemUnit(item);
 }
 
 // What is left: "0.8 L left", "Not taken yet", "Done".

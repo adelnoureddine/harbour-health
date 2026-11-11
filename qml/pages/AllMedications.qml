@@ -16,6 +16,13 @@ Page {
     // as soon as it became active.
     property string loadedFrom: ""
 
+    // Also called by the window when the app comes back or the day turns.
+    function reloadIfStale() {
+        if (DataManager.dataKey() !== loadedFrom) {
+            refresh();
+        }
+    }
+
     function refresh() {
         loadedFrom = DataManager.dataKey();
         listModel.clear();
@@ -128,7 +135,9 @@ Page {
     }
 
     onStatusChanged: {
-        if (status === PageStatus.Active && DataManager.dataKey() !== loadedFrom) refresh();
+        if (status === PageStatus.Active) {
+            reloadIfStale();
+        }
     }
 
     Component.onCompleted: refresh()

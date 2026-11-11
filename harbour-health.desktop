@@ -9,4 +9,4 @@ Comment=Private on-device health and fitness tracker
 [X-Sailjail]
 OrganizationName=org.noureddine
 ApplicationName=Health
-Permissions=Documents
+Permissions=Documents;Downloads;RemovableMedia

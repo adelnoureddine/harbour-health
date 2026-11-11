@@ -6,6 +6,9 @@ import "../js/utils.js" as Utils
 /*
  * Starts a new cycle, or corrects one from the cycle history. Past cycles could only
  * be deleted before, so a wrong date could not be fixed.
+ *
+ * A cycle starts with a period and runs until the next cycle starts; its end date is
+ * the last day of that period.
  */
 Dialog {
     id: dialog
@@ -26,15 +29,35 @@ Dialog {
     // Start days of the profile's other cycles, and the latest of them for context.
     property var otherStarts: []
     property string previousStart: ""
+    // The other cycles as [{start, end}] ("YYYY-MM-DD", end "" when not recorded).
+    property var others: []
 
     readonly property string startDay: Utils.toLocalDateString(startDate)
+    readonly property string endDay: hasEndDate ? Utils.toLocalDateString(endDate) : ""
+    readonly property string today: Utils.toLocalDateString(new Date())
     // Compared as days: both defaults are "now", a few milliseconds apart, so comparing
     // the dates themselves could flag today as before today.
-    readonly property bool endBeforeStart: hasEndDate && Utils.toLocalDateString(endDate) < startDay
+    readonly property bool endBeforeStart: hasEndDate && endDay < startDay
     // Two cycles on one day make a zero-day cycle, which the lengths and the average skip.
     readonly property bool startTaken: otherStarts.indexOf(startDay) >= 0
+    // A start next week gave "Day -3" on the cycle page.
+    readonly property bool inFuture: startDay > today || (hasEndDate && endDay > today)
+    // The period would run into another cycle: it starts before an earlier period has
+    // ended, or ends on or after the day the next cycle starts.
+    readonly property bool overlaps: {
+        for (var i = 0; i < others.length; i++) {
+            var other = others[i];
+            if (other.start < startDay && other.end !== "" && other.end >= startDay) {
+                return true;
+            }
+            if (other.start > startDay && endDay !== "" && endDay >= other.start) {
+                return true;
+            }
+        }
+        return false;
+    }
 
-    canAccept: profileId >= 0 && !endBeforeStart && !startTaken
+    canAccept: profileId >= 0 && !endBeforeStart && !startTaken && !inFuture && !overlaps
 
     onAccepted: {
         var startStr = Utils.toLocalDateString(startDate);
@@ -90,15 +113,17 @@ Dialog {
             }
 
             TextSwitch {
-                text: qsTr("Has end date")
-                description: qsTr("Leave off while the cycle is still going on.")
+                //: Switch in the cycle dialog: the period of this cycle is over
+                text: qsTr("The period has ended")
+                description: qsTr("Leave off while the period is still going on. The cycle itself runs until the next one starts.")
                 checked: dialog.hasEndDate
                 automaticCheck: false
                 onClicked: dialog.hasEndDate = !dialog.hasEndDate
             }
 
             ValueButton {
-                label: qsTr("End date")
+                //: Label of the date the period of a cycle ended
+                label: qsTr("Last day of the period")
                 value: Qt.formatDate(dialog.endDate, Qt.DefaultLocaleShortDate)
                 visible: dialog.hasEndDate
                 onClicked: {
@@ -119,6 +144,26 @@ Dialog {
                 color: Theme.errorColor
                 visible: dialog.endBeforeStart
                 text: qsTr("The end date is before the start date.")
+            }
+
+            Label {
+                x: Theme.horizontalPageMargin
+                width: parent.width - 2 * Theme.horizontalPageMargin
+                wrapMode: Text.Wrap
+                font.pixelSize: Theme.fontSizeExtraSmall
+                color: Theme.errorColor
+                visible: dialog.inFuture
+                text: qsTr("A cycle is recorded once it has started: this date is in the future.")
+            }
+
+            Label {
+                x: Theme.horizontalPageMargin
+                width: parent.width - 2 * Theme.horizontalPageMargin
+                wrapMode: Text.Wrap
+                font.pixelSize: Theme.fontSizeExtraSmall
+                color: Theme.errorColor
+                visible: dialog.overlaps && !dialog.endBeforeStart && !dialog.startTaken
+                text: qsTr("These dates run into the period of another cycle.")
             }
 
             TextField {
@@ -149,12 +194,16 @@ Dialog {
         if (profileId >= 0) {
             var cycles = DataManager.getMenstrualCycles(profileId);
             var starts = [];
+            var rest = [];
             for (var i = 0; i < cycles.length; i++) {
                 if (cycles[i].id !== cycleId) {
                     starts.push(String(cycles[i].startDate));
+                    rest.push({ start: String(cycles[i].startDate),
+                                end: cycles[i].endDate ? String(cycles[i].endDate) : "" });
                 }
             }
             otherStarts = starts;
+            others = rest;
             // Newest first.
             previousStart = starts.length > 0 ? starts[0] : "";
         }

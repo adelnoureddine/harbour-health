@@ -25,7 +25,15 @@ Page {
     property var chartStats: null
     property var currentValue: null
     property string currentLabel: ""
-    property string currentColor: ""
+    property color currentColor: "transparent"
+    // When the weight or waist it is worked out from was measured.
+    property string currentTimestamp: ""
+    property string profileName: ""
+    // The period the chart spans (ms), null for "All".
+    property var rangeStart: null
+    property var rangeEnd: null
+    // Set once the range has been chosen, by the first refresh or by the user.
+    property bool rangeSettled: false
 
     // The history list follows the chart range, so it cannot tell "nothing in this
     // period" from "nothing at all"; the current value can. With nothing to calculate
@@ -58,7 +66,12 @@ Page {
         }
         var key = DataManager.dataKey();
 
+        var profile = DataManager.getProfile(profileId);
+        profileName = profile ? profile.firstName : "";
+
         var since = DataManager.sinceForDays(rangeDays, false);
+        rangeStart = since === null ? null : DataManager.timestampToMs(since);
+        rangeEnd = since === null ? null : Date.now();
         var points = isWHtR ? DataManager.getWHtRSeries(profileId, since)
                    : isBMI ? DataManager.getBMISeries(profileId, since)
                    : [];
@@ -72,9 +85,11 @@ Page {
         chartBands = DataManager.getConstraintsForMetric(bandKey);
 
         currentValue = DataManager.calculateMetrics(profileId, calculate);
-        var match = DataManager.matchConstraint(bandKey, currentValue);
-        currentLabel = match === null ? "" : Utils.constraintLabelDisplayName(match.label);
-        currentColor = match === null ? "" : Utils.constraintColor(match.color);
+        var band = Utils.bandFor(DataManager.matchConstraint(bandKey, currentValue));
+        currentLabel = band.label;
+        currentColor = band.color;
+        var source = currentValue === null ? null : DataManager.getLatestLog(profileId, inputMetric);
+        currentTimestamp = source ? source.timestamp : "";
 
         historyModel.clear();
         var rows = [];
@@ -86,6 +101,21 @@ Page {
         }
         loaded = true;
         loadedFrom = key;
+        // A last weight older than the default year used to give a value above an empty
+        // chart and an empty list. Show everything instead, as the other history pages do.
+        if (!rangeSettled) {
+            rangeSettled = true;
+            if (currentValue !== null && points.length === 0) {
+                rangeDays = 0;
+            }
+        }
+    }
+
+    // Also called by the window when the app comes back or the day turns.
+    function reloadIfStale() {
+        if (DataManager.dataKey() !== loadedFrom) {
+            refresh();
+        }
     }
 
     onRangeDaysChanged: refresh()
@@ -118,42 +148,33 @@ Page {
 
             PageHeader {
                 title: page.title
+                description: page.profileName
             }
 
-            Column {
-                width: parent.width
-                spacing: 0
+            // The same top as the other history pages: the value in the text colour and
+            // its band in a pill. The value itself used to be painted in the band's
+            // colour, a green or orange that is hard to read on a light ambience.
+            HistoryHero {
+                x: Theme.horizontalPageMargin
+                width: parent.width - 2 * Theme.horizontalPageMargin
                 visible: page.hasData
-
-                Label {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    text: page.currentValue === null ? "—" : Utils.formatValue(page.currentValue, page.decimals)
-                    font.pixelSize: Theme.fontSizeHuge
-                    color: page.currentColor !== "" ? page.currentColor : Theme.primaryColor
-                }
-
-                Label {
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    text: page.currentLabel
-                    visible: text !== ""
-                    font.pixelSize: Theme.fontSizeSmall
-                    color: page.currentColor !== "" ? page.currentColor : Theme.secondaryColor
-                }
+                valueText: page.currentValue === null ? "—" : Utils.formatValue(page.currentValue, page.decimals)
+                unit: page.metricUnit
+                detailText: Utils.measuredWhen(page.currentTimestamp, appWindow.today)
+                bandLabel: page.currentLabel
+                bandColor: page.currentColor
             }
 
             Label {
                 x: Theme.horizontalPageMargin
                 width: parent.width - 2 * Theme.horizontalPageMargin
                 wrapMode: Text.Wrap
-                horizontalAlignment: Text.AlignHCenter
                 font.pixelSize: Theme.fontSizeExtraSmall
                 color: Theme.secondaryColor
                 visible: (page.isBMI || page.isWHtR) && page.hasData
                 text: page.isWHtR
                       ? qsTr("Calculated from your waist and the height recorded at the time. An estimate, not a diagnosis: a common rule of thumb is to keep your waist below half your height, and cut-offs vary with age and ethnicity.")
-                      : page.currentValue === null
-                        ? qsTr("Record a weight and a height to see your BMI.")
-                        : qsTr("Calculated from your weight and the height recorded at the time.")
+                      : qsTr("Calculated from your weight and the height recorded at the time.")
             }
 
             // Where to measure: readings taken at different spots are not comparable.
@@ -161,7 +182,6 @@ Page {
                 x: Theme.horizontalPageMargin
                 width: parent.width - 2 * Theme.horizontalPageMargin
                 wrapMode: Text.Wrap
-                horizontalAlignment: Text.AlignHCenter
                 font.pixelSize: Theme.fontSizeExtraSmall
                 color: Theme.secondaryColor
                 visible: page.isWHtR && page.hasData
@@ -177,6 +197,8 @@ Page {
                 unit: page.metricUnit
                 decimals: page.decimals
                 emptyText: qsTr("No data in this period")
+                rangeStart: page.rangeStart
+                rangeEnd: page.rangeEnd
             }
 
             ChartRangeSelector {
@@ -272,8 +294,8 @@ Page {
     }
 
     onStatusChanged: {
-        if (status === PageStatus.Active && DataManager.dataKey() !== loadedFrom) {
-            refresh();
+        if (status === PageStatus.Active) {
+            reloadIfStale();
         }
     }
 }

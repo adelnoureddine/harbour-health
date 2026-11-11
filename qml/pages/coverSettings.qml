@@ -254,7 +254,7 @@ Page {
                     visible: page.todayMode
                     wrapMode: Text.Wrap
                     //: %1 is an amount in millilitres
-                    text: qsTr("One cover action opens the Today page. The other adds %1 ml of water when water is on the list, or a new measurement otherwise.").arg(250)
+                    text: qsTr("One cover action opens the Today page. The other adds %1 ml of water when water is on the list, or a new measurement otherwise.").arg(Math.round(DataManager.waterGlass().litres * 1000))
                     font.pixelSize: Theme.fontSizeExtraSmall
                     color: Theme.secondaryColor
                 }
@@ -264,7 +264,7 @@ Page {
                     visible: !page.todayMode && page.waterShown
                     wrapMode: Text.Wrap
                     //: %1 is an amount in millilitres
-                    text: qsTr("With water on the cover, a cover action adds %1 ml without opening the app.").arg(250)
+                    text: qsTr("With water on the cover, a cover action adds %1 ml without opening the app.").arg(Math.round(DataManager.waterGlass().litres * 1000))
                     font.pixelSize: Theme.fontSizeExtraSmall
                     color: Theme.secondaryColor
                 }

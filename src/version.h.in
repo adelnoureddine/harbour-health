@@ -1,0 +1,5 @@
+// version.h is written by qmake from this file, into the build folder (QMAKE_SUBSTITUTES
+// in harbour-health.pro). It changes when the version does, and what includes it is then
+// compiled again. Passed as a -D option instead, a new version left the old one in an
+// object file that was already built: the About page of a 2.0 package said 1.9.
+#define APP_VERSION '"$$APP_VERSION"'

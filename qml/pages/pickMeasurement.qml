@@ -72,7 +72,9 @@ Page {
             if (!log) {
                 return null;
             }
-            valueText = Utils.formatValue(log.value) + (unit ? " " + unit : "");
+            var shownUnit = DataManager.displayUnit(name, unit);
+            valueText = Utils.formatValue(DataManager.toDisplay(name, log.value), DataManager.displayDecimals(name, 2))
+                    + (shownUnit ? " " + shownUnit : "");
             timestamp = log.timestamp;
         }
         return { ms: DataManager.timestampToMs(timestamp), hint: Utils.lastReadingText(valueText, timestamp) };

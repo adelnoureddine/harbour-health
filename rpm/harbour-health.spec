@@ -9,7 +9,7 @@ Name:       harbour-health
 # << macros
 
 Summary:    Health
-Version:    1.1
+Version:    2.0
 Release:    1
 Group:      Qt/Qt
 License:    GPL-3.0-only
@@ -17,6 +17,7 @@ URL:        https://github.com/adelnoureddine/harbour-health
 Source0:    %{name}-%{version}.tar.bz2
 Source100:  harbour-health.yaml
 Requires:   sailfishsilica-qt5 >= 0.10.9
+Requires:   libkeepalive
 BuildRequires:  pkgconfig(sailfishapp) >= 1.0.2
 BuildRequires:  pkgconfig(Qt5Core)
 BuildRequires:  pkgconfig(Qt5Qml)
@@ -26,7 +27,8 @@ BuildRequires:  desktop-file-utils
 
 %description
 Health is a private, on-device health tracker for SailfishOS.
-It is not medical advice and must not be used for diagnosis or treatment decisions.
+It is not medical advice and must not be used for diagnosis or treatment
+decisions.
 
 
 %prep
@@ -39,7 +41,8 @@ It is not medical advice and must not be used for diagnosis or treatment decisio
 # >> build pre
 # << build pre
 
-%qmake5 
+%qmake5  \
+    APP_VERSION=%{version}
 
 make %{?_smp_mflags}
 

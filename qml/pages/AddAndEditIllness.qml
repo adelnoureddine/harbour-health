@@ -19,12 +19,15 @@ Dialog {
     property date startDate: new Date()
     property date endDate: new Date()
     property bool hasEndDate: false
+    // False for a condition stored without a start date (older versions, restores): it
+    // stays without one unless a date is picked. Saving an edit used to set it to today.
+    property bool startKnown: true
     property string note
 
     readonly property bool editing: conditionId !== -1
     // Compared as calendar days: a start of "now" against an end picked as today
     // (midnight) used to count as the end coming first.
-    readonly property bool datesValid: !hasEndDate
+    readonly property bool datesValid: !hasEndDate || !startKnown
                                        || Utils.toLocalDateString(endDate) >= Utils.toLocalDateString(startDate)
 
     // Loaded once, not on every PageStatus.Active: returning from the date picker
@@ -45,6 +48,8 @@ Dialog {
         var start = Utils.fromLocalDateString(condition.startDate);
         if (start !== null) {
             startDate = start;
+        } else {
+            startKnown = false;
         }
         if (condition.endDate) {
             var end = Utils.fromLocalDateString(condition.endDate);
@@ -60,7 +65,7 @@ Dialog {
     canAccept: profileId >= 0 && nameField.text.trim() !== "" && datesValid
 
     onAccepted: {
-        var startStr = Utils.toLocalDateString(startDate);
+        var startStr = startKnown ? Utils.toLocalDateString(startDate) : null;
         var endStr = hasEndDate ? Utils.toLocalDateString(endDate) : null;
 
         if (conditionId === -1) {
@@ -136,13 +141,15 @@ Dialog {
 
             ValueButton {
                 label: qsTr("Start date")
-                value: Utils.formatDate(dialog.startDate)
+                //: Shown instead of a start date when none was ever recorded
+                value: dialog.startKnown ? Utils.formatDate(dialog.startDate) : qsTr("Not recorded")
                 onClicked: {
                     var dateDialog = pageStack.push("Sailfish.Silica.DatePickerDialog", {
                         date: dialog.startDate
                     })
                     dateDialog.accepted.connect(function() {
                         dialog.startDate = dateDialog.date;
+                        dialog.startKnown = true;
                     })
                 }
             }

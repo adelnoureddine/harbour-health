@@ -1,0 +1,36 @@
+# Changelog of the package, included in the RPM. Newest entries first, separated by a
+# blank line:
+#
+# * date Author's Name <author's email> version-release
+# - Summary of changes
+
+* Wed Nov 11 2026 Adel Noureddine 2.0-1
+- Completely redesigned interface: a dashboard of cards that can be arranged, with
+  trends and daily goal rings.
+- New Today page and cover mode: what is left for the day (goals, meditation,
+  medications), with streaks for goals met several days running.
+- New measurements: waist, waist-to-height ratio and calories burned.
+- Units: kilograms or pounds, centimetres or inches, litres or fluid ounces, mg/dL or
+  mmol/L. Stored data is unchanged whatever is chosen.
+- Charts: bars for daily totals, a line for the daily goal or a weight target, and the
+  whole chosen period on the time axis.
+- Backups: automatic private copies, a copy before every restore, a summary before
+  restoring, restore from Downloads or a memory card, delete old backups, and CSV
+  files for every kind of data.
+- Fixed: a restore that failed part way could delete the existing data.
+- Fixed: the dashboard kept old values after adding water from the cover, and
+  yesterday's totals when left open overnight.
+- Cycle tracking: a cycle's end date is the last day of the period, and the cycle
+  counts on until the next one starts.
+- Medication: a name can be corrected without losing logged intakes.
+- Meditation: the screen stays on, the phone vibrates at the target, and a session is
+  saved when the page is left.
+- Values outside what a measurement can be are refused (250 typed into litres).
+- Light ambiences: lighter cards, so the text on them is readable.
+- French translation, and Swedish translation by eson57.
+- Many more fixes and performance improvements.
+
+* Wed Aug 19 2026 Adel Noureddine 1.0-1
+- First stable release.
+- History graphs for every metric, with editable reference ranges.
+- Backup and restore, plus CSV export of all measurements.

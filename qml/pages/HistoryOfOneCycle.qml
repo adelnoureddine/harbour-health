@@ -14,6 +14,8 @@ Page {
     property string note
     // From the cycle history (see its cycleLength): -1 while the cycle is in progress.
     property int lengthDays: -1
+    // The day the next cycle started ("" for the newest): this cycle's days end before it.
+    property string nextStart: ""
 
     property string profileName: ""
     // What the page last loaded (see DataManager.dataKey). Coming back from a
@@ -21,10 +23,10 @@ Page {
     property string loadedFrom: ""
     property bool loaded: false
 
-    // A cycle opened without its length still shows one once it has an end date. An
-    // unparsable date counts as 0 days, so the page reads day 1 rather than NaN.
-    readonly property int shownLength: lengthDays >= 0 ? lengthDays
-                                     : endDate ? (Utils.daysBetween(startDate, endDate) || 0) + 1 : -1
+    // The cycle's length, start to next start; -1 while it is the current one. (The end
+    // date is the last day of the period and says nothing about the cycle's length.)
+    // An unparsable date counts as 0 days, so the page reads day 1 rather than NaN.
+    readonly property int shownLength: lengthDays
     readonly property int currentDay: (Utils.daysBetween(startDate, new Date()) || 0) + 1
 
     function refresh() {
@@ -32,14 +34,11 @@ Page {
             var key = DataManager.dataKey();
             var profile = DataManager.getProfile(profileId);
             profileName = profile ? profile.firstName : "";
-            var logs = DataManager.getMenstrualLogs(profileId);
-            var rows = [];
-            for (var i = 0; i < logs.length; i++) {
-                var log = logs[i];
-                if (log.date >= startDate && (!endDate || log.date <= endDate)) {
-                    rows.push(log);
-                }
-            }
+            // The days of this cycle: from its start to the day before the next cycle.
+            // They used to stop at the end date, so entries made after the period (pain
+            // or energy mid-cycle) were in no cycle's list, and a cycle without an end
+            // date listed every later cycle's days as its own.
+            var rows = DataManager.getMenstrualLogsOfCycle(profileId, startDate, nextStart);
             logsModel.clear();
             if (rows.length > 0) {
                 logsModel.append(rows);
@@ -115,14 +114,16 @@ Page {
                         Label {
                             width: parent.width
                             truncationMode: TruncationMode.Fade
-                            text: qsTr("End date")
+                            //: Caption over the last day of a cycle's period
+                            text: qsTr("Period ended on")
                             font.pixelSize: Theme.fontSizeSmall
                             color: Theme.secondaryHighlightColor
                         }
                         Label {
                             width: parent.width
                             truncationMode: TruncationMode.Fade
-                            text: page.endDate ? Utils.formatDate(page.endDate) : qsTr("Ongoing")
+                            //: Shown instead of a date when a period's last day was not recorded
+                            text: page.endDate ? Utils.formatDate(page.endDate) : qsTr("Not recorded")
                             color: Theme.primaryColor
                         }
                     }
@@ -244,7 +245,7 @@ Page {
                         Label {
                             id: sleepValue
                             anchors.verticalCenter: parent.verticalCenter
-                            text: qsTr("%1 hours").arg(Utils.formatValue(model.sleepTime, 1))
+                            text: Utils.sleepHoursText(model.sleepTime)
                             font.pixelSize: Theme.fontSizeSmall
                             color: logItem.highlighted ? Theme.highlightColor : Theme.primaryColor
                         }
@@ -272,9 +273,16 @@ Page {
         id: logsModel
     }
 
-    onStatusChanged: {
-        if (status === PageStatus.Active && DataManager.dataKey() !== loadedFrom) {
+    // Also called by the window when the app comes back or the day turns.
+    function reloadIfStale() {
+        if (DataManager.dataKey() !== loadedFrom) {
             refresh();
+        }
+    }
+
+    onStatusChanged: {
+        if (status === PageStatus.Active) {
+            reloadIfStale();
         }
     }
 }

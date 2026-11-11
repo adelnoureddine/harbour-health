@@ -15,13 +15,16 @@ Dialog {
     property date startDate: new Date()
     property date endDate: new Date()
     property bool hasEndDate: false
+    // False for a treatment stored without a start date (older versions, restores): it
+    // stays without one unless a date is picked. Saving an edit used to set it to today.
+    property bool startKnown: true
     // The condition being treated, shown under the header for context.
     property string conditionName: ""
 
     readonly property bool editing: treatmentId >= 0
     // Compared as calendar days: a start of "now" against an end picked as today
     // (midnight) used to count as the end coming first.
-    readonly property bool datesValid: !hasEndDate
+    readonly property bool datesValid: !hasEndDate || !startKnown
                                        || Utils.toLocalDateString(endDate) >= Utils.toLocalDateString(startDate)
 
     canAccept: profileId >= 0 && nameField.text.trim() !== "" && dosageField.text.trim() !== ""
@@ -52,6 +55,8 @@ Dialog {
         var start = Utils.fromLocalDateString(treatment.startDate);
         if (start !== null) {
             startDate = start;
+        } else {
+            startKnown = false;
         }
         if (treatment.endDate) {
             var end = Utils.fromLocalDateString(treatment.endDate);
@@ -63,18 +68,20 @@ Dialog {
     }
 
     onAccepted: {
-        var medId = medicationId;
-        if (medId === -1) {
-            medId = DataManager.addMedication(nameField.text.trim(), "pill", "mg");
-        }
-        var startStr = Utils.toLocalDateString(startDate);
+        var name = nameField.text.trim();
+        var startStr = startKnown ? Utils.toLocalDateString(startDate) : null;
         var endStr = hasEndDate ? Utils.toLocalDateString(endDate) : null;
         if (!editing) {
-            DataManager.addTreatment(profileId, medId, conditionId, dosageField.text.trim(),
-                                     frequencyField.text.trim(), startStr, endStr, notesField.text.trim());
+            // The medication is found by its name, or created: the same one prescribed
+            // for two conditions is one medication, listed once, with one intake history.
+            DataManager.addTreatmentFor(profileId, name, conditionId, dosageField.text.trim(),
+                                        frequencyField.text.trim(), startStr, endStr, notesField.text.trim());
         } else {
             DataManager.updateTreatment(treatmentId, dosageField.text.trim(), frequencyField.text.trim(),
                                         startStr, endStr, notesField.text.trim());
+            if (name !== medicationName) {
+                DataManager.setTreatmentMedicationName(treatmentId, name);
+            }
         }
     }
 
@@ -112,9 +119,9 @@ Dialog {
                 label: qsTr("Medication name")
                 text: dialog.medicationName
                 placeholderText: label
-                // The medication itself is shared between treatments; renaming it
-                // here would rewrite every other treatment that uses it.
-                enabled: !dialog.editing
+                // Editable when editing too: a misspelt name could only be fixed by
+                // deleting the treatment and adding it again, which deleted every intake
+                // logged for it. DataManager.setTreatmentMedicationName keeps them.
                 focus: !dialog.editing
                 onActiveFocusChanged: {
                     if (!activeFocus) {
@@ -172,13 +179,15 @@ Dialog {
 
             ValueButton {
                 label: qsTr("Start date")
-                value: Utils.formatDate(dialog.startDate)
+                //: Shown instead of a start date when none was ever recorded
+                value: dialog.startKnown ? Utils.formatDate(dialog.startDate) : qsTr("Not recorded")
                 onClicked: {
                     var dateDialog = pageStack.push("Sailfish.Silica.DatePickerDialog", {
                         date: dialog.startDate
                     })
                     dateDialog.accepted.connect(function() {
                         dialog.startDate = dateDialog.date;
+                        dialog.startKnown = true;
                     })
                 }
             }

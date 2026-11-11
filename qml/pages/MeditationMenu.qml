@@ -28,15 +28,15 @@ Page {
     property string loadedFrom: ""
     property bool loaded: false
 
-    // Local midnight starting this calendar week, by the locale's first day of the week
-    // (Locale.Sunday is 0, as in Date.getDay()).
+    // The moment this week began, by the locale's first day of the week (Locale.Sunday
+    // is 0, as in Date.getDay()), at the hour a day begins for the daily goal: a session
+    // at 01:00 on Monday counted for the new week but for Sunday's goal.
     function weekStart() {
         var first = Qt.locale().firstDayOfWeek;
         if (first === undefined || first === null || isNaN(first)) {
             first = 1;
         }
-        var d = new Date();
-        d.setHours(0, 0, 0, 0);
+        var d = DataManager.dayStart();
         d.setDate(d.getDate() - ((d.getDay() - first + 7) % 7));
         return d;
     }
@@ -177,7 +177,7 @@ Page {
                     visible: page.lastDate !== ""
                     wrapMode: Text.Wrap
                     //: %1 is when the latest session was ("Yesterday", "Today, 07:40"), %2 its length
-                    text: qsTr("Last session: %1 · %2").arg(Utils.relativeTime(page.lastDate, true))
+                    text: qsTr("Last session: %1 · %2").arg(Utils.relativeTime(page.lastDate, true, appWindow.today))
                                                        .arg(Utils.formatDuration(page.lastDuration))
                     font.pixelSize: Theme.fontSizeExtraSmall
                     color: Theme.secondaryColor
@@ -225,7 +225,7 @@ Page {
                             anchors.right: parent.right
                             anchors.rightMargin: Theme.horizontalPageMargin
                             anchors.verticalCenter: parent.verticalCenter
-                            text: Utils.relativeTime(model.date, true)
+                            text: Utils.relativeTime(model.date, true, appWindow.today)
                             font.pixelSize: Theme.fontSizeExtraSmall
                             color: sessionItem.highlighted ? Theme.secondaryHighlightColor : Theme.secondaryColor
                         }
@@ -247,9 +247,16 @@ Page {
         id: recentModel
     }
 
-    onStatusChanged: {
-        if (status === PageStatus.Active && DataManager.dataKey() !== loadedFrom) {
+    // Also called by the window when the app comes back or the day turns.
+    function reloadIfStale() {
+        if (DataManager.dataKey() !== loadedFrom) {
             refresh();
+        }
+    }
+
+    onStatusChanged: {
+        if (status === PageStatus.Active) {
+            reloadIfStale();
         }
     }
 }

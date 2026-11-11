@@ -13,28 +13,33 @@ Column {
     property int profileId: -1
     property string metricName: ""
 
+    // Everything here is as shown: in the unit chosen in Units.
     property string unit: ""
     property bool grouped: false
     property var value: null
     property real total: 0
     property var goal: null
     property var trend: []
+    property int decimals: 2
 
     function refresh() {
         if (profileId < 0 || metricName === "") {
             return;
         }
-        unit = DataManager.getMetricUnit(metricName) || "";
+        unit = DataManager.displayUnit(metricName, DataManager.getMetricUnit(metricName) || "");
         grouped = DataManager.getMetricGrouped(metricName) ? true : false;
         if (grouped) {
             var t = DataManager.getTodayTotal(profileId, metricName);
-            total = t === null ? 0 : t;
-            goal = DataManager.getGoal(profileId, metricName);
+            var g = DataManager.getActiveGoal(profileId, metricName);
+            decimals = DataManager.displayDecimals(metricName, Utils.metricDecimals(metricName));
+            total = DataManager.toDisplay(metricName, t === null ? 0 : t);
+            goal = g === null ? null : DataManager.toDisplay(metricName, g);
             return;
         }
         // The same trend as the dashboard card; it ends with the latest reading.
         var series = DataManager.getTrend(profileId, metricName);
-        value = series.length > 0 ? series[series.length - 1].v : null;
+        decimals = DataManager.displayDecimals(metricName, 2);
+        value = series.length > 0 ? DataManager.toDisplay(metricName, series[series.length - 1].v) : null;
         trend = series.map(function (point) { return point.v; });
     }
 
@@ -60,7 +65,7 @@ Column {
             id: valueLabel
             width: Math.min(implicitWidth, parent.width - unitLabel.width - parent.spacing)
             truncationMode: TruncationMode.Fade
-            text: root.value === null ? "—" : Utils.formatValue(root.value)
+            text: root.value === null ? "—" : Utils.formatValue(root.value, root.decimals)
             font.pixelSize: Theme.fontSizeExtraLarge
             color: Theme.primaryColor
         }
@@ -109,7 +114,7 @@ Column {
                     id: totalLabel
                     width: Math.min(implicitWidth, parent.width - (totalUnit.visible ? totalUnit.width + parent.spacing : 0))
                     truncationMode: TruncationMode.Fade
-                    text: Utils.formatValue(root.total, Utils.metricDecimals(root.metricName))
+                    text: Utils.formatValue(root.total, root.decimals)
                     font.pixelSize: Theme.fontSizeLarge
                     color: Theme.primaryColor
                 }
@@ -126,7 +131,7 @@ Column {
                 width: parent.width
                 visible: root.goal !== null
                 truncationMode: TruncationMode.Fade
-                text: root.goal === null ? "" : qsTr("of %1 %2").arg(Utils.formatValue(root.goal)).arg(root.unit)
+                text: root.goal === null ? "" : qsTr("of %1 %2").arg(Utils.formatValue(root.goal, root.decimals)).arg(root.unit)
                 font.pixelSize: Theme.fontSizeExtraSmall
                 color: Theme.secondaryColor
             }
