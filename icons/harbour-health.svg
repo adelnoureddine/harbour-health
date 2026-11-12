@@ -1,95 +1,33 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Health app icon. Copyright (c) 2022-2026, Adel Noureddine (GPL-3.0-only).
+  A heart with a pulse line, in the badge style of the other apps. The PNGs in
+  icons/<size>/ are rendered from this file with tools/render_app_icon.js.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <defs>
+    <linearGradient id="badgeFill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F4566F"/>
+      <stop offset="1" stop-color="#D42E4E"/>
+    </linearGradient>
+    <linearGradient id="heartShade" gradientUnits="userSpaceOnUse" x1="0" y1="52" x2="0" y2="214">
+      <stop offset="0.55" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#FFDCE3"/>
+    </linearGradient>
+  </defs>
 
-<svg
-   width="210mm"
-   height="297mm"
-   viewBox="0 0 210 297"
-   version="1.1"
-   id="svg1"
-   inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
-   sodipodi:docname="harbour-health.svg"
-   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
-   xmlns="http://www.w3.org/2000/svg"
-   xmlns:svg="http://www.w3.org/2000/svg">
-  <sodipodi:namedview
-     id="namedview1"
-     pagecolor="#ffffff"
-     bordercolor="#000000"
-     borderopacity="0.25"
-     inkscape:showpageshadow="2"
-     inkscape:pageopacity="0.0"
-     inkscape:pagecheckerboard="0"
-     inkscape:deskcolor="#d1d1d1"
-     inkscape:document-units="mm"
-     inkscape:zoom="1.5491933"
-     inkscape:cx="397.30355"
-     inkscape:cy="561.25985"
-     inkscape:window-width="3840"
-     inkscape:window-height="2036"
-     inkscape:window-x="-12"
-     inkscape:window-y="-12"
-     inkscape:window-maximized="1"
-     inkscape:current-layer="layer1" />
-  <defs
-     id="defs1" />
-  <g
-     inkscape:label="Calque 1"
-     inkscape:groupmode="layer"
-     id="layer1">
-    <g
-       id="g41"
-       transform="matrix(6.7520303,0,0,6.7520303,-611.59889,-595.69463)"
-       inkscape:export-filename="harbour-health.png"
-       inkscape:export-xdpi="14.317837"
-       inkscape:export-ydpi="14.317837">
-      <g
-         id="g2-2"
-         transform="matrix(0.26458333,0,0,0.26458333,94.85801,95.211142)"
-         style="fill:#ff0000">
-        <radialGradient
-           id="SVGID_1_-11"
-           cx="40.4091"
-           cy="43.466"
-           r="42.6105"
-           gradientTransform="matrix(1.0021,0,0,1.0021,2.506,-0.5573)"
-           gradientUnits="userSpaceOnUse">
-          <stop
-             offset="0"
-             style="stop-color:#868688"
-             id="stop1-32" />
-          <stop
-             offset="1"
-             style="stop-color:#DADADA"
-             id="stop2-53" />
-        </radialGradient>
-        <circle
-           fill="url(#SVGID_1_)"
-           cx="43"
-           cy="43"
-           r="42.700001"
-           id="circle2-5"
-           style="fill:#ff0000" />
-      </g>
-      <g
-         id="g4-48"
-         transform="matrix(0.18421261,-0.18992117,0.18992117,0.18421261,90.019945,103.28505)"
-         style="fill:#ffffff">
-        <path
-           fill="#ff1a4f"
-           d="m 45.883,40.321 c -0.07,0 -0.137,0.01 -0.206,0.01 0,-0.004 0,-0.007 0,-0.01 0,-9.682 -7.849,-17.532 -17.531,-17.532 -9.682,0 -17.532,7.849 -17.532,17.532 0,0.521 0,34.101 0,34.101 0,0.531 0.431,0.962 0.962,0.962 0,0 33.726,0 34.306,0 9.682,0 17.531,-7.849 17.531,-17.531 0.001,-9.683 -7.848,-17.532 -17.53,-17.532 z"
-           id="path4-49"
-           style="fill:#ffffff" />
-      </g>
-      <path
-         d="m 98.917551,107.25398 h 2.244139 l 0.32575,-0.97727 0.30766,0.97727 h 0.32577 l 0.14478,0.45244 0.36194,-6.2256 0.54294,8.77731 0.28956,-3.00415 0.7782,-0.0181 c 0,0 0.6515,-0.90487 1.3754,0 l 1.12205,-0.0181 0.38006,-0.94108 0.30764,0.90486 0.30766,0.0362 0.12669,0.47053 0.41625,-6.06265 0.52482,8.63257 0.27147,-3.04044 0.88678,0.0362 c 0.0323,-0.003 0.61468,-0.90853 1.33925,-0.0181 l 2.09926,-0.0181"
-         fill="none"
-         stroke-linecap="round"
-         stroke-linejoin="round"
-         stroke-width="0.356815"
-         id="path2-94"
-         style="stroke:#808000;stroke-miterlimit:10" />
-    </g>
-  </g>
+  <!-- badge -->
+  <rect x="12" y="12" width="232" height="232" rx="50" fill="url(#badgeFill)"/>
+  <path d="M 40 30 H 216" stroke="#FF9FB1" stroke-width="6" stroke-linecap="round" opacity="0.8"/>
+
+  <!-- heart -->
+  <path d="M 128 214 C 110 201 44 160 44 106 C 44 74 66 52 94 52 C 109 52 121 60 128 74 C 135 60 147 52 162 52 C 190 52 212 74 212 106 C 212 160 146 201 128 214 Z"
+        fill="url(#heartShade)" stroke="#7C1631" stroke-width="9" stroke-linejoin="round"/>
+
+  <!-- pulse -->
+  <path d="M 70 136 H 97 L 108 117 L 121 164 L 136 86 L 151 156 L 159 136 H 186"
+        fill="none" stroke="#D42E4E" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- badge outline -->
+  <rect x="12" y="12" width="232" height="232" rx="50" fill="none" stroke="#7C1631" stroke-width="10"/>
 </svg>

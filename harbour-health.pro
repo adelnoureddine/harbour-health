@@ -35,7 +35,9 @@ HEADERS += \
     src/filewriter.h
 
 OTHER_FILES += \
-    src/version.h.in
+    src/version.h.in \
+    icons/harbour-health.svg \
+    tools/render_app_icon.js
 
 TRANSLATIONS += \
     translations/harbour-health.ts \
